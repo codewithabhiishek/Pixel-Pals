@@ -602,10 +602,10 @@ function MenuScreen(props: {
               </span>
             </div>
 
-            {/* 2. Dominant Game Title with Crisp Stepped Pixel Shadow & Heartbeat Pumping Pulse */}
+            {/* 2. Dominant Game Title with Crisp Stepped Pixel Shadow */}
             <h1
-              className="px-font text-ember retro-title-shadow leading-none tracking-wider select-none anim-title-heartbeat"
-              style={{ fontSize: "clamp(2.6rem, 6.6vw, 4.4rem)" }}
+              className="px-font text-ember retro-title-shadow leading-none tracking-wider select-none"
+              style={{ fontSize: "clamp(2.6rem, 6.6vw, 4.4rem)", animation: "titlePulse 3.2s ease-in-out infinite" }}
             >
               PIXEL PALS
             </h1>
