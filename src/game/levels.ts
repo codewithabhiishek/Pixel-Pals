@@ -108,7 +108,10 @@ class Grid {
 /* ------------------------------------------------ World 1 ------------------------------------------------ */
 function world1(): LevelDef {
   const g = new Grid(132);
-  g.ground(0, 30); g.ground(34, 44); g.ground(48, 72); g.ground(75, 86); g.ground(96, 131);
+  g.ground(0, 30); g.ground(34, 44); g.ground(48, 72); g.ground(75, 86);
+  // safety lower ledge across the chasm so misses are recoverable
+  g.ground(88, 94, 12);
+  g.ground(96, 131);
   g.put(3, 10, "P");
   g.row(6, 9, 9, "o");
   g.put(16, 8, "?"); g.put(17, 8, "Q"); g.put(18, 8, "?");
@@ -126,6 +129,8 @@ function world1(): LevelDef {
   g.put(76, 9, "o"); g.put(78, 8, "o"); g.put(80, 7, "o"); g.put(82, 7, "o");
   g.put(81, 4, "f");
   g.put(85, 10, "w");
+  // lower recovery coins and stepping path
+  g.row(89, 93, 11, "o");
   g.put(89, 7, "o"); g.put(91, 7, "o");
   g.put(99, 10, "w"); g.put(106, 10, "w");
   g.put(103, 10, "="); g.row(104, 105, 8, "="); g.put(104, 6, "H"); g.put(103, 8, "o"); g.put(105, 6, "o");
@@ -138,7 +143,7 @@ function world1(): LevelDef {
   g.put(128, 6, "G");
   return {
     name: "Sunmeadow Sprint", sub: "Green hills and first steps", theme: "meadow",
-    time: 240, speed: 1, cols: 132, rows: g.done(),
+    time: 240, speed: 0.88, cols: 132, rows: g.done(),
     movers: [{ c: 88, r: 9, axis: "x", dist: 5, speed: 1.0, w: 3 }],
   };
 }
@@ -148,14 +153,20 @@ function world2(): LevelDef {
   const g = new Grid(150);
   g.fill(0, 149, 0, 1, "#");
   [10, 35, 36, 70, 105, 130].forEach((c) => g.put(c, 2, "#"));
-  g.ground(0, 22); g.ground(26, 46); g.ground(51, 70); g.ground(74, 96); g.ground(100, 122); g.ground(127, 149);
+  g.ground(0, 22); g.ground(26, 46); g.ground(51, 70); g.ground(74, 96); g.ground(100, 122);
+  // safe crystal stepping ledge in pit at 123-126
+  g.ground(123, 126, 12);
+  g.ground(127, 149);
   g.put(3, 10, "P");
   g.row(6, 8, 9, "o");
   g.put(12, 8, "?"); g.put(13, 8, "B"); g.put(14, 8, "Q");
   g.put(19, 10, "w"); g.put(21, 10, "^");
   g.put(29, 10, "s"); g.row(31, 33, 9, "o");
   g.row(36, 37, 10, "="); g.row(36, 37, 7, "o");
-  g.put(41, 10, "w"); g.put(44, 10, "^"); g.put(45, 10, "^");
+  g.put(41, 10, "w");
+  // warning coins arching over spikes at 44-45
+  g.put(43, 8, "o"); g.put(44, 7, "o"); g.put(45, 7, "o"); g.put(46, 8, "o");
+  g.put(44, 10, "^"); g.put(45, 10, "^");
   g.put(48, 9, "="); g.put(49, 7, "="); g.put(48, 8, "o"); g.put(49, 6, "o");
   g.put(52, 10, "C");
   g.put(57, 7, "?"); g.put(58, 7, "?");
@@ -165,13 +176,14 @@ function world2(): LevelDef {
   g.put(77, 10, "s"); g.row(79, 81, 9, "o");
   g.put(81, 8, "o"); g.put(82, 7, "o"); g.put(83, 8, "o");
   g.put(86, 10, "w"); g.put(88, 10, "w");
+  g.put(91, 8, "o"); g.put(92, 7, "o"); g.put(93, 7, "o");
   g.put(92, 10, "^"); g.put(93, 10, "^");
   g.put(95, 7, "Q");
   g.put(101, 10, "C");
   g.put(105, 4, "f"); g.row(106, 107, 10, "="); g.row(106, 107, 7, "o");
   g.put(111, 10, "w"); g.put(114, 10, "s");
   g.put(116, 8, "B"); g.put(117, 8, "B"); g.put(118, 8, "?"); g.put(119, 8, "B");
-  g.put(124, 7, "o"); g.put(125, 7, "o");
+  g.put(124, 7, "o"); g.put(125, 7, "o"); g.put(125, 11, "o");
   g.put(128, 7, "="); g.put(128, 6, "H");
   g.put(133, 10, "w"); g.put(136, 5, "f");
   g.row(139, 141, 9, "o"); g.put(140, 8, "o");
@@ -252,13 +264,15 @@ function world4(): LevelDef {
   g.put(52, 7, "o"); g.put(54, 7, "o"); g.put(53, 3, "f");
   g.put(58, 10, "C");
   g.put(62, 10, "s");
-  g.put(63, 9, "="); g.row(64, 65, 7, "="); g.row(64, 65, 6, "o");
+  // wooden traction grip platform so players can brake safely on ice
+  g.row(63, 64, 9, "="); g.row(64, 65, 7, "="); g.row(64, 65, 6, "o");
   g.put(68, 10, "w");
   g.fill(71, 72, 9, 10, "#"); g.put(70, 7, "o"); g.put(72, 7, "o");
   g.put(80, 10, "s"); g.put(83, 10, "b"); g.row(85, 87, 9, "o");
   g.put(90, 9, "="); g.put(91, 7, "="); g.put(90, 8, "o"); g.put(91, 6, "o");
   g.put(94, 10, "C");
-  g.row(97, 102, 9, "="); g.put(98, 8, "^"); g.put(99, 10, "^"); g.put(100, 10, "^"); g.put(101, 10, "^");
+  // balanced spikes on ice bridge
+  g.row(97, 102, 9, "="); g.put(98, 8, "o"); g.put(100, 10, "^"); g.put(101, 10, "^");
   g.put(99, 7, "o"); g.put(100, 7, "o");
   g.put(105, 10, "w"); g.put(107, 4, "f");
   g.put(108, 8, "?");
@@ -324,9 +338,16 @@ function world5(): LevelDef {
   g.put(134, 10, "b"); g.put(137, 10, "w"); g.put(140, 10, "s");
   g.put(143, 8, "?"); g.put(144, 9, "o");
   g.put(148, 9, "="); g.put(148, 8, "o");
-  // boss arena
+  // boss arena with pre-boss supply cache and tactical battle ledges
+  g.put(151, 8, "H");
   g.put(153, 8, "Q");
   g.put(156, 9, "o"); g.put(157, 9, "o");
+  // left ledge
+  g.row(161, 163, 8, "="); g.put(162, 7, "o");
+  // high center vantage platform
+  g.row(168, 171, 6, "="); g.put(169, 5, "o"); g.put(170, 5, "o");
+  // right battle perch
+  g.row(176, 178, 8, "="); g.put(177, 7, "o");
   g.put(174, 10, "z");
   return {
     name: "Magmor's Forge", sub: "The Ember King awaits", theme: "forge",

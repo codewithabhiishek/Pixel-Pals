@@ -29,10 +29,20 @@ html, body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
-canvas { image-rendering: pixelated; }
+canvas {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
 
 /* ---------- chunky 8-bit UI kit ---------- */
 .px-font { font-family: "Press Start 2P", monospace; }
+
+.focus-arcade:focus-visible {
+  outline: 3px solid #ffc94d !important;
+  outline-offset: 3px !important;
+}
 
 .btn8 {
   font-family: "Press Start 2P", monospace;
@@ -46,7 +56,7 @@ canvas { image-rendering: pixelated; }
   border: 3px solid #0b1f2c;
   border-radius: 6px;
   box-shadow: 0 5px 0 #0b1f2c, inset 0 3px 0 rgba(255, 255, 255, 0.28);
-  padding: 0.9rem 1.4rem;
+  padding: 0.85rem 1.35rem;
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   cursor: pointer;
@@ -56,10 +66,12 @@ canvas { image-rendering: pixelated; }
 }
 .btn8:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #0b1f2c, inset 0 3px 0 rgba(255,255,255,0.28); background: #ffa057; }
 .btn8:active { transform: translateY(3px); box-shadow: 0 2px 0 #0b1f2c, inset 0 3px 0 rgba(255,255,255,0.2); }
+.btn8:focus-visible { outline: 3px solid #ffc94d; outline-offset: 2px; }
 .btn8.blue { background: #2f8fb8; } .btn8.blue:hover { background: #3ba3cf; }
 .btn8.red { background: #e04f4f; } .btn8.red:hover { background: #ef6161; }
 .btn8.dark { background: #1d4258; } .btn8.dark:hover { background: #27556f; }
 .btn8.gold { background: #e8a92f; color: #241505; } .btn8.gold:hover { background: #f7bd4a; }
+.btn8.mint { background: #2f9a77; color: #fdf3e3; } .btn8.mint:hover { background: #3cb88f; }
 .btn8:disabled { opacity: 0.45; pointer-events: none; }
 
 .panel8 {
@@ -95,6 +107,7 @@ canvas { image-rendering: pixelated; }
   );
   opacity: 0.5;
   border-radius: inherit;
+  z-index: 40;
 }
 
 /* ---------- animations ---------- */
@@ -111,12 +124,14 @@ canvas { image-rendering: pixelated; }
 }
 @keyframes titlePulse { 0%,100% { transform: scale(1) rotate(-1.2deg); } 50% { transform: scale(1.025) rotate(-1.2deg); } }
 @keyframes flameFlicker { 0%,100% { transform: scaleY(1); } 30% { transform: scaleY(1.15) scaleX(0.94); } 60% { transform: scaleY(0.92) scaleX(1.05); } }
+@keyframes shimmerGold { 0%,100% { filter: drop-shadow(0 0 8px rgba(255,201,77,0.4)); } 50% { filter: drop-shadow(0 0 18px rgba(255,201,77,0.85)); } }
 
 .anim-pop { animation: popIn 320ms cubic-bezier(0.2, 1.4, 0.4, 1) both; }
 .anim-slide-down { animation: slideDown 420ms cubic-bezier(0.2, 1.2, 0.4, 1) both; }
 .anim-slide-up { animation: slideUp 380ms cubic-bezier(0.2, 1.2, 0.4, 1) both; }
 .anim-denied { animation: denied 300ms ease both; }
 .anim-float { animation: floaty 3.4s ease-in-out infinite; }
+.anim-shimmer { animation: shimmerGold 2.2s ease-in-out infinite; }
 
 .title-shadow {
   text-shadow:
@@ -126,6 +141,23 @@ canvas { image-rendering: pixelated; }
     0 14px 24px rgba(0, 0, 0, 0.5);
 }
 
-.touch-portrait, .touch-landscape { display: none; }
-@media (pointer: coarse) and (orientation: portrait) { .touch-portrait { display: flex; } }
-@media (pointer: coarse) and (orientation: landscape) { .touch-landscape { display: flex; } }
+/* Touch controls deck */
+.touch-btn {
+  font-family: "Press Start 2P", monospace;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  cursor: pointer;
+  border: 3px solid #071620;
+  border-radius: 8px;
+  box-shadow: 0 4px 0 #071620, inset 0 2px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 60ms ease, box-shadow 60ms ease, background 80ms ease;
+}
+.touch-btn:active, .touch-btn.active {
+  transform: translateY(3px) !important;
+  box-shadow: 0 1px 0 #071620, inset 0 2px 0 rgba(255, 255, 255, 0.15) !important;
+}
+

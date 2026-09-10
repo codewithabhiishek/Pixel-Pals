@@ -14,6 +14,10 @@ interface Props {
   char: CharacterDef;
   highScore: number;
   audio: AudioEngine;
+  scanlines?: boolean;
+  touchMode?: "auto" | "on" | "off";
+  onToggleScanlines?: () => void;
+  onCycleTouchMode?: () => void;
   onNext: (score: number, lives: number, coins: number) => void;
   onExit: () => void;
   onRestartRun: () => void;
@@ -47,16 +51,18 @@ const PauseIcon = () => (
   </svg>
 );
 
-const LockIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <rect x="3" y="7" width="12" height="9" rx="2" fill="#8d9aa5" />
-    <path d="M5.5 7 V5 a3.5 3.5 0 0 1 7 0 V7" stroke="#8d9aa5" strokeWidth="2.4" />
-    <circle cx="9" cy="11.5" r="1.6" fill="#0b1f2c" />
+const FullscreenIcon = ({ isFull }: { isFull: boolean }) => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+    {isFull ? (
+      <path d="M5 1 V5 H1 M11 1 V5 H15 M5 15 V11 H1 M11 15 V11 H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    ) : (
+      <path d="M1 5 V1 H5 M15 5 V1 H11 M1 11 V15 H5 M15 11 V15 H11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    )}
   </svg>
 );
 
 export default function GameCanvas(props: Props) {
-  const { level, levelIdx, audio } = props;
+  const { level, levelIdx, audio, scanlines = true, touchMode = "auto" } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
   const [overlay, setOverlay] = useState<Overlay>("none");
@@ -68,6 +74,12 @@ export default function GameCanvas(props: Props) {
   const [bossHud, setBossHud] = useState({ hp: -1, max: 6 });
   const [stats, setStats] = useState({ score: 0, coins: 0, timeBonus: 0, clearBonus: 0 });
   const [isNewHigh, setIsNewHigh] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [isTouchCoarse, setIsTouchCoarse] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Active state visual tracking for touch buttons
+  const [activeKeys, setActiveKeys] = useState({ left: false, right: false, down: false, jump: false, run: false });
 
   const scoreEl = useRef<HTMLSpanElement>(null);
   const coinEl = useRef<HTMLSpanElement>(null);
@@ -77,16 +89,62 @@ export default function GameCanvas(props: Props) {
 
   const setOv = useCallback((o: Overlay) => { overlayRef.current = o; setOverlay(o); }, []);
 
-  // fit the 16:9 stage to whatever space the device gives us
+  const toggleFullscreen = useCallback(() => {
+    try {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.().catch(() => {});
+      } else {
+        document.exitFullscreen?.().catch(() => {});
+      }
+    } catch {
+      /* fullscreen unavailable or blocked */
+    }
+  }, []);
+
+  // Track orientation, touch capability & fullscreen status
+  useEffect(() => {
+    const updateEnvironment = () => {
+      const coarse = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      setIsTouchCoarse(coarse);
+      setIsLandscape(window.innerWidth > window.innerHeight);
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    updateEnvironment();
+    window.addEventListener("resize", updateEnvironment);
+    window.addEventListener("orientationchange", updateEnvironment);
+    document.addEventListener("fullscreenchange", updateEnvironment);
+    return () => {
+      window.removeEventListener("resize", updateEnvironment);
+      window.removeEventListener("orientationchange", updateEnvironment);
+      document.removeEventListener("fullscreenchange", updateEnvironment);
+    };
+  }, []);
+
+  // True ONLY for mobile, iPads, iPhones, and Android touch devices
+  // On laptops and desktops, this returns false so touch d-pad is NOT shown
+  const isMobileOrTabletDevice = () => {
+    if (typeof window === "undefined") return false;
+    const ua = navigator.userAgent || "";
+    const isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isCoarseOnly = window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(pointer: fine)").matches;
+    return isMobileUA || isCoarseOnly;
+  };
+
+  const showTouchControls = touchMode === "on" || (touchMode === "auto" && isMobileOrTabletDevice());
+
+  // Responsive stage sizing with large-screen & fullscreen scaling
   const zoneRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ w: 960, h: 540 });
+
   useEffect(() => {
     const el = zoneRef.current;
     if (!el) return;
     const fit = () => {
       const r = el.getBoundingClientRect();
-      const wMax = Math.max(280, Math.min(r.width - 8, 1100));
-      const hMax = Math.max(158, r.height - 8);
+      const isFs = !!document.fullscreenElement;
+      // When zoomed in or in fullscreen, allow the canvas to expand to full bounds
+      const wMax = isFs ? Math.max(280, r.width - 8) : Math.max(280, Math.min(r.width - 12, 1600));
+      const hMax = isFs ? Math.max(158, r.height - 8) : Math.max(158, r.height - 12);
       const w = Math.min(wMax, (hMax * 16) / 9);
       setBox({ w: Math.floor(w), h: Math.floor((w * 9) / 16) });
     };
@@ -95,7 +153,7 @@ export default function GameCanvas(props: Props) {
     ro.observe(el);
     window.addEventListener("orientationchange", fit);
     return () => { ro.disconnect(); window.removeEventListener("orientationchange", fit); };
-  }, []);
+  }, [isFullscreen]);
 
   useEffect(() => {
     const cv = canvasRef.current;
@@ -150,6 +208,13 @@ export default function GameCanvas(props: Props) {
       const code = ev.code;
       if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(code)) ev.preventDefault();
       if (ev.repeat) return;
+
+      // 'F' key toggles Fullscreen / zoom for big screens and laptops
+      if (code === "KeyF") {
+        toggleFullscreen();
+        return;
+      }
+
       if (code === "Escape" || code === "KeyP") {
         if (overlayRef.current === "none") { engine.paused = true; engine.clearKeys(); audio.pauseBlip(); setOv("pause"); }
         else if (overlayRef.current === "pause") { engine.paused = false; engine.clearKeys(); audio.pauseBlip(); setOv("none"); }
@@ -191,10 +256,11 @@ export default function GameCanvas(props: Props) {
       engine.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [level, levelIdx]);
+  }, [level, levelIdx, toggleFullscreen]);
 
   const key = (k: "left" | "right" | "jump" | "run" | "down", v: boolean) => {
     audio.unlock();
+    setActiveKeys((prev) => ({ ...prev, [k]: v }));
     engineRef.current?.setKey(k, v);
   };
 
@@ -208,12 +274,12 @@ export default function GameCanvas(props: Props) {
   const retryLevel = () => { engineRef.current?.retry(); audio.select(); setOv("none"); };
 
   return (
-    <div className="relative w-full h-full flex flex-col bg-ink select-none overflow-hidden">
-      {/* ambient backdrop for letterbox areas */}
+    <div className="relative w-full h-full flex flex-col bg-ink select-none overflow-hidden font-body">
+      {/* ambient starfield background */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden>
         <div className="absolute inset-0" style={{ background: "radial-gradient(120% 90% at 50% 0%, #123043 0%, #0b1f2c 60%, #071620 100%)" }} />
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div key={i} className="absolute rounded-full bg-cream/50" style={{
+        {Array.from({ length: 22 }).map((_, i) => (
+          <div key={i} className="absolute rounded-full bg-cream/45" style={{
             left: `${(i * 47 + 13) % 100}%`, top: `${(i * 31 + 7) % 100}%`, width: 2, height: 2,
             animation: `blinkStep ${2 + (i % 4)}s ease-in-out ${(i % 5) * 0.4}s infinite`,
           }} />
@@ -223,265 +289,419 @@ export default function GameCanvas(props: Props) {
       {/* ------------ stage zone ------------ */}
       <div
         ref={zoneRef}
-        className="relative z-10 flex-1 min-h-0 flex items-center justify-center"
+        className="relative z-10 flex-1 min-h-0 flex items-center justify-center p-1 sm:p-2"
         style={{
-          paddingTop: "env(safe-area-inset-top)",
-          paddingLeft: "env(safe-area-inset-left)",
-          paddingRight: "env(safe-area-inset-right)",
+          paddingTop: "max(0.25rem, env(safe-area-inset-top))",
+          paddingLeft: "max(0.25rem, env(safe-area-inset-left))",
+          paddingRight: "max(0.25rem, env(safe-area-inset-right))",
         }}
       >
-        <div className="relative overflow-hidden rounded-md sm:rounded-lg border-[3px] sm:border-4 border-[#071620] shadow-[0_10px_0_#071620,0_24px_60px_rgba(0,0,0,0.6)] scanlines" style={{ width: box.w, height: box.h }}>
-        <canvas ref={canvasRef} className="w-full h-full block" />
+        <div
+          className={`relative overflow-hidden rounded-md sm:rounded-lg border-[3px] sm:border-4 border-[#071620] shadow-[0_10px_0_#071620,0_24px_60px_rgba(0,0,0,0.6)] ${scanlines ? "scanlines" : ""}`}
+          style={{ width: box.w, height: box.h }}
+        >
+          <canvas ref={canvasRef} className="w-full h-full block" />
 
-        {/* ------------ HUD ------------ */}
-        <div className="absolute top-0 left-0 right-0 pointer-events-none">
-          <div className="h-[7px] bg-[#071620]/70">
-            <div ref={progEl} className="h-full bg-gradient-to-r from-ember to-gold" style={{ width: "0%" }} />
-          </div>
-          <div className="flex items-start justify-between px-2 sm:px-3 pt-2 pb-1 bg-[#071620]/55">
-            <div className="flex items-center gap-2 sm:gap-4">
-              <div>
-                <div className="px-font text-[7px] sm:text-[8px] text-mint tracking-wider">SCORE</div>
-                <span ref={scoreEl} className="px-font text-[10px] sm:text-[13px] text-cream">000000</span>
-              </div>
-              <div className="flex items-center gap-1 sm:gap-1.5 pt-2">
-                <CoinIcon />
-                <span ref={coinEl} className="px-font text-[9px] sm:text-[11px] text-gold">×00</span>
-              </div>
-              {powered && (
-                <span
-                  className="px-font text-[7px] text-gold border-2 border-gold/70 rounded px-1 pt-0.5 mt-2 hidden max-[620px]:inline-block"
-                  style={{ animation: "blinkStep 1s infinite" }}
-                >
-                  PWR
-                </span>
-              )}
+          {/* ------------ HUD ------------ */}
+          <div className="absolute top-0 left-0 right-0 pointer-events-none z-30">
+            <div className="h-[7px] bg-[#071620]/75">
+              <div ref={progEl} className="h-full bg-gradient-to-r from-ember to-gold" style={{ width: "0%" }} />
             </div>
-            <div className="text-center pt-1 max-[620px]:hidden">
-              <div className="px-font text-[9px] text-cream/90">{levelIdx + 1}-{level.name.toUpperCase()}</div>
-              {powered && (
-                <div className="px-font text-[7px] text-gold mt-1" style={{ animation: "blinkStep 1s infinite" }}>
-                  EMBER POWER
+            <div className="flex items-start justify-between px-2 sm:px-3 pt-2 pb-1.5 bg-[#071620]/65 backdrop-blur-[2px]">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div>
+                  <div className="px-font text-[7px] sm:text-[8px] text-mint tracking-wider">SCORE</div>
+                  <span ref={scoreEl} className="px-font text-[10px] sm:text-[13px] text-cream">000000</span>
                 </div>
-              )}
+                <div className="flex items-center gap-1 sm:gap-1.5 pt-2">
+                  <CoinIcon />
+                  <span ref={coinEl} className="px-font text-[9px] sm:text-[11px] text-gold">×00</span>
+                </div>
+                {powered && (
+                  <span
+                    className="px-font text-[7px] text-gold border-2 border-gold/70 rounded px-1 pt-0.5 mt-2 inline-block anim-shimmer"
+                  >
+                    EMBER
+                  </span>
+                )}
+              </div>
+              <div className="text-center pt-0.5">
+                <div className="px-font text-[8px] sm:text-[10px] text-cream/95">W{levelIdx + 1}: {level.name.toUpperCase()}</div>
+                <div className="font-body text-[10px] sm:text-[11px] text-cream/60 hidden sm:block italic">{level.sub}</div>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="text-right">
+                  <div className="px-font text-[7px] sm:text-[8px] text-mint tracking-wider">TIME</div>
+                  <span ref={timeEl} className="px-font text-[10px] sm:text-[13px] text-cream">{level.time}</span>
+                </div>
+                <div className="flex items-center gap-1 pt-1.5">
+                  <HeartIcon on />
+                  <span className="px-font text-[10px] text-cream">×{Math.max(0, lives)}</span>
+                </div>
+
+                {/* Fullscreen / Zoom Button */}
+                <button
+                  onClick={toggleFullscreen}
+                  className="pointer-events-auto text-cream/85 hover:text-gold bg-[#071620]/80 border-2 border-[#123043] rounded p-2 sm:p-1.5 cursor-pointer active:translate-y-0.5"
+                  aria-label={isFullscreen ? "Exit Zoom / Fullscreen (F)" : "Zoom Screen / Fullscreen (F)"}
+                  title={isFullscreen ? "Exit Fullscreen (F)" : "Zoom Screen / Fullscreen (F)"}
+                >
+                  <FullscreenIcon isFull={isFullscreen} />
+                </button>
+
+                {/* Pause Button */}
+                <button
+                  onClick={togglePause}
+                  className="pointer-events-auto text-cream/85 hover:text-gold bg-[#071620]/80 border-2 border-[#123043] rounded p-2 sm:p-1.5 cursor-pointer active:translate-y-0.5"
+                  aria-label="Pause game"
+                  title="Pause game"
+                >
+                  <PauseIcon />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2 sm:gap-4">
-              <div className="text-right">
-                <div className="px-font text-[7px] sm:text-[8px] text-mint tracking-wider">TIME</div>
-                <span ref={timeEl} className="px-font text-[10px] sm:text-[13px] text-cream">{level.time}</span>
+
+            {/* Boss segmented health bar */}
+            {bossHud.hp >= 0 && (
+              <div className="mt-2 mx-auto w-[82%] sm:w-[50%] anim-slide-down bg-[#123043]/95 border-2 border-ember2 rounded-md p-2 shadow-xl">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="px-font text-[8px] text-ember tracking-widest flex items-center gap-1">
+                    MAGMOR - EMBER KING
+                  </span>
+                  <span className={`px-font text-[7px] ${bossHud.hp <= 2 ? "text-[#ff3b30] animate-pulse font-bold" : bossHud.hp <= 4 ? "text-gold" : "text-mint"}`}>
+                    {bossHud.hp <= 2 ? "⚡ PHASE 3: BERSERK" : bossHud.hp <= 4 ? "🔥 PHASE 2: STEAM CHARGE" : "🛡️ PHASE 1: TITAN"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-6 gap-1.5 h-3.5">
+                  {Array.from({ length: bossHud.max }).map((_, idx) => {
+                    const isFilled = idx < bossHud.hp;
+                    let pipColor = "bg-[#071620]/80";
+                    if (isFilled) {
+                      if (idx < 2) pipColor = "bg-gradient-to-t from-[#ff3b30] to-[#ff9500] animate-pulse";
+                      else if (idx < 4) pipColor = "bg-gradient-to-t from-ember2 to-gold";
+                      else pipColor = "bg-gradient-to-t from-[#3fae8c] to-mint";
+                    }
+                    return (
+                      <div
+                        key={idx}
+                        className={`h-full rounded border border-[#071620] transition-all duration-300 ${pipColor}`}
+                        title={`Heart ${idx + 1}`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-              <div className="hidden max-[520px]:flex items-center gap-1 pt-2">
-                <HeartIcon on />
-                <span className="px-font text-[10px] text-cream">×{Math.max(0, lives)}</span>
-              </div>
-              <div className="flex items-center gap-0.5 pt-2 max-[520px]:hidden">
-                {Array.from({ length: Math.max(3, lives) }).slice(0, 6).map((_, i) => (
-                  <HeartIcon key={i} on={i < lives} />
-                ))}
-              </div>
-              <button
-                onClick={togglePause}
-                className="pointer-events-auto text-cream/85 hover:text-gold bg-[#071620]/60 border-2 border-[#071620] rounded p-2 sm:p-1.5 cursor-pointer"
-                aria-label="Pause"
-              >
-                <PauseIcon />
-              </button>
-            </div>
+            )}
           </div>
-          {bossHud.hp >= 0 && (
-            <div className="mt-2 mx-auto w-[68%] sm:w-[46%] anim-slide-down">
-              <div className="px-font text-[8px] text-center text-ember mb-1 tracking-widest">MAGMOR</div>
-              <div className="h-[10px] bg-[#071620]/80 border-2 border-[#071620] rounded-sm overflow-hidden">
+
+          {/* ------------ intro banner ------------ */}
+          {intro && overlay === "none" && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+              <div className="anim-slide-down text-center bg-[#071620]/85 border-y-4 border-ember px-4 sm:px-10 py-4 sm:py-5 max-w-[92vw]">
+                <div className="px-font text-[8px] sm:text-[10px] text-mint mb-2 tracking-widest">WORLD {levelIdx + 1}</div>
+                <div className="px-font text-[14px] sm:text-[22px] text-cream title-shadow">{level.name.toUpperCase()}</div>
+                <div className="font-body text-xs sm:text-sm text-cream/75 mt-2 italic">{level.sub}</div>
+              </div>
+            </div>
+          )}
+
+          {/* ------------ boss banner ------------ */}
+          {bossBanner && (
+            <div className="absolute inset-x-0 top-1/3 flex justify-center px-3 pointer-events-none z-30">
+              <div className="anim-pop text-center bg-[#23080d]/92 border-4 border-ember2 rounded px-4 sm:px-8 py-3 sm:py-4 shadow-[0_6px_0_#071620] max-w-full">
+                <div className="px-font text-[11px] sm:text-[16px] text-ember" style={{ textShadow: "0 3px 0 #4a1a0a" }}>
+                  MAGMOR, THE EMBER KING
+                </div>
+                <div className="font-body text-xs sm:text-sm text-cream/85 mt-2">Stomp his crown from above. Mind the shockwaves!</div>
+              </div>
+            </div>
+          )}
+
+          {/* ------------ Overlays ------------ */}
+          {overlay === "pause" && (
+            <div className="absolute inset-0 bg-[#071620]/82 flex items-center justify-center p-2 z-40">
+              <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-7 text-center w-[min(380px,94vw)] max-h-full overflow-y-auto no-scrollbar">
+                <div className="px-font text-[20px] text-cream mb-1 title-shadow">PAUSED</div>
+                <div className="font-body text-sm text-cream/60 mb-5">Take a breather, hero.</div>
+                <div className="flex flex-col gap-2.5">
+                  <button className="btn8 gold w-full" onClick={() => { engineRef.current!.paused = false; audio.select(); setOv("none"); }}>
+                    Resume
+                  </button>
+                  <button className="btn8" onClick={toggleFullscreen}>
+                    🖥️ {isFullscreen ? "Exit Fullscreen (F)" : "Zoom In / Fullscreen (F)"}
+                  </button>
+                  <button className="btn8 blue w-full" onClick={retryLevel}>
+                    Restart World
+                  </button>
+                  {props.onToggleScanlines && (
+                    <button className="btn8 dark w-full text-[10px]" onClick={props.onToggleScanlines}>
+                      📺 Scanlines: {scanlines ? "ON" : "OFF"}
+                    </button>
+                  )}
+                  {props.onCycleTouchMode && (
+                    <button className="btn8 dark w-full text-[10px]" onClick={props.onCycleTouchMode}>
+                      🎮 Touch Deck: {touchMode.toUpperCase()}
+                    </button>
+                  )}
+                  <button className="btn8 red w-full" onClick={props.onExit}>
+                    Quit to Map
+                  </button>
+                </div>
+                <div className="mt-5 text-left space-y-1 font-body text-[12px] text-cream/70 hidden sm:block border-t border-[#0b1f2c] pt-3">
+                  <div><span className="kbd">←→</span> move &nbsp;<span className="kbd">SPACE</span> jump</div>
+                  <div><span className="kbd">SHIFT</span> run &nbsp;<span className="kbd">F</span> zoom/fullscreen</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {overlay === "clear" && (
+            <div className="absolute inset-0 bg-[#071620]/75 flex items-center justify-center p-2 z-40">
+              <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-8 w-[min(420px,94vw)] max-h-full overflow-y-auto no-scrollbar text-center border-ember" style={{ borderWidth: 4 }}>
+                <div className="px-font text-[17px] sm:text-[22px] text-gold title-shadow">WORLD CLEAR!</div>
+                <div className="font-body text-sm text-cream/60 mt-1 mb-5">World {levelIdx + 1} — {level.name}</div>
+                <div className="space-y-2 font-body text-[15px] text-cream/90 mb-5">
+                  <div className="flex justify-between anim-slide-up" style={{ animationDelay: "0.15s" }}>
+                    <span>Time bonus</span><span className="px-font text-[11px] text-mint pt-0.5">+{stats.timeBonus}</span>
+                  </div>
+                  <div className="flex justify-between anim-slide-up" style={{ animationDelay: "0.35s" }}>
+                    <span>Clear bonus</span><span className="px-font text-[11px] text-mint pt-0.5">+{stats.clearBonus}</span>
+                  </div>
+                  <div className="flex justify-between anim-slide-up border-t-2 border-[#0b1f2c] pt-2" style={{ animationDelay: "0.55s" }}>
+                    <span className="font-semibold">Score</span><span className="px-font text-[13px] text-gold pt-0.5">{stats.score}</span>
+                  </div>
+                </div>
+                {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
+                <button className="btn8 gold w-full" onClick={() => props.onNext(stats.score, engineRef.current?.lives ?? 1, stats.coins)}>
+                  Next World →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {overlay === "gameover" && (
+            <div className="absolute inset-0 bg-[#23080d]/88 flex items-center justify-center p-2 z-40">
+              <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-8 w-[min(400px,94vw)] max-h-full overflow-y-auto no-scrollbar text-center" style={{ borderColor: "#ff5a5f", borderWidth: 4 }}>
+                <div className="px-font text-[18px] sm:text-[24px] text-coral title-shadow mb-2">GAME OVER</div>
+                <div className="font-body text-sm text-cream/60 mb-5">Paws down, but heroes always rise again.</div>
+                <div className="flex justify-center gap-8 mb-6 font-body">
+                  <div>
+                    <div className="px-font text-[8px] text-mint mb-1">SCORE</div>
+                    <div className="px-font text-[14px] text-cream">{stats.score}</div>
+                  </div>
+                  <div>
+                    <div className="px-font text-[8px] text-mint mb-1">BEST</div>
+                    <div className="px-font text-[14px] text-gold">{Math.max(props.highScore, stats.score)}</div>
+                  </div>
+                </div>
+                {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
+                <div className="flex flex-col gap-3">
+                  <button className="btn8 gold" onClick={retryLevel}>Retry World {levelIdx + 1}</button>
+                  <button className="btn8 dark" onClick={props.onExit}>Back to Map</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {overlay === "victory" && (
+            <div className="absolute inset-0 bg-[#071620]/85 flex items-center justify-center overflow-hidden p-2 z-40">
+              {Array.from({ length: 30 }).map((_, i) => (
                 <div
-                  className="h-full bg-gradient-to-r from-ember2 to-ember transition-[width] duration-300"
-                  style={{ width: `${(bossHud.hp / bossHud.max) * 100}%` }}
+                  key={i}
+                  className="absolute w-2.5 h-2.5 rounded-sm"
+                  style={{
+                    left: `${(i * 41) % 100}%`,
+                    top: 0,
+                    background: ["#ff8c3b", "#ffc94d", "#7be0c3", "#ff5a5f"][i % 4],
+                    animation: `confall ${2.4 + (i % 5) * 0.5}s linear ${(i % 8) * 0.3}s infinite`,
+                  }}
                 />
+              ))}
+              <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-8 w-[min(460px,94vw)] max-h-full overflow-y-auto no-scrollbar text-center relative" style={{ borderColor: "#ffc94d", borderWidth: 4 }}>
+                <div className="px-font text-[9px] sm:text-[11px] text-mint mb-2 tracking-widest">THE FORGE FALLS SILENT</div>
+                <div className="px-font text-[20px] sm:text-[28px] text-gold title-shadow mb-2">VICTORY!</div>
+                <div className="font-body text-sm sm:text-[15px] text-cream/80 mb-6 leading-relaxed">
+                  Magmor crumbles to cold stone. The Pixel Pals' journey blazes into legend — all five worlds are freed!
+                </div>
+                <div className="flex justify-center gap-8 mb-6 font-body">
+                  <div>
+                    <div className="px-font text-[8px] text-mint mb-1">FINAL SCORE</div>
+                    <div className="px-font text-[16px] text-cream">{stats.score}</div>
+                  </div>
+                  <div>
+                    <div className="px-font text-[8px] text-mint mb-1">BEST</div>
+                    <div className="px-font text-[16px] text-gold">{Math.max(props.highScore, stats.score)}</div>
+                  </div>
+                </div>
+                {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
+                <div className="flex flex-col gap-3">
+                  <button className="btn8 gold" onClick={props.onRestartRun}>Play Adventure Again</button>
+                  <button className="btn8 dark" onClick={props.onExit}>Back to World Map</button>
+                </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* ------------ intro banner ------------ */}
-        {intro && overlay === "none" && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="anim-slide-down text-center bg-[#071620]/80 border-y-4 border-ember px-4 sm:px-10 py-4 sm:py-5 max-w-full">
-              <div className="px-font text-[8px] sm:text-[10px] text-mint mb-2 tracking-widest">WORLD {levelIdx + 1}</div>
-              <div className="px-font text-[13px] sm:text-[20px] text-cream title-shadow">{level.name.toUpperCase()}</div>
-              <div className="font-body text-xs sm:text-sm text-cream/70 mt-2 italic">{level.sub}</div>
-            </div>
-          </div>
-        )}
-
-        {/* ------------ boss banner ------------ */}
-        {bossBanner && (
-          <div className="absolute inset-x-0 top-1/3 flex justify-center px-3 pointer-events-none">
-            <div className="anim-pop text-center bg-[#23080d]/90 border-4 border-ember2 rounded px-4 sm:px-8 py-3 sm:py-4 shadow-[0_6px_0_#071620] max-w-full">
-              <div className="px-font text-[11px] sm:text-[16px] text-ember" style={{ textShadow: "0 3px 0 #4a1a0a" }}>
-                MAGMOR, THE EMBER KING
-              </div>
-              <div className="font-body text-xs sm:text-sm text-cream/80 mt-2">Stomp his crown. Mind the flames.</div>
-            </div>
-          </div>
-        )}
-
-        {/* ------------ landscape touch pads ------------ */}
-        <div
-          className="touch-landscape absolute bottom-3 justify-between pointer-events-none"
-          style={{ left: "max(0.75rem, env(safe-area-inset-left))", right: "max(0.75rem, env(safe-area-inset-right))" }}
-          onContextMenu={(e) => e.preventDefault()}
-        >
-          <div className="flex gap-2 pointer-events-auto">
-            <button className="btn8 dark !text-[15px] !px-5 !py-4" style={{ touchAction: "none" }} onPointerDown={(e) => { e.preventDefault(); key("left", true); }} onPointerUp={() => key("left", false)} onPointerLeave={() => key("left", false)} onPointerCancel={() => key("left", false)}>&larr;</button>
-            <button className="btn8 dark !text-[15px] !px-5 !py-4" style={{ touchAction: "none" }} onPointerDown={(e) => { e.preventDefault(); key("right", true); }} onPointerUp={() => key("right", false)} onPointerLeave={() => key("right", false)} onPointerCancel={() => key("right", false)}>&rarr;</button>
-            <button className="btn8 dark !text-[11px] !px-3.5 !py-4" aria-label="Drop through platform" style={{ touchAction: "none" }} onPointerDown={(e) => { e.preventDefault(); key("down", true); }} onPointerUp={() => key("down", false)} onPointerLeave={() => key("down", false)} onPointerCancel={() => key("down", false)}>&darr;</button>
-          </div>
-          <div className="flex gap-2 pointer-events-auto">
-            <button className="btn8 red !text-[9px] !py-4" style={{ touchAction: "none" }} onPointerDown={(e) => { e.preventDefault(); key("run", true); }} onPointerUp={() => key("run", false)} onPointerLeave={() => key("run", false)} onPointerCancel={() => key("run", false)}>RUN</button>
-            <button className="btn8 gold !text-[9px] !py-4 !px-5" style={{ touchAction: "none" }} onPointerDown={(e) => { e.preventDefault(); key("jump", true); }} onPointerUp={() => key("jump", false)} onPointerLeave={() => key("jump", false)} onPointerCancel={() => key("jump", false)}>JUMP</button>
-          </div>
-        </div>
-
-        {/* ------------ overlays ------------ */}
-        {overlay === "pause" && (
-          <div className="absolute inset-0 bg-[#071620]/78 flex items-center justify-center p-2">
-            <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-8 text-center w-[min(340px,94vw)] max-h-full overflow-y-auto no-scrollbar">
-              <div className="px-font text-[20px] text-cream mb-1 title-shadow">PAUSED</div>
-              <div className="font-body text-sm text-cream/60 mb-6">The embers wait for you.</div>
-              <div className="flex flex-col gap-3">
-                <button className="btn8" onClick={() => { engineRef.current!.paused = false; audio.select(); setOv("none"); }}>Resume</button>
-                <button className="btn8 blue" onClick={retryLevel}>Restart World</button>
-                <button className="btn8 dark" onClick={props.onExit}>Quit to Map</button>
-              </div>
-              <div className="mt-6 text-left space-y-1.5 font-body text-[13px] text-cream/70 hidden sm:block">
-                <div><span className="kbd">←→</span> move &nbsp;<span className="kbd">SPACE</span> jump</div>
-                <div><span className="kbd">SHIFT</span> run &nbsp;<span className="kbd">↓+JUMP</span> drop</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {overlay === "clear" && (
-          <div className="absolute inset-0 bg-[#071620]/70 flex items-center justify-center p-2">
-            <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-8 w-[min(400px,94vw)] max-h-full overflow-y-auto no-scrollbar text-center border-ember" style={{ borderWidth: 4 }}>
-              <div className="px-font text-[17px] sm:text-[22px] text-gold title-shadow">WORLD CLEAR!</div>
-              <div className="font-body text-sm text-cream/60 mt-1 mb-5">World {levelIdx + 1} — {level.name}</div>
-              <div className="space-y-2 font-body text-[15px] text-cream/90 mb-5">
-                <div className="flex justify-between anim-slide-up" style={{ animationDelay: "0.15s" }}>
-                  <span>Time bonus</span><span className="px-font text-[11px] text-mint pt-0.5">+{stats.timeBonus}</span>
-                </div>
-                <div className="flex justify-between anim-slide-up" style={{ animationDelay: "0.35s" }}>
-                  <span>Clear bonus</span><span className="px-font text-[11px] text-mint pt-0.5">+{stats.clearBonus}</span>
-                </div>
-                <div className="flex justify-between anim-slide-up border-t-2 border-[#0b1f2c] pt-2" style={{ animationDelay: "0.55s" }}>
-                  <span className="font-semibold">Score</span><span className="px-font text-[13px] text-gold pt-0.5">{stats.score}</span>
-                </div>
-              </div>
-              {isNewHigh && <div className="px-font text-[10px] text-ember mb-4" style={{ animation: "blinkStep 0.8s infinite" }}>NEW HIGH SCORE!</div>}
-              <button className="btn8 gold w-full" onClick={() => props.onNext(stats.score, engineRef.current?.lives ?? 1, stats.coins)}>
-                Next World →
+        {/* Floating Landscape Touch Wings (Left & Right) - Visible ONLY on phones/tablets */}
+        {showTouchControls && isLandscape && (
+          <>
+            {/* Left wing: D-Pad */}
+            <div
+              className="fixed left-3 bottom-5 z-40 flex gap-2 pointer-events-auto"
+              style={{ paddingLeft: "env(safe-area-inset-left)" }}
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              <button
+                className={`touch-btn bg-[#1d4258]/85 text-cream text-[20px] w-14 h-14 ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
+                aria-label="Move left"
+                onPointerDown={(e) => { e.preventDefault(); key("left", true); }}
+                onPointerUp={() => key("left", false)}
+                onPointerLeave={() => key("left", false)}
+                onPointerCancel={() => key("left", false)}
+              >
+                &larr;
+              </button>
+              <button
+                className={`touch-btn bg-[#1d4258]/85 text-cream text-[20px] w-14 h-14 ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
+                aria-label="Move right"
+                onPointerDown={(e) => { e.preventDefault(); key("right", true); }}
+                onPointerUp={() => key("right", false)}
+                onPointerLeave={() => key("right", false)}
+                onPointerCancel={() => key("right", false)}
+              >
+                &rarr;
+              </button>
+              <button
+                className={`touch-btn bg-[#1d4258]/85 text-cream text-[16px] w-12 h-14 ${activeKeys.down ? "active bg-[#27556f]" : ""}`}
+                aria-label="Drop through planks"
+                title="Drop down"
+                onPointerDown={(e) => { e.preventDefault(); key("down", true); }}
+                onPointerUp={() => key("down", false)}
+                onPointerLeave={() => key("down", false)}
+                onPointerCancel={() => key("down", false)}
+              >
+                &darr;
               </button>
             </div>
-          </div>
-        )}
 
-        {overlay === "gameover" && (
-          <div className="absolute inset-0 bg-[#23080d]/85 flex items-center justify-center p-2">
-            <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-8 w-[min(400px,94vw)] max-h-full overflow-y-auto no-scrollbar text-center" style={{ borderColor: "#ff5a5f", borderWidth: 4 }}>
-              <div className="px-font text-[18px] sm:text-[24px] text-coral title-shadow mb-2">GAME OVER</div>
-              <div className="font-body text-sm text-cream/60 mb-5">The forge claims another wanderer…</div>
-              <div className="flex justify-center gap-8 mb-6 font-body">
-                <div>
-                  <div className="px-font text-[8px] text-mint mb-1">SCORE</div>
-                  <div className="px-font text-[14px] text-cream">{stats.score}</div>
-                </div>
-                <div>
-                  <div className="px-font text-[8px] text-mint mb-1">BEST</div>
-                  <div className="px-font text-[14px] text-gold">{Math.max(props.highScore, stats.score)}</div>
-                </div>
-              </div>
-              {isNewHigh && <div className="px-font text-[10px] text-ember mb-4" style={{ animation: "blinkStep 0.8s infinite" }}>NEW HIGH SCORE!</div>}
-              <div className="flex flex-col gap-3">
-                <button className="btn8" onClick={retryLevel}>Retry World {levelIdx + 1}</button>
-                <button className="btn8 dark" onClick={props.onExit}>Back to Map</button>
-              </div>
+            {/* Right wing: Action Buttons */}
+            <div
+              className="fixed right-3 bottom-5 z-40 flex gap-3 pointer-events-auto"
+              style={{ paddingRight: "env(safe-area-inset-right)" }}
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              <button
+                className={`touch-btn bg-[#e04f4f]/85 text-cream text-[10px] px-5 h-14 ${activeKeys.run ? "active bg-[#ef6161]" : ""}`}
+                aria-label="Run"
+                onPointerDown={(e) => { e.preventDefault(); key("run", true); }}
+                onPointerUp={() => key("run", false)}
+                onPointerLeave={() => key("run", false)}
+                onPointerCancel={() => key("run", false)}
+              >
+                RUN
+              </button>
+              <button
+                className={`touch-btn bg-[#e8a92f]/90 text-[#241505] text-[11px] px-6 h-14 ${activeKeys.jump ? "active bg-[#f7bd4a]" : ""}`}
+                aria-label="Jump"
+                onPointerDown={(e) => { e.preventDefault(); key("jump", true); }}
+                onPointerUp={() => key("jump", false)}
+                onPointerLeave={() => key("jump", false)}
+                onPointerCancel={() => key("jump", false)}
+              >
+                JUMP
+              </button>
             </div>
-          </div>
+          </>
         )}
+      </div>
 
-        {overlay === "victory" && (
-          <div className="absolute inset-0 bg-[#071620]/80 flex items-center justify-center overflow-hidden p-2">
-            {Array.from({ length: 26 }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-2.5 h-2.5 rounded-sm"
-                style={{
-                  left: `${(i * 41) % 100}%`,
-                  top: 0,
-                  background: ["#ff8c3b", "#ffc94d", "#7be0c3", "#ff5a5f"][i % 4],
-                  animation: `confall ${2.4 + (i % 5) * 0.5}s linear ${(i % 8) * 0.3}s infinite`,
-                }}
-              />
-            ))}
-            <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-8 w-[min(440px,94vw)] max-h-full overflow-y-auto no-scrollbar text-center relative" style={{ borderColor: "#ffc94d", borderWidth: 4 }}>
-              <div className="px-font text-[9px] sm:text-[11px] text-mint mb-2 tracking-widest">THE FORGE FALLS SILENT</div>
-              <div className="px-font text-[19px] sm:text-[26px] text-gold title-shadow mb-2">YOU WIN!</div>
-              <div className="font-body text-sm sm:text-[15px] text-cream/75 mb-6">
-                Magmor crumbles to cold stone. The Pixel Pals' adventure blazes into legend — all five worlds are free.
-              </div>
-              <div className="flex justify-center gap-8 mb-6 font-body">
-                <div>
-                  <div className="px-font text-[8px] text-mint mb-1">FINAL SCORE</div>
-                  <div className="px-font text-[16px] text-cream">{stats.score}</div>
-                </div>
-                <div>
-                  <div className="px-font text-[8px] text-mint mb-1">BEST</div>
-                  <div className="px-font text-[16px] text-gold">{Math.max(props.highScore, stats.score)}</div>
-                </div>
-              </div>
-              {isNewHigh && <div className="px-font text-[10px] text-ember mb-4" style={{ animation: "blinkStep 0.8s infinite" }}>NEW HIGH SCORE!</div>}
-              <div className="flex flex-col gap-3">
-                <button className="btn8 gold" onClick={props.onRestartRun}>Play Again</button>
-                <button className="btn8 dark" onClick={props.onExit}>Back to Map</button>
-              </div>
-            </div>
+      {/* ------------ Portrait Touch Deck - Visible ONLY on phones/tablets ------------ */}
+      {showTouchControls && !isLandscape && (
+        <div
+          className="relative z-30 shrink-0 flex items-center justify-between gap-2 px-4 py-3 border-t-4 border-[#071620]"
+          style={{
+            paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+            background: "linear-gradient(180deg,#123043 0%,#071620 100%)",
+          }}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <div className="flex gap-2 sm:gap-3">
+            <button
+              className={`touch-btn bg-[#1d4258] text-cream text-[20px] w-14 h-14 ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
+              aria-label="Move left"
+              onPointerDown={(e) => { e.preventDefault(); key("left", true); }}
+              onPointerUp={() => key("left", false)}
+              onPointerLeave={() => key("left", false)}
+              onPointerCancel={() => key("left", false)}
+            >
+              &larr;
+            </button>
+            <button
+              className={`touch-btn bg-[#1d4258] text-cream text-[20px] w-14 h-14 ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
+              aria-label="Move right"
+              onPointerDown={(e) => { e.preventDefault(); key("right", true); }}
+              onPointerUp={() => key("right", false)}
+              onPointerLeave={() => key("right", false)}
+              onPointerCancel={() => key("right", false)}
+            >
+              &rarr;
+            </button>
+            <button
+              className={`touch-btn bg-[#1d4258] text-cream text-[16px] w-11 h-14 ${activeKeys.down ? "active bg-[#27556f]" : ""}`}
+              aria-label="Drop through planks"
+              title="Drop down"
+              onPointerDown={(e) => { e.preventDefault(); key("down", true); }}
+              onPointerUp={() => key("down", false)}
+              onPointerLeave={() => key("down", false)}
+              onPointerCancel={() => key("down", false)}
+            >
+              &darr;
+            </button>
           </div>
-        )}
+
+          <div className="px-font text-[7px] text-cream/40 text-center leading-relaxed hidden sm:block">
+            ROTATE FOR<br />WIDE VIEW
+          </div>
+
+          <div className="flex gap-2 sm:gap-3">
+            <button
+              className={`touch-btn bg-[#e04f4f] text-cream text-[10px] px-4 sm:px-5 h-14 ${activeKeys.run ? "active bg-[#ef6161]" : ""}`}
+              aria-label="Run"
+              onPointerDown={(e) => { e.preventDefault(); key("run", true); }}
+              onPointerUp={() => key("run", false)}
+              onPointerLeave={() => key("run", false)}
+              onPointerCancel={() => key("run", false)}
+            >
+              RUN
+            </button>
+            <button
+              className={`touch-btn bg-[#e8a92f] text-[#241505] text-[11px] px-6 sm:px-7 h-14 ${activeKeys.jump ? "active bg-[#f7bd4a]" : ""}`}
+              aria-label="Jump"
+              onPointerDown={(e) => { e.preventDefault(); key("jump", true); }}
+              onPointerUp={() => key("jump", false)}
+              onPointerLeave={() => key("jump", false)}
+              onPointerCancel={() => key("jump", false)}
+            >
+              JUMP
+            </button>
+          </div>
         </div>
+      )}
 
-        {/* footer hint (desktop keyboards only) */}
-        <div className="absolute bottom-1 inset-x-0 text-center pointer-events-none hidden md:block [@media(pointer:coarse)]:hidden">
-          <span className="font-body text-[12px] text-cream/40">
-            <span className="kbd mr-1">←→</span>move <span className="kbd mx-1">SPACE</span>jump
-            <span className="kbd mx-1">SHIFT</span>run <span className="kbd mx-1">ESC</span>pause
+      {/* Desktop footer keyboard helper (hidden on coarse touch devices) */}
+      {!showTouchControls && (
+        <div className="relative z-20 pb-2 text-center pointer-events-none hidden md:block">
+          <span className="font-body text-[12px] text-cream/50">
+            <span className="kbd mr-1">←→</span> move &nbsp;
+            <span className="kbd mx-1">SPACE / Z</span> jump &nbsp;
+            <span className="kbd mx-1">SHIFT / X</span> run &nbsp;
+            <span className="kbd mx-1">↓+JUMP</span> drop &nbsp;
+            <span className="kbd mx-1">F</span> zoom/fullscreen &nbsp;
+            <span className="kbd mx-1">ESC / P</span> pause
           </span>
         </div>
-      </div>
-
-      {/* ------------ portrait touch deck ------------ */}
-      <div
-        className="touch-portrait relative z-10 shrink-0 items-center justify-between gap-2 px-4 sm:px-10 py-3"
-        style={{
-          paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
-          background: "linear-gradient(180deg,#0e2a3a,#071620)",
-          borderTop: "3px solid #071620",
-        }}
-        onContextMenu={(e) => e.preventDefault()}
-      >
-        <div className="flex gap-3">
-          <button className="btn8 dark !text-[18px] !px-6 !py-5" style={{ touchAction: "none" }} onPointerDown={(e) => { e.preventDefault(); key("left", true); }} onPointerUp={() => key("left", false)} onPointerLeave={() => key("left", false)} onPointerCancel={() => key("left", false)}>&larr;</button>
-          <button className="btn8 dark !text-[18px] !px-6 !py-5" style={{ touchAction: "none" }} onPointerDown={(e) => { e.preventDefault(); key("right", true); }} onPointerUp={() => key("right", false)} onPointerLeave={() => key("right", false)} onPointerCancel={() => key("right", false)}>&rarr;</button>
-          <button className="btn8 dark !text-[13px] !px-4 !py-5" aria-label="Drop through platform" style={{ touchAction: "none" }} onPointerDown={(e) => { e.preventDefault(); key("down", true); }} onPointerUp={() => key("down", false)} onPointerLeave={() => key("down", false)} onPointerCancel={() => key("down", false)}>&darr;</button>
-        </div>
-        <div className="px-font text-[7px] text-cream/30 text-center leading-relaxed hidden min-[430px]:block">
-          ROTATE FOR A<br />WIDER VIEW
-        </div>
-        <div className="flex gap-3">
-          <button className="btn8 red !text-[10px] !px-5 !py-5" style={{ touchAction: "none" }} onPointerDown={(e) => { e.preventDefault(); key("run", true); }} onPointerUp={() => key("run", false)} onPointerLeave={() => key("run", false)} onPointerCancel={() => key("run", false)}>RUN</button>
-          <button className="btn8 gold !text-[10px] !px-7 !py-5" style={{ touchAction: "none" }} onPointerDown={(e) => { e.preventDefault(); key("jump", true); }} onPointerUp={() => key("jump", false)} onPointerLeave={() => key("jump", false)} onPointerCancel={() => key("jump", false)}>JUMP</button>
-        </div>
-      </div>
-
-      <span className="hidden"><LockIcon /></span>
+      )}
     </div>
   );
 }

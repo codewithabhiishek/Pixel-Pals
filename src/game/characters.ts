@@ -5,6 +5,7 @@ export interface CharacterDef {
   name: string;
   species: string;
   tagline: string;
+  passive: { name: string; desc: string };
   body: string;
   bodyDark: string;
   belly: string;
@@ -28,6 +29,7 @@ export const CHARACTERS: CharacterDef[] = [
     name: "Ember",
     species: "Fox",
     tagline: "The balanced trailblazer. No weaknesses, all heart.",
+    passive: { name: "Heart of Cinders", desc: "Reliable all-around physics and quick recovery." },
     body: "#ff8c3b",
     bodyDark: "#e0702a",
     belly: "#fdf3e3",
@@ -49,6 +51,7 @@ export const CHARACTERS: CharacterDef[] = [
     name: "Bramble",
     species: "Bear",
     tagline: "A rolling boulder of fur. Starts with an extra heart.",
+    passive: { name: "Grizzly Fortitude", desc: "Starts each world with 4 lives and firm traction." },
     body: "#a9744f",
     bodyDark: "#8a5a3a",
     belly: "#ecd9bd",
@@ -70,6 +73,7 @@ export const CHARACTERS: CharacterDef[] = [
     name: "Pip",
     species: "Frog",
     tagline: "Springs for legs. Clears gaps nobody else dares.",
+    passive: { name: "Lilypad Spring", desc: "Highest jump clearance and nimble mid-air control." },
     body: "#5cc257",
     bodyDark: "#43a047",
     belly: "#eaf7d8",
@@ -91,6 +95,7 @@ export const CHARACTERS: CharacterDef[] = [
     name: "Zip",
     species: "Hare",
     tagline: "Blistering top speed — if you can handle the brakes.",
+    passive: { name: "Sonic Sprint", desc: "Fastest run speed in the game for lightning speedruns." },
     body: "#cfd8dc",
     bodyDark: "#a7b6bd",
     belly: "#fdf3e3",

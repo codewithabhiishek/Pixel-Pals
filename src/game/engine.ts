@@ -22,8 +22,9 @@ export interface EngineOpts {
 
 const VIEW_W = 960;
 const VIEW_H = 540;
-const GRAV_UP = 1450;
-const GRAV_DOWN = 2450;
+const GRAV_UP = 1280;
+const GRAV_DOWN = 1680;
+const GRAV_RELEASE_MULT = 2.1;
 const JUMP_V = 565;
 const WALK = 258;
 const RUN = 372;
@@ -51,7 +52,10 @@ interface Enemy {
   dir: number; t: number; alive: boolean; squish: number;
   ax: number; ay: number; speed: number;
   hp: number; mode: string; timer: number; invuln: number; pipeTop: number;
-  nextAction: "spit" | "leap";
+  nextAction: "spit" | "leap" | "charge";
+  isMinion?: boolean;
+  diveState?: number;
+  diveTimer?: number;
 }
 interface Particle { x: number; y: number; vx: number; vy: number; g: number; life: number; max: number; size: number; color: string; add: boolean }
 interface Popup { x: number; y: number; text: string; life: number; color: string }
@@ -104,7 +108,7 @@ export class Engine {
   private checkpoints: { x: number; y: number; active: boolean }[] = [];
   private goal: { x: number; y: number } | null = null;
   private respawn = { x: 0, y: 0 };
-  private camX = 0; private camY = 0; private shake = 0; private flash = 0; private flashColor = "#ff5a5f";
+  private camX = 0; private camY = 0; private camLookX = 0; private shake = 0; private flash = 0; private flashColor = "#ff5a5f";
   private combo = 0;
   private boss: Enemy | null = null;
   private bossTriggerX = Infinity;
@@ -169,9 +173,10 @@ export class Engine {
       if (dt > 0.1) dt = 0.1;
       if (!this.paused && this.state !== "over") {
         this.acc += dt;
-        const step = 1 / 120;
+        const step = 1 / 60;
         let n = 0;
-        while (this.acc >= step && n < 10) { this.update(step); this.acc -= step; n++; }
+        while (this.acc >= step && n < 3) { this.update(step); this.acc -= step; n++; }
+        if (this.acc > step * 2) this.acc = 0;
       }
       this.draw(now / 1000);
       this.hudAcc += dt;
@@ -188,15 +193,13 @@ export class Engine {
   }
 
   setKey(k: keyof Engine["keys"], v: boolean) {
-    const cut = -this.char.jump * 0.33;
     if (k === "jump" && v && !this.keys.jump) {
-      this.jumpBuf = 0.12;
+      this.jumpBuf = 0.14;
       this.jumpHeld = true;
       if (this.p.grounded && this.keys.down) this.dropTimer = 0.22;
     }
     if (k === "jump" && !v) {
       this.jumpHeld = false;
-      if (this.p.vy < cut) this.p.vy = cut;
     }
     this.keys[k] = v;
   }
@@ -216,7 +219,7 @@ export class Engine {
     this.enemies = []; this.fruits = []; this.shots = []; this.particles = [];
     this.popups = []; this.coinFx = []; this.movers = []; this.coinsOnMap = [];
     this.hearts = []; this.checkpoints = []; this.goal = null; this.boss = null;
-    this.combo = 0; this.camX = 0; this.camY = 0; this.shake = 0; this.flash = 0;
+    this.combo = 0; this.camX = 0; this.camY = 0; this.camLookX = 0; this.shake = 0; this.flash = 0;
     this.state = "play"; this.stateTimer = 0;
     this.timeLeft = this.level.time;
     this.weather = [];
@@ -278,20 +281,45 @@ export class Engine {
     this.camX = clamp(this.p.x - VIEW_W * 0.4, 0, this.levelWidth() - VIEW_W);
   }
 
-  private spawnEnemy(kind: Enemy["kind"], c: number, r: number): Enemy {
+  private spawnEnemy(kind: Enemy["kind"], c: number, r: number, isMinion = false): Enemy {
     const T = TILE;
+    const lIdx = this.opts.levelIdx;
     const mul = this.level.speed;
     const base: Enemy = {
       kind, x: c * T + 3, y: r * T, w: 34, h: 30, vx: 0, vy: 0, dir: -1, t: rnd(c * 31 + r) * 4,
-      alive: true, squish: 0, ax: c * T + T / 2, ay: r * T + T / 2, speed: 50 * mul,
+      alive: true, squish: 0, ax: c * T + T / 2, ay: r * T + T / 2, speed: 45 * mul,
       hp: 6, mode: "walk", timer: 2.4, invuln: 0, pipeTop: 0, nextAction: "leap",
+      isMinion, diveState: 0, diveTimer: 0,
     };
-    if (kind === "walker") { base.w = 34; base.h = 28; base.y = (r + 1) * T - base.h; base.vx = -base.speed; }
-    if (kind === "spiker") { base.w = 36; base.h = 26; base.y = (r + 1) * T - base.h; base.vx = -38 * mul; base.speed = 38 * mul; }
-    if (kind === "flyer") { base.w = 30; base.h = 24; base.y = r * T; base.speed = 1.35 * mul; }
-    if (kind === "bouncer") { base.w = 32; base.h = 30; base.y = (r + 1) * T - base.h; base.speed = 80 * mul; base.vx = -base.speed; base.timer = 1.0 + rnd(c) * 0.9; }
-    if (kind === "chomper") { base.w = 36; base.h = 38; base.x = c * T + 2; base.speed = mul; }
-    if (kind === "boss") { base.w = 104; base.h = 96; base.y = (r + 1) * T - base.h; base.mode = "sleep"; base.x = c * T - 34; }
+    if (kind === "walker") {
+      base.w = lIdx === 0 ? 36 : 34;
+      base.h = 28;
+      base.y = (r + 1) * T - base.h;
+      base.speed = (lIdx === 0 ? 34 : lIdx === 1 ? 46 : lIdx === 2 ? 54 : 64) * mul;
+      base.vx = -base.speed;
+    }
+    if (kind === "spiker") {
+      base.w = 36; base.h = 26; base.y = (r + 1) * T - base.h;
+      base.speed = 40 * mul; base.vx = -base.speed;
+    }
+    if (kind === "flyer") {
+      base.w = 30; base.h = 24; base.y = r * T;
+      base.speed = (lIdx === 0 ? 0.95 : lIdx === 1 ? 1.3 : 1.55) * mul;
+    }
+    if (kind === "bouncer") {
+      base.w = isMinion ? 24 : 32;
+      base.h = isMinion ? 22 : 30;
+      base.y = (r + 1) * T - base.h;
+      base.speed = (isMinion ? 65 : (lIdx <= 2 ? 72 : 94)) * mul;
+      base.vx = -base.speed;
+      base.timer = 1.0 + rnd(c) * 0.8;
+    }
+    if (kind === "chomper") {
+      base.w = 36; base.h = 38; base.x = c * T + 2; base.speed = mul;
+    }
+    if (kind === "boss") {
+      base.w = 104; base.h = 96; base.y = (r + 1) * T - base.h; base.mode = "sleep"; base.x = c * T - 34;
+    }
     this.enemies.push(base);
     return base;
   }
@@ -375,7 +403,9 @@ export class Engine {
 
     const lw = this.levelWidth();
     const p = this.p;
-    const lookX = p.x + p.dir * 70 - VIEW_W * 0.44;
+    const targetLookDir = Math.abs(p.vx) > 30 ? (p.vx > 0 ? 1 : -1) : 0;
+    this.camLookX = lerp(this.camLookX, targetLookDir * 45, 1 - Math.exp(-dt * 3.5));
+    const lookX = p.x + this.camLookX - VIEW_W * 0.44;
     this.camX = lerp(this.camX, clamp(lookX, 0, Math.max(0, lw - VIEW_W)), 1 - Math.exp(-dt * 7));
     const lookY = p.y - VIEW_H * 0.56;
     this.camY = lerp(this.camY, clamp(lookY, 0, Math.max(0, ROWS * TILE - VIEW_H)), 1 - Math.exp(-dt * 6));
@@ -412,7 +442,7 @@ export class Engine {
       p.vx -= s * Math.min(Math.abs(p.vx), frict * dt);
     }
 
-    p.coyote = p.grounded ? 0.09 : Math.max(0, p.coyote - dt);
+    p.coyote = p.grounded ? 0.12 : Math.max(0, p.coyote - dt);
     this.jumpBuf = Math.max(0, this.jumpBuf - dt);
     this.dropTimer = Math.max(0, this.dropTimer - dt);
 
@@ -426,10 +456,21 @@ export class Engine {
       this.dust(p.x + p.w / 2, p.y + p.h, 5, "#ffffff");
     }
 
-    p.vy += (p.vy < 0 ? GRAV_UP : GRAV_DOWN) * dt;
-    const cutV = -this.char.jump * 0.33;
-    if (!this.jumpHeld && p.vy < cutV) p.vy = cutV;
-    p.vy = Math.min(p.vy, 980);
+    // Dynamic jump gravity curve:
+    // When ascending and jump is held: smooth GRAV_UP
+    // When ascending and jump was released early: apply GRAV_RELEASE_MULT to gently curve upward speed to 0
+    // When falling: snappy GRAV_DOWN
+    const isAscending = p.vy < 0;
+    let baseGrav = isAscending
+      ? (this.jumpHeld ? GRAV_UP : GRAV_UP * GRAV_RELEASE_MULT)
+      : GRAV_DOWN;
+
+    // Apex float / hangtime: gentle gravity reduction when vy is near zero for precision aerial adjustments
+    const isApex = !p.grounded && Math.abs(p.vy) < 65;
+    if (isApex) baseGrav *= 0.6;
+
+    p.vy += baseGrav * dt;
+    p.vy = Math.min(p.vy, 720);
 
     p.prevBottom = p.y + p.h;
 
@@ -454,10 +495,10 @@ export class Engine {
     if (wasAir && p.grounded) {
       p.squash = 1;
       this.dust(p.x + p.w / 2, p.y + p.h, 4, "#ffffff");
-      if (fallV > 330) {
+      if (fallV > 400) {
         this.rings.push({ x: p.x + p.w / 2, y: p.y + p.h, t: 0 });
-        // landing weight: brief camera dip scaled by impact
-        this.camDip = clamp(fallV / 90, 2, 9);
+        // subtle landing cushion without jarring camera dip
+        this.camDip = clamp(fallV / 220, 1, 3);
       }
       if (p.vy > 0) this.combo = 0;
     }
@@ -483,8 +524,11 @@ export class Engine {
     if (p.y > ROWS * TILE + 60) { this.killPlayer(); return; }
     this.checkHazards();
 
-    // goal
-    if (this.goal && p.x + p.w > this.goal.x - 14 && p.x < this.goal.x + 14 && p.y + p.h > this.goal.y - 130) {
+    // goal: trigger if touched OR crossed past (even leaping high over it)
+    if (this.goal && (
+      (p.x + p.w > this.goal.x - 14 && p.x < this.goal.x + 14 && p.y + p.h > this.goal.y - 130) ||
+      (p.x + p.w / 2 >= this.goal.x - 10 && p.y < this.goal.y + 24)
+    )) {
       this.reachGoal();
     }
     // boss trigger
@@ -530,6 +574,24 @@ export class Engine {
       }
     } else {
       const r = Math.floor(p.y / TILE);
+      const hitLeft = this.solid(c0, r);
+      const hitRight = this.solid(c1, r);
+
+      // Celeste/Mario-style upward corner correction (nudge player around blocks when grazing by <= 7px)
+      if (hitLeft && !hitRight) {
+        const leftEdgeOverlap = (c0 + 1) * TILE - (p.x + 2);
+        if (leftEdgeOverlap <= 7) {
+          p.x += leftEdgeOverlap + 0.1;
+          return;
+        }
+      } else if (hitRight && !hitLeft) {
+        const rightEdgeOverlap = (p.x + p.w - 2) - c1 * TILE;
+        if (rightEdgeOverlap <= 7) {
+          p.x -= rightEdgeOverlap + 0.1;
+          return;
+        }
+      }
+
       let hit: { c: number; cell: Cell } | null = null;
       for (let c = c0; c <= c1; c++) {
         if (this.solid(c, r)) { const cell = this.cell(c, r)!; if (!hit || cell.t === 3 || cell.t === 4) hit = { c, cell }; }
@@ -723,8 +785,32 @@ export class Engine {
           }
         }
       } else if (e.kind === "flyer") {
-        e.x = e.ax + Math.sin(e.t * e.speed) * 88 - e.w / 2;
-        e.y = e.ay + Math.sin(e.t * e.speed * 2.3) * 30 - e.h / 2;
+        if (this.opts.levelIdx >= 3) {
+          // Frost Peak & Forge dive-bombers: swoop down when player enters cone
+          const dx = p.x + p.w / 2 - e.x;
+          if (Math.abs(dx) < 150 && p.y > e.ay && (e.diveTimer ?? 0) <= 0 && (e.diveState ?? 0) === 0) {
+            e.diveTimer = 2.8;
+            e.diveState = 1;
+            this.audio.bump();
+          }
+          if (e.diveTimer && e.diveTimer > 0) e.diveTimer -= dt;
+          if (e.diveState === 1) {
+            e.y += 190 * dt;
+            e.x += (e.vx !== 0 ? Math.sign(e.vx) : -1) * 75 * dt;
+            if (e.y >= e.ay + 80 || e.y >= p.y - 10) e.diveState = 2;
+          } else if (e.diveState === 2) {
+            e.y -= 130 * dt;
+            if (e.y <= e.ay) { e.y = e.ay; e.diveState = 0; }
+          } else {
+            e.x = e.ax + Math.sin(e.t * e.speed) * 92 - e.w / 2;
+            e.y = e.ay + Math.sin(e.t * e.speed * 2.3) * 30 - e.h / 2;
+          }
+        } else {
+          const amp = this.opts.levelIdx === 0 ? 18 : 30;
+          const range = this.opts.levelIdx === 0 ? 54 : 88;
+          e.x = e.ax + Math.sin(e.t * e.speed) * range - e.w / 2;
+          e.y = e.ay + Math.sin(e.t * e.speed * 2.0) * amp - e.h / 2;
+        }
       } else if (e.kind === "bouncer") {
         e.vy = Math.min(e.vy + GRAV_DOWN * dt, 900);
         e.x += e.vx * dt;
@@ -736,9 +822,9 @@ export class Engine {
           e.vy = 0;
           e.timer -= dt;
           if (e.timer <= 0 && onScreen) {
-            e.vy = -440;
+            e.vy = e.isMinion ? -380 : this.opts.levelIdx <= 2 ? -420 : -470;
             e.vx = (p.x > e.x ? 1 : -1) * e.speed;
-            e.timer = 1.1 + rnd(e.t * 7) * 0.8;
+            e.timer = (e.isMinion ? 0.8 : 1.1) + rnd(e.t * 7) * 0.7;
           }
         } else {
           e.timer = Math.max(e.timer, 0.4);
@@ -746,15 +832,15 @@ export class Engine {
         const aheadC = Math.floor((e.vx > 0 ? e.x + e.w + 2 : e.x - 2) / T);
         if (this.solid(aheadC, Math.floor((e.y + e.h / 2) / T))) e.vx = -e.vx;
       } else if (e.kind === "chomper") {
-        const period = 3.4 / Math.max(0.7, e.speed);
+        const period = (this.opts.levelIdx >= 3 ? 2.5 : 3.4) / Math.max(0.7, e.speed);
         const ph = e.t % period;
-        const rise = 0.5, hold = 1.5, fall = 0.5;
+        const rise = 0.5, hold = 1.4, fall = 0.5;
         let off = 0;
         if (ph < rise) off = (ph / rise) * 48;
         else if (ph < rise + hold) off = 48;
         else if (ph < rise + hold + fall) off = 48 * (1 - (ph - rise - hold) / fall);
         e.y = e.pipeTop - 4 - off;
-        e.vy = off; // remember how far the head is out (gates contact damage)
+        e.vy = off;
       } else if (e.kind === "boss") {
         this.updateBoss(e, dt);
       }
@@ -770,7 +856,7 @@ export class Engine {
     const T = TILE;
     if (b.mode === "sleep") return;
     const phase = 1 + Math.floor((b.hp <= 0 ? 6 : 6 - b.hp) / 2);
-    const speed = [0, 42, 58, 76][phase];
+    const speed = [0, 45, 64, 86][phase];
     b.timer -= dt;
 
     if (b.mode !== "leap") {
@@ -791,32 +877,81 @@ export class Engine {
       if (b.timer <= 0) {
         const dx = Math.abs(p.x - b.x);
         b.mode = "tele";
-        b.nextAction = dx > 240 || Math.random() < 0.42 ? "spit" : "leap";
-        b.timer = 0.5;
+        if (phase === 1) {
+          b.nextAction = dx > 220 || Math.random() < 0.5 ? "spit" : "leap";
+        } else if (phase === 2) {
+          const roll = Math.random();
+          b.nextAction = roll < 0.45 ? "charge" : roll < 0.75 ? "leap" : "spit";
+        } else {
+          const roll = Math.random();
+          b.nextAction = roll < 0.45 ? "charge" : roll < 0.8 ? "leap" : "spit";
+        }
+        b.timer = b.nextAction === "charge" ? 0.7 : 0.5;
         this.audio.bump();
       }
     } else if (b.mode === "tele") {
+      if (b.nextAction === "charge") {
+        this.dust(b.x + 16, b.y + 12, 1, "#ffffff");
+        this.dust(b.x + b.w - 16, b.y + 12, 1, "#ffffff");
+        this.shake = Math.max(this.shake, 2.5);
+      }
       if (b.timer <= 0) {
-        if (b.nextAction === "leap") {
+        if (b.nextAction === "charge") {
+          b.mode = "charge";
+          b.dir = p.x + p.w / 2 > b.x + b.w / 2 ? 1 : -1;
+          b.vx = b.dir * (phase === 3 ? 340 : 280);
+          b.timer = 2.2;
+          this.audio.roar();
+        } else if (b.nextAction === "leap") {
           b.mode = "leap";
-          b.vy = -660;
+          b.vy = phase === 3 ? -750 : -640;
           const dx = p.x + p.w / 2 - (b.x + b.w / 2);
           b.vx = clamp(dx / 0.92, -320, 320);
           this.audio.jump();
         } else {
           b.mode = "walk";
-          const n = phase;
+          const count = phase === 1 ? 3 : phase === 2 ? 4 : 5;
           const bx = b.x + b.w / 2, by = b.y + 26;
-          for (let i = 0; i < n; i++) {
+          for (let i = 0; i < count; i++) {
             const dx = p.x + p.w / 2 - bx;
             this.shots.push({
-              x: bx, y: by, vx: clamp(dx / 0.85 + (i - (n - 1) / 2) * 70, -340, 340),
-              vy: -300 + (i - (n - 1) / 2) * 40, kind: "arc", life: 4,
+              x: bx, y: by,
+              vx: clamp(dx / 0.85 + (i - (count - 1) / 2) * 65, -360, 360),
+              vy: -310 + (i - (count - 1) / 2) * 35,
+              kind: "arc", life: 4,
             });
           }
           this.audio.fire();
-          b.timer = [0, 2.7, 2.25, 1.8][phase];
+          b.timer = [0, 2.5, 2.0, 1.6][phase];
         }
+      }
+    } else if (b.mode === "charge") {
+      b.x += b.vx * dt;
+      this.dust(b.x + b.w / 2, b.y + b.h - 4, 3, "#ff8c3b");
+      const hitLeft = b.x <= 151 * T;
+      const hitRight = b.x >= 187 * T - b.w;
+      if (hitLeft || hitRight || b.timer <= 0) {
+        b.vx = 0;
+        b.mode = "stunned";
+        b.timer = 1.3;
+        this.shake = 14;
+        this.audio.stomp();
+        this.dust(b.x + b.w / 2, b.y + b.h / 2, 18, "#ff8c3b");
+        for (let i = 0; i < 3; i++) {
+          this.shots.push({
+            x: clamp(b.x + (i - 1) * 70, 153 * T, 186 * T),
+            y: 2 * T,
+            vx: (Math.random() - 0.5) * 40,
+            vy: 200 + Math.random() * 80,
+            kind: "arc",
+            life: 3.5,
+          });
+        }
+      }
+    } else if (b.mode === "stunned") {
+      if (b.timer <= 0) {
+        b.mode = "walk";
+        b.timer = [0, 2.4, 2.0, 1.5][phase];
       }
     } else if (b.mode === "leap") {
       b.vy = Math.min(b.vy + 1650 * dt, 1000);
@@ -828,21 +963,27 @@ export class Engine {
         b.y = footR * T - b.h - 0.01;
         b.vy = 0; b.vx = 0;
         b.mode = "walk";
-        b.timer = [0, 2.7, 2.25, 1.8][phase];
-        this.shake = 11;
+        b.timer = [0, 2.5, 2.0, 1.5][phase];
+        this.shake = 12;
         this.audio.stomp();
-        this.dust(b.x + b.w / 2, b.y + b.h, 12, "#ff8c3b");
-        if (phase >= 2) {
-          this.shots.push({ x: b.x + 10, y: b.y + b.h - 14, vx: -180, vy: 0, kind: "slide", life: 2.4 });
-          this.shots.push({ x: b.x + b.w - 10, y: b.y + b.h - 14, vx: 180, vy: 0, kind: "slide", life: 2.4 });
-          this.audio.fire();
+        this.dust(b.x + b.w / 2, b.y + b.h, 16, "#ff8c3b");
+        this.shots.push({ x: b.x + 8, y: b.y + b.h - 14, vx: -190, vy: 0, kind: "slide", life: 2.8 });
+        this.shots.push({ x: b.x + b.w - 8, y: b.y + b.h - 14, vx: 190, vy: 0, kind: "slide", life: 2.8 });
+        this.audio.fire();
+        if (phase === 3) {
+          for (let i = 0; i < 3; i++) {
+            this.shots.push({
+              x: b.x + b.w / 2, y: b.y + 20,
+              vx: (i - 1) * 140, vy: -280, kind: "arc", life: 3,
+            });
+          }
         }
       }
     } else if (b.mode === "hurt") {
-      if (b.timer <= 0) { b.mode = "walk"; b.timer = 1.2; }
+      if (b.timer <= 0) { b.mode = "walk"; b.timer = 1.0; }
     }
 
-    b.x = clamp(b.x, 138 * T, 188 * T - b.w);
+    b.x = clamp(b.x, 151 * T, 187 * T - b.w);
     if (b.y > ROWS * T) b.y = 11 * T - b.h;
   }
 
@@ -860,19 +1001,26 @@ export class Engine {
       if (e.kind === "boss") {
         if (e.invuln > 0 || e.mode === "sleep") { p.vy = -380; return; }
         e.hp--;
-        e.invuln = 1.1;
+        e.invuln = 1.2;
         e.mode = "hurt";
-        e.timer = 0.6;
-        p.vy = -480;
+        e.timer = 0.65;
+        p.vy = -500;
         this.audio.bossHit();
-        this.shake = 9;
-        this.hitstop = Math.max(this.hitstop, 0.11);
+        this.shake = 12;
+        this.hitstop = Math.max(this.hitstop, 0.12);
         this.score += 500;
         this.popups.push({ x: e.x + e.w / 2, y: e.y - 10, text: "+500", life: 0.9, color: "#ffc94d" });
-        this.dust(e.x + e.w / 2, e.y + 10, 10, "#ff8c3b");
+        this.dust(e.x + e.w / 2, e.y + 10, 14, "#ff8c3b");
+        if (e.hp === 2) {
+          this.audio.roar();
+          this.popups.push({ x: e.x + e.w / 2, y: e.y - 36, text: "BERSERK!", life: 1.4, color: "#ff3b30" });
+          const bc = Math.floor(e.x / TILE);
+          this.spawnEnemy("bouncer", clamp(bc - 3, 152, 185), 10, true);
+          this.spawnEnemy("bouncer", clamp(bc + 4, 152, 185), 10, true);
+        }
         if (e.hp <= 0) {
           e.alive = false;
-          this.explode(e.x + e.w / 2, e.y + e.h / 2, 46);
+          this.explode(e.x + e.w / 2, e.y + e.h / 2, 56);
           this.audio.roar();
           this.winGame();
         }
@@ -881,10 +1029,17 @@ export class Engine {
       e.squish = 0.45;
       e.vx = 0;
       this.combo++;
-      const pts = Math.min(800, 100 * Math.pow(2, this.combo - 1));
+      const pts = Math.min(1000, 100 * Math.pow(2, this.combo - 1));
+      let bonusText = `+${pts}`;
+      if (this.combo >= 5) {
+        this.lives = Math.min(6, this.lives + 1);
+        bonusText = "1UP! +1000";
+        this.audio.oneUp();
+      }
       this.score += pts;
-      this.popups.push({ x: e.x + e.w / 2, y: e.y - 6, text: `+${pts}`, life: 0.8, color: "#ffc94d" });
-      p.vy = this.jumpHeld ? -470 : -330;
+      this.popups.push({ x: e.x + e.w / 2, y: e.y - 6, text: bonusText, life: 0.9, color: this.combo >= 5 ? "#7be0c3" : "#ffc94d" });
+      const bounceBoost = Math.min(120, (this.combo - 1) * 28);
+      p.vy = (this.jumpHeld ? -470 : -340) - bounceBoost;
       p.y = e.y - p.h - 1;
       this.audio.stomp();
       this.dust(e.x + e.w / 2, e.y + e.h / 2, 8, "#fdf3e3");
@@ -1008,7 +1163,10 @@ export class Engine {
     }
     for (const c of this.checkpoints) {
       if (c.active) continue;
-      if (Math.abs(c.x - px) < 26 && p.y + p.h > c.y - 92) {
+      // Trigger if player touches checkpoint OR crosses past its vertical plane / leaps over it
+      const touching = Math.abs(c.x - px) < 32 && Math.abs(c.y - (p.y + p.h / 2)) < 80;
+      const crossedPast = px >= c.x - 16 && p.y < c.y + 24;
+      if (touching || crossedPast) {
         c.active = true;
         this.respawn = { x: c.x - p.w / 2, y: c.y - p.h - 2 };
         this.audio.checkpoint();
@@ -1806,6 +1964,17 @@ export class Engine {
       ctx.arc(cx + 7 + e.dir * 3.4, e.y + 16, 2, 0, Math.PI * 2);
       ctx.fill();
     } else if (e.kind === "bouncer") {
+      if (e.isMinion) {
+        ctx.fillStyle = "#ff5a5f";
+        rr(ctx, e.x, e.y, e.w, e.h, 6);
+        ctx.fill();
+        ctx.fillStyle = "#ffc94d";
+        ctx.beginPath(); ctx.arc(cx, e.y + e.h / 2, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#12262e";
+        ctx.beginPath(); ctx.arc(cx - 3, e.y + 7, 2, 0, Math.PI * 2); ctx.arc(cx + 3, e.y + 7, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        return;
+      }
       const stretch = clamp(-e.vy / 900, -0.3, 0.4);
       ctx.save();
       ctx.translate(cx, e.y + e.h);
@@ -1866,63 +2035,83 @@ export class Engine {
   private drawBoss(ctx: CanvasRenderingContext2D, b: Enemy, t: number) {
     const cx = b.x + b.w / 2;
     const flash = b.invuln > 0 && Math.floor(t * 14) % 2 === 0;
-    const squish = b.mode === "tele" ? 0.86 : b.mode === "leap" ? 1.08 : 1;
+    const squish = b.mode === "tele" ? 0.86 : b.mode === "leap" ? 1.08 : b.mode === "stunned" ? 0.92 : 1;
     ctx.save();
     ctx.translate(cx, b.y + b.h);
     ctx.scale(1 / squish, squish);
     ctx.translate(-cx, -(b.y + b.h));
     if (flash) ctx.globalAlpha = 0.55;
 
+    // Phase 3 Berserk glowing aura
+    if (b.hp <= 2) {
+      ctx.fillStyle = `rgba(255, 59, 48, ${0.2 + 0.15 * Math.sin(t * 8)})`;
+      rr(ctx, b.x - 8, b.y - 8, b.w + 16, b.h + 16, 28);
+      ctx.fill();
+    }
+
     // flame crown
     const flames = [-30, 0, 30];
     for (let i = 0; i < 3; i++) {
       const fx = cx + flames[i];
-      const fh = 20 + Math.sin(t * 11 + i * 2) * 7;
-      ctx.fillStyle = i === 1 ? "#ffc94d" : "#ff7a2f";
+      const fh = (b.hp <= 2 ? 30 : 20) + Math.sin(t * 11 + i * 2) * 7;
+      ctx.fillStyle = b.hp <= 2 ? (i === 1 ? "#ff5a5f" : "#ff3b30") : (i === 1 ? "#ffc94d" : "#ff7a2f");
       ctx.beginPath();
       ctx.moveTo(fx - 9, b.y + 8);
       ctx.quadraticCurveTo(fx, b.y - fh, fx + 9, b.y + 8);
       ctx.fill();
     }
     // horns
-    ctx.fillStyle = "#d8c9a8";
+    ctx.fillStyle = b.hp <= 2 ? "#ffd285" : "#d8c9a8";
     ctx.beginPath();
     ctx.moveTo(b.x + 8, b.y + 22); ctx.lineTo(b.x - 8, b.y - 8); ctx.lineTo(b.x + 26, b.y + 10);
     ctx.moveTo(b.x + b.w - 8, b.y + 22); ctx.lineTo(b.x + b.w + 8, b.y - 8); ctx.lineTo(b.x + b.w - 26, b.y + 10);
     ctx.fill();
     // body
-    ctx.fillStyle = "#3c2226";
+    ctx.fillStyle = b.hp <= 2 ? "#52181e" : "#3c2226";
     rr(ctx, b.x, b.y, b.w, b.h, 26);
     ctx.fill();
-    ctx.fillStyle = "#4d2c30";
+    ctx.fillStyle = b.hp <= 2 ? "#6e2329" : "#4d2c30";
     rr(ctx, b.x + 8, b.y + 8, b.w - 16, b.h - 24, 20);
     ctx.fill();
     // glowing cracks
-    const pulse = 0.6 + 0.4 * Math.sin(t * 5);
-    ctx.strokeStyle = `rgba(255,122,47,${pulse})`;
-    ctx.lineWidth = 4;
+    const pulse = 0.6 + 0.4 * Math.sin(t * (b.hp <= 2 ? 10 : 5));
+    ctx.strokeStyle = b.hp <= 2 ? `rgba(255,59,48,${pulse})` : `rgba(255,122,47,${pulse})`;
+    ctx.lineWidth = b.hp <= 2 ? 5 : 4;
     ctx.beginPath();
     ctx.moveTo(b.x + 20, b.y + 30); ctx.lineTo(b.x + 34, b.y + 46); ctx.lineTo(b.x + 26, b.y + 62);
     ctx.moveTo(b.x + b.w - 20, b.y + 34); ctx.lineTo(b.x + b.w - 36, b.y + 50); ctx.lineTo(b.x + b.w - 24, b.y + 66);
     ctx.moveTo(b.x + 40, b.y + b.h - 22); ctx.lineTo(b.x + 58, b.y + b.h - 34);
     ctx.stroke();
     // belly glow
-    ctx.fillStyle = `rgba(255,140,59,${0.25 + 0.15 * Math.sin(t * 5)})`;
+    ctx.fillStyle = b.hp <= 2
+      ? `rgba(255,59,48,${0.35 + 0.2 * Math.sin(t * 8)})`
+      : `rgba(255,140,59,${0.25 + 0.15 * Math.sin(t * 5)})`;
     ctx.beginPath(); ctx.ellipse(cx, b.y + b.h - 26, 30, 16, 0, 0, Math.PI * 2); ctx.fill();
     // eyes
     const look = this.p.x > b.x ? 3 : -3;
-    ctx.fillStyle = "#ffc94d";
-    ctx.beginPath();
-    ctx.arc(cx - 20 + look, b.y + 34, 9, 0, Math.PI * 2);
-    ctx.arc(cx + 20 + look, b.y + 34, 9, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#3c1010";
-    ctx.beginPath();
-    ctx.arc(cx - 20 + look * 1.6, b.y + 35, 4, 0, Math.PI * 2);
-    ctx.arc(cx + 20 + look * 1.6, b.y + 35, 4, 0, Math.PI * 2);
-    ctx.fill();
+    if (b.mode === "stunned") {
+      ctx.strokeStyle = "#ffc94d";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx - 25, b.y + 30); ctx.lineTo(cx - 15, b.y + 40);
+      ctx.moveTo(cx - 15, b.y + 30); ctx.lineTo(cx - 25, b.y + 40);
+      ctx.moveTo(cx + 15, b.y + 30); ctx.lineTo(cx + 25, b.y + 40);
+      ctx.moveTo(cx + 25, b.y + 30); ctx.lineTo(cx + 15, b.y + 40);
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = b.hp <= 2 ? "#ff3b30" : "#ffc94d";
+      ctx.beginPath();
+      ctx.arc(cx - 20 + look, b.y + 34, 9, 0, Math.PI * 2);
+      ctx.arc(cx + 20 + look, b.y + 34, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#3c1010";
+      ctx.beginPath();
+      ctx.arc(cx - 20 + look * 1.6, b.y + 35, 4, 0, Math.PI * 2);
+      ctx.arc(cx + 20 + look * 1.6, b.y + 35, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
     // mouth
-    ctx.fillStyle = "#ff7a2f";
+    ctx.fillStyle = b.hp <= 2 ? "#ff3b30" : "#ff7a2f";
     rr(ctx, cx - 22, b.y + 56, 44, 10, 5);
     ctx.fill();
     ctx.fillStyle = "#fdf3e3";
@@ -1938,12 +2127,26 @@ export class Engine {
     ctx.ellipse(b.x + 24, b.y + b.h - 4, 18, 8, 0, 0, Math.PI * 2);
     ctx.ellipse(b.x + b.w - 24, b.y + b.h - 4, 18, 8, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    // Stunned spinning stars
+    if (b.mode === "stunned") {
+      for (let i = 0; i < 3; i++) {
+        const starA = t * 6 + (i * Math.PI * 2) / 3;
+        const sx = cx + Math.cos(starA) * 34;
+        const sy = b.y - 12 + Math.sin(starA) * 9;
+        ctx.fillStyle = "#ffc94d";
+        ctx.font = '12px "Press Start 2P", monospace';
+        ctx.textAlign = "center";
+        ctx.fillText("★", sx, sy);
+      }
+    }
+
     // telegraph marker
     if (b.mode === "tele") {
-      ctx.fillStyle = "#ffc94d";
-      ctx.font = '22px "Press Start 2P", monospace';
+      ctx.fillStyle = b.nextAction === "charge" ? (Math.floor(t * 14) % 2 === 0 ? "#ff3b30" : "#ffc94d") : "#ffc94d";
+      ctx.font = '20px "Press Start 2P", monospace';
       ctx.textAlign = "center";
-      ctx.fillText("!", cx, b.y - 18 + Math.sin(t * 20) * 3);
+      ctx.fillText(b.nextAction === "charge" ? "! CHARGE !" : "!", cx, b.y - 18 + Math.sin(t * 20) * 3);
     }
     ctx.restore();
   }
