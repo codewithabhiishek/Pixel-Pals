@@ -579,14 +579,24 @@ export default function GameCanvas(props: Props) {
 
             {/* Desktop / Laptop Keyboard Shortcuts Guide (Hidden on iPad/tablets/phones where touch is used) */}
             {!isMobileOrTabletDevice() && (
-              <div className="mt-4 text-center space-y-1.5 font-body text-[11px] text-cream/75 border-t-2 border-[#0b1f2c] pt-3">
-                <div className="flex items-center justify-center gap-3 flex-wrap">
-                  <span><span className="kbd">←→</span> Move</span>
-                  <span><span className="kbd">SPACE</span> Jump</span>
-                </div>
-                <div className="flex items-center justify-center gap-3 flex-wrap">
-                  <span><span className="kbd">SHIFT</span> Run</span>
-                  <span><span className="kbd">F</span> Fullscreen</span>
+              <div className="mt-4 border-t-2 border-[#0b1f2c] pt-3">
+                <div className="grid grid-cols-2 gap-x-5 gap-y-2.5 max-w-[280px] mx-auto text-left font-body text-[11px] text-cream/80">
+                  <div className="flex items-center gap-2">
+                    <span className="kbd w-[60px] shrink-0 text-center">←→</span>
+                    <span className="truncate">Move</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="kbd w-[60px] shrink-0 text-center">SPACE</span>
+                    <span className="truncate">Jump</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="kbd w-[60px] shrink-0 text-center">SHIFT</span>
+                    <span className="truncate">Run</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="kbd w-[60px] shrink-0 text-center">F</span>
+                    <span className="truncate">Fullscreen</span>
+                  </div>
                 </div>
               </div>
             )}
