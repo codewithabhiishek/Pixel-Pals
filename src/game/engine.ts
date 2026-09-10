@@ -780,6 +780,7 @@ export class Engine {
             e.y = Math.floor((e.y + e.h) / T) * T - e.h - 0.01;
             e.vy = 0;
           }
+          if (e.vx !== 0) e.dir = Math.sign(e.vx);
         }
       } else if (e.kind === "flyer") {
         if (this.opts.levelIdx >= 3) {
@@ -808,6 +809,7 @@ export class Engine {
           e.x = e.ax + Math.sin(e.t * e.speed) * range - e.w / 2;
           e.y = e.ay + Math.sin(e.t * e.speed * 2.0) * amp - e.h / 2;
         }
+        e.dir = p.x > e.x ? 1 : -1;
       } else if (e.kind === "bouncer") {
         e.vy = Math.min(e.vy + GRAV_DOWN * dt, 900);
         e.x += e.vx * dt;
@@ -821,13 +823,17 @@ export class Engine {
           if (e.timer <= 0 && onScreen) {
             e.vy = e.isMinion ? -380 : this.opts.levelIdx <= 2 ? -420 : -470;
             e.vx = (p.x > e.x ? 1 : -1) * e.speed;
+            e.dir = p.x > e.x ? 1 : -1;
             e.timer = (e.isMinion ? 0.8 : 1.1) + rnd(e.t * 7) * 0.7;
           }
         } else {
           e.timer = Math.max(e.timer, 0.4);
         }
         const aheadC = Math.floor((e.vx > 0 ? e.x + e.w + 2 : e.x - 2) / T);
-        if (this.solid(aheadC, Math.floor((e.y + e.h / 2) / T))) e.vx = -e.vx;
+        if (this.solid(aheadC, Math.floor((e.y + e.h / 2) / T))) {
+          e.vx = -e.vx;
+        }
+        e.dir = Math.abs(e.vx) > 5 ? Math.sign(e.vx) : (p.x > e.x ? 1 : -1);
       } else if (e.kind === "chomper") {
         const period = (this.opts.levelIdx >= 3 ? 2.5 : 3.4) / Math.max(0.7, e.speed);
         const ph = e.t % period;
@@ -1894,16 +1900,25 @@ export class Engine {
       ctx.ellipse(e.x + 9, e.y + e.h - 3 + step * 0.4, 7, 4, 0, 0, Math.PI * 2);
       ctx.ellipse(e.x + e.w - 9, e.y + e.h - 3 - step * 0.4, 7, 4, 0, 0, Math.PI * 2);
       ctx.fill();
+
+      // Dynamic Eye Tracking towards player
+      const pdx = (this.p.x + this.p.w / 2) - cx;
+      const pdy = (this.p.y + this.p.h / 2) - (e.y + 13);
+      const isClose = Math.abs(pdx) < 240;
+      const gazeX = isClose ? clamp(pdx / 100, -1, 1) : e.dir;
+      const gazeY = isClose ? clamp(pdy / 80, -0.8, 0.8) : 0;
+      const faceDir = isClose ? (pdx >= 0 ? 1 : -1) : e.dir;
+
       ctx.fillStyle = "#fdf3e3";
       ctx.beginPath();
-      ctx.arc(cx - 7 + e.dir * 2, e.y + 13, 5, 0, Math.PI * 2);
-      ctx.arc(cx + 7 + e.dir * 2, e.y + 13, 5, 0, Math.PI * 2);
+      ctx.arc(cx - 7 + faceDir * 2, e.y + 13, 5, 0, Math.PI * 2);
+      ctx.arc(cx + 7 + faceDir * 2, e.y + 13, 5, 0, Math.PI * 2);
       ctx.fill();
       const bl = Math.sin(e.t * 1.9 + e.ax * 0.05) > 0.985 ? 0.15 : 1;
       ctx.fillStyle = "#12262e";
       ctx.beginPath();
-      ctx.ellipse(cx - 7 + e.dir * 4, e.y + 14, 2.4, 2.4 * bl, 0, 0, Math.PI * 2);
-      ctx.ellipse(cx + 7 + e.dir * 4, e.y + 14, 2.4, 2.4 * bl, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx - 7 + faceDir * 2 + gazeX * 2.2, e.y + 14 + gazeY * 1.4, 2.4, 2.4 * bl, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx + 7 + faceDir * 2 + gazeX * 2.2, e.y + 14 + gazeY * 1.4, 2.4, 2.4 * bl, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = "#12262e";
       ctx.lineWidth = 2;
@@ -1922,6 +1937,13 @@ export class Engine {
       ctx.restore();
       ctx.fillStyle = "#d95f76";
       ctx.beginPath(); ctx.arc(cx, e.y + e.h / 2, 12, 0, Math.PI * 2); ctx.fill();
+
+      // Flyer eyes tracking the player
+      const pdx = (this.p.x + this.p.w / 2) - cx;
+      const pdy = (this.p.y + this.p.h / 2) - (e.y + e.h / 2);
+      const gazeX = clamp(pdx / 110, -1, 1);
+      const gazeY = clamp(pdy / 80, -0.85, 0.85);
+
       ctx.fillStyle = "#fdf3e3";
       ctx.beginPath();
       ctx.arc(cx - 4, e.y + e.h / 2 - 2, 3.6, 0, Math.PI * 2);
@@ -1929,8 +1951,8 @@ export class Engine {
       ctx.fill();
       ctx.fillStyle = "#12262e";
       ctx.beginPath();
-      ctx.arc(cx - 4, e.y + e.h / 2 - 1, 1.8, 0, Math.PI * 2);
-      ctx.arc(cx + 4, e.y + e.h / 2 - 1, 1.8, 0, Math.PI * 2);
+      ctx.arc(cx - 4 + gazeX * 1.6, e.y + e.h / 2 - 1 + gazeY * 1.2, 1.8, 0, Math.PI * 2);
+      ctx.arc(cx + 4 + gazeX * 1.6, e.y + e.h / 2 - 1 + gazeY * 1.2, 1.8, 0, Math.PI * 2);
       ctx.fill();
     } else if (e.kind === "spiker") {
       ctx.fillStyle = "#fdf3e3";
@@ -1950,15 +1972,24 @@ export class Engine {
       ctx.quadraticCurveTo(e.x + e.w, e.y + 2, e.x + e.w, e.y + e.h);
       ctx.closePath();
       ctx.fill();
+
+      // Dynamic Eye Tracking
+      const pdx = (this.p.x + this.p.w / 2) - cx;
+      const pdy = (this.p.y + this.p.h / 2) - (e.y + 15);
+      const isClose = Math.abs(pdx) < 220;
+      const gazeX = isClose ? clamp(pdx / 90, -1, 1) : e.dir;
+      const gazeY = isClose ? clamp(pdy / 70, -0.8, 0.8) : 0;
+      const faceDir = isClose ? (pdx >= 0 ? 1 : -1) : e.dir;
+
       ctx.fillStyle = "#fdf3e3";
       ctx.beginPath();
-      ctx.arc(cx - 7 + e.dir * 2, e.y + 15, 4, 0, Math.PI * 2);
-      ctx.arc(cx + 7 + e.dir * 2, e.y + 15, 4, 0, Math.PI * 2);
+      ctx.arc(cx - 7 + faceDir * 2, e.y + 15, 4, 0, Math.PI * 2);
+      ctx.arc(cx + 7 + faceDir * 2, e.y + 15, 4, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = "#12262e";
       ctx.beginPath();
-      ctx.arc(cx - 7 + e.dir * 3.4, e.y + 16, 2, 0, Math.PI * 2);
-      ctx.arc(cx + 7 + e.dir * 3.4, e.y + 16, 2, 0, Math.PI * 2);
+      ctx.arc(cx - 7 + faceDir * 2 + gazeX * 2.0, e.y + 16 + gazeY * 1.3, 2, 0, Math.PI * 2);
+      ctx.arc(cx + 7 + faceDir * 2 + gazeX * 2.0, e.y + 16 + gazeY * 1.3, 2, 0, Math.PI * 2);
       ctx.fill();
     } else if (e.kind === "bouncer") {
       if (e.isMinion) {
@@ -1968,7 +1999,14 @@ export class Engine {
         ctx.fillStyle = "#ffc94d";
         ctx.beginPath(); ctx.arc(cx, e.y + e.h / 2, 5, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#12262e";
-        ctx.beginPath(); ctx.arc(cx - 3, e.y + 7, 2, 0, Math.PI * 2); ctx.arc(cx + 3, e.y + 7, 2, 0, Math.PI * 2); ctx.fill();
+        const pdx = (this.p.x + this.p.w / 2) - cx;
+        const pdy = (this.p.y + this.p.h / 2) - (e.y + 7);
+        const gx = clamp(pdx / 80, -1, 1);
+        const gy = clamp(pdy / 60, -1, 1);
+        ctx.beginPath();
+        ctx.arc(cx - 3 + gx * 1.2, e.y + 7 + gy, 1.8, 0, Math.PI * 2);
+        ctx.arc(cx + 3 + gx * 1.2, e.y + 7 + gy, 1.8, 0, Math.PI * 2);
+        ctx.fill();
         ctx.restore();
         return;
       }
@@ -1986,16 +2024,46 @@ export class Engine {
         ctx.lineTo(-7 + i * 6, -1);
       }
       ctx.stroke();
+
+      // Dynamic Eye Tracking: eyes follow player seamlessly in all directions
+      const pdx = (this.p.x + this.p.w / 2) - cx;
+      const pdy = (this.p.y + this.p.h / 2) - (e.y + e.h / 2);
+      const faceDir = pdx >= 0 ? 1 : -1;
+      const gazeX = clamp(pdx / 100, -1, 1);
+      const gazeY = clamp(pdy / 80, -0.85, 0.85);
+
+      const eyeBaseX = faceDir * 2.2;
+      const eyeY = -e.h / 2 - 3;
+      const leftEyeX = -6 + eyeBaseX;
+      const rightEyeX = 6 + eyeBaseX;
+
+      // Eye whites
       ctx.fillStyle = "#fdf3e3";
       ctx.beginPath();
-      ctx.arc(-6 + e.dir * 2, -e.h / 2 - 3, 4.4, 0, Math.PI * 2);
-      ctx.arc(6 + e.dir * 2, -e.h / 2 - 3, 4.4, 0, Math.PI * 2);
+      ctx.arc(leftEyeX, eyeY, 4.4, 0, Math.PI * 2);
+      ctx.arc(rightEyeX, eyeY, 4.4, 0, Math.PI * 2);
       ctx.fill();
+
+      // Blinking animation
+      const bl = Math.sin(e.t * 2.1 + e.ax * 0.05) > 0.985 ? 0.2 : 1;
+
+      // Dark pupils tracking player directly inside the whites
+      const pupilX = gazeX * 2.0;
+      const pupilY = gazeY * 1.5;
       ctx.fillStyle = "#12262e";
       ctx.beginPath();
-      ctx.arc(-6 + e.dir * 3.6, -e.h / 2 - 2, 2.2, 0, Math.PI * 2);
-      ctx.arc(6 + e.dir * 3.6, -e.h / 2 - 2, 2.2, 0, Math.PI * 2);
+      ctx.ellipse(leftEyeX + pupilX, eyeY + pupilY, 2.2, 2.2 * bl, 0, 0, Math.PI * 2);
+      ctx.ellipse(rightEyeX + pupilX, eyeY + pupilY, 2.2, 2.2 * bl, 0, 0, Math.PI * 2);
       ctx.fill();
+
+      // White reflection glint for lifelike retro eyes
+      if (bl > 0.5) {
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(leftEyeX + pupilX - 0.7, eyeY + pupilY - 0.7, 0.75, 0, Math.PI * 2);
+        ctx.arc(rightEyeX + pupilX - 0.7, eyeY + pupilY - 0.7, 0.75, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.restore();
     } else if (e.kind === "chomper") {
       const pipeY = e.pipeTop;
