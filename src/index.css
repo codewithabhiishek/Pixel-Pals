@@ -204,6 +204,14 @@ canvas {
 }
 .anim-breathe { animation: gentleBreathe 3.2s ease-in-out infinite; }
 .anim-coin-spin { animation: coinBlink 2.4s ease-in-out infinite; }
+@keyframes mascotBlink {
+  0%, 94%, 98%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.12); }
+}
+.anim-mascot-blink {
+  transform-origin: 123px 72px;
+  animation: mascotBlink 4.8s ease-in-out infinite;
+}
 
 /* Touch controls deck */
 .touch-btn {

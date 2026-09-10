@@ -93,44 +93,146 @@ const FullscreenIcon = ({ isFull }: { isFull: boolean }) => (
   </svg>
 );
 
-const FoxMascot = () => (
-  <svg width="220" height="200" viewBox="0 0 210 190" className="drop-shadow-[0_12px_0_rgba(0,0,0,0.3)] select-none pointer-events-none">
-    {/* tail with flame flicker */}
-    <g className="origin-[40px_148px] animate-[flameFlicker_3.2s_ease-in-out_infinite]">
-      <path d="M30 150 Q4 138 10 112 Q26 122 40 118 Q34 138 44 148 Z" fill="#e0702a" />
-      <circle cx="13" cy="117" r="9" fill="#fdf3e3" />
-      <path d="M14 112 Q6 100 14 90 Q16 102 24 104 Q18 108 14 112 Z" fill="#ff7a2f" />
-    </g>
-    {/* body */}
-    <rect x="40" y="106" width="86" height="62" rx="26" fill="#ff8c3b" />
-    <ellipse cx="88" cy="146" rx="26" ry="17" fill="#fdf3e3" />
-    {/* head */}
-    <circle cx="120" cy="78" r="46" fill="#ff8c3b" />
-    {/* ears with subtle twitch */}
-    <g className="origin-[120px_78px]">
-      <path d="M84 48 L74 6 L110 34 Z" fill="#ff8c3b" />
-      <path d="M156 48 L166 6 L130 34 Z" fill="#ff8c3b" />
-      <path d="M82 40 L77 16 L99 33 Z" fill="#3c1c0c" />
-      <path d="M158 40 L163 16 L141 33 Z" fill="#3c1c0c" />
-    </g>
-    {/* muzzle */}
-    <ellipse cx="138" cy="92" rx="20" ry="14" fill="#fdf3e3" />
-    <circle cx="150" cy="87" r="5" fill="#3c1c0c" />
-    {/* eyes */}
-    <circle cx="106" cy="72" r="9" fill="#fdf3e3" />
-    <circle cx="140" cy="72" r="9" fill="#fdf3e3" />
-    <circle cx="109" cy="73" r="4.6" fill="#12262e" />
-    <circle cx="143" cy="73" r="4.6" fill="#12262e" />
-    <circle cx="110.6" cy="71" r="1.6" fill="#ffffff" />
-    <circle cx="144.6" cy="71" r="1.6" fill="#ffffff" />
-    {/* scarf */}
-    <path d="M88 108 Q120 122 152 108 L152 120 Q120 134 88 120 Z" fill="#ff5a5f" />
-    <path d="M92 116 Q76 132 68 148 L82 150 Q88 134 98 124 Z" fill="#ff5a5f" />
-    {/* feet */}
-    <rect x="54" y="160" width="20" height="14" rx="6" fill="#c65f22" />
-    <rect x="94" y="160" width="20" height="14" rx="6" fill="#c65f22" />
-  </svg>
-);
+const FoxMascot = () => {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const pupilRef = useRef<SVGGElement | null>(null);
+
+  useEffect(() => {
+    let rafId: number;
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+
+    const onPointerMove = (e: MouseEvent | TouchEvent | PointerEvent) => {
+      if (!svgRef.current) return;
+      const rect = svgRef.current.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      // Approximate eye midpoint in screen pixels (center of eyes is ~123/210 X, ~72/190 Y)
+      const eyeScreenX = rect.left + (123 / 210) * rect.width;
+      const eyeScreenY = rect.top + (72 / 190) * rect.height;
+
+      let clientX = 0;
+      let clientY = 0;
+      if ("touches" in e && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else if ("clientX" in e) {
+        clientX = (e as MouseEvent).clientX;
+        clientY = (e as MouseEvent).clientY;
+      } else {
+        return;
+      }
+
+      const dx = clientX - eyeScreenX;
+      const dy = clientY - eyeScreenY;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > 0.001) {
+        // In SVG viewBox units, eye white is 9px radius, pupil is 4.6px -> max shift is ~3.6
+        const maxShift = 3.6;
+        const factor = Math.min(dist / 140, 1) * maxShift;
+        targetX = (dx / dist) * factor;
+        targetY = (dy / dist) * factor;
+      }
+    };
+
+    const onPointerReset = () => {
+      targetX = 0;
+      targetY = 0;
+    };
+
+    const update = () => {
+      // Smooth lerp for silky organic eye movement
+      currentX += (targetX - currentX) * 0.24;
+      currentY += (targetY - currentY) * 0.24;
+
+      if (pupilRef.current) {
+        pupilRef.current.style.transform = `translate(${currentX.toFixed(2)}px, ${currentY.toFixed(2)}px)`;
+      }
+      rafId = requestAnimationFrame(update);
+    };
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerdown", onPointerMove, { passive: true });
+    window.addEventListener("touchmove", onPointerMove, { passive: true });
+    window.addEventListener("touchstart", onPointerMove, { passive: true });
+    window.addEventListener("pointerleave", onPointerReset);
+    document.addEventListener("mouseleave", onPointerReset);
+    window.addEventListener("touchend", onPointerReset);
+
+    rafId = requestAnimationFrame(update);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerMove);
+      window.removeEventListener("touchmove", onPointerMove);
+      window.removeEventListener("touchstart", onPointerMove);
+      window.removeEventListener("pointerleave", onPointerReset);
+      document.removeEventListener("mouseleave", onPointerReset);
+      window.removeEventListener("touchend", onPointerReset);
+    };
+  }, []);
+
+  return (
+    <svg
+      ref={svgRef}
+      width="220"
+      height="200"
+      viewBox="0 0 210 190"
+      className="drop-shadow-[0_12px_0_rgba(0,0,0,0.3)] select-none pointer-events-none"
+    >
+      {/* tail with flame flicker */}
+      <g className="origin-[40px_148px] animate-[flameFlicker_3.2s_ease-in-out_infinite]">
+        <path d="M30 150 Q4 138 10 112 Q26 122 40 118 Q34 138 44 148 Z" fill="#e0702a" />
+        <circle cx="13" cy="117" r="9" fill="#fdf3e3" />
+        <path d="M14 112 Q6 100 14 90 Q16 102 24 104 Q18 108 14 112 Z" fill="#ff7a2f" />
+      </g>
+      {/* body */}
+      <rect x="40" y="106" width="86" height="62" rx="26" fill="#ff8c3b" />
+      <ellipse cx="88" cy="146" rx="26" ry="17" fill="#fdf3e3" />
+      {/* head */}
+      <circle cx="120" cy="78" r="46" fill="#ff8c3b" />
+      {/* ears with subtle twitch */}
+      <g className="origin-[120px_78px]">
+        <path d="M84 48 L74 6 L110 34 Z" fill="#ff8c3b" />
+        <path d="M156 48 L166 6 L130 34 Z" fill="#ff8c3b" />
+        <path d="M82 40 L77 16 L99 33 Z" fill="#3c1c0c" />
+        <path d="M158 40 L163 16 L141 33 Z" fill="#3c1c0c" />
+      </g>
+      {/* muzzle */}
+      <ellipse cx="138" cy="92" rx="20" ry="14" fill="#fdf3e3" />
+      <circle cx="150" cy="87" r="5" fill="#3c1c0c" />
+
+      {/* eyes with natural periodic blinking */}
+      <g className="anim-mascot-blink">
+        {/* eye whites */}
+        <circle cx="106" cy="72" r="9" fill="#fdf3e3" />
+        <circle cx="140" cy="72" r="9" fill="#fdf3e3" />
+
+        {/* tracking pupils group (follows cursor and touch) */}
+        <g ref={pupilRef}>
+          {/* left pupil & specular shine */}
+          <circle cx="107.5" cy="72.5" r="4.6" fill="#12262e" />
+          <circle cx="109.2" cy="70.6" r="1.6" fill="#ffffff" />
+
+          {/* right pupil & specular shine */}
+          <circle cx="141.5" cy="72.5" r="4.6" fill="#12262e" />
+          <circle cx="143.2" cy="70.6" r="1.6" fill="#ffffff" />
+        </g>
+      </g>
+
+      {/* scarf */}
+      <path d="M88 108 Q120 122 152 108 L152 120 Q120 134 88 120 Z" fill="#ff5a5f" />
+      <path d="M92 116 Q76 132 68 148 L82 150 Q88 134 98 124 Z" fill="#ff5a5f" />
+      {/* feet */}
+      <rect x="54" y="160" width="20" height="14" rx="6" fill="#c65f22" />
+      <rect x="94" y="160" width="20" height="14" rx="6" fill="#c65f22" />
+    </svg>
+  );
+};
 
 const FloatingIsland = () => (
   <div className="relative flex flex-col items-center select-none pointer-events-none">
