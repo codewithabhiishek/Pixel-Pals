@@ -484,120 +484,127 @@ function MenuScreen(props: {
 
   return (
     <div
-      className="relative w-full h-full overflow-y-auto no-scrollbar flex flex-col justify-between"
-      style={{ background: "linear-gradient(180deg,#071620 0%,#0b1f2c 30%,#123043 70%,#183a4f 100%)" }}
+      className="relative w-full h-full overflow-hidden select-none touch-none flex flex-col justify-between"
+      style={{
+        background: "linear-gradient(180deg,#071620 0%,#0b1f2c 30%,#123043 70%,#183a4f 100%)",
+        overscrollBehavior: "none",
+        touchAction: "none",
+      }}
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         setTilt({ x: (e.clientX - r.left) / r.width - 0.5, y: (e.clientY - r.top) / r.height - 0.5 });
       }}
     >
-      {/* starfield */}
-      {Array.from({ length: 32 }).map((_, i) => (
-        <div key={i} className="absolute rounded-full bg-cream/75 pointer-events-none" style={{
-          left: `${(i * 37 + 11) % 100}%`, top: `${(i * 23 + 5) % 52}%`, width: i % 4 === 0 ? 3 : 2, height: i % 4 === 0 ? 3 : 2,
-          animation: `blinkStep ${2 + (i % 4)}s ease-in-out ${(i % 5) * 0.4}s infinite`,
-        }} />
-      ))}
+      {/* Background layer container with strict overflow-hidden - locks mountain SVGs and effects from horizontal bleeding */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        {/* starfield */}
+        {Array.from({ length: 32 }).map((_, i) => (
+          <div key={i} className="absolute rounded-full bg-cream/75 pointer-events-none" style={{
+            left: `${(i * 37 + 11) % 100}%`, top: `${(i * 23 + 5) % 52}%`, width: i % 4 === 0 ? 3 : 2, height: i % 4 === 0 ? 3 : 2,
+            animation: `blinkStep ${2 + (i % 4)}s ease-in-out ${(i % 5) * 0.4}s infinite`,
+          }} />
+        ))}
 
-      {/* drifting stardust / fireflies */}
-      {[0, 1, 2, 3].map((i) => (
-        <div key={`star-${i}`} className="absolute rounded-[1px] bg-gold/50 pointer-events-none" style={{
-          width: 3, height: 3, top: `${20 + i * 14}%`, left: `${10 + i * 22}%`,
-          boxShadow: "0 0 8px rgba(255,201,77,0.7)",
-          animation: `floaty ${3 + i * 1.2}s ease-in-out ${i * 0.7}s infinite`,
-        }} />
-      ))}
+        {/* drifting stardust / fireflies */}
+        {[0, 1, 2, 3].map((i) => (
+          <div key={`star-${i}`} className="absolute rounded-[1px] bg-gold/50 pointer-events-none" style={{
+            width: 3, height: 3, top: `${20 + i * 14}%`, left: `${10 + i * 22}%`,
+            boxShadow: "0 0 8px rgba(255,201,77,0.7)",
+            animation: `floaty ${3 + i * 1.2}s ease-in-out ${i * 0.7}s infinite`,
+          }} />
+        ))}
 
-      {/* moon with pixel crater shading - positioned to frame the sky without crowding the mascot */}
-      <div className="absolute rounded-full pointer-events-none transition-transform duration-500 ease-out" style={{
-        right: "24%", top: "7%", width: 80, height: 80, background: "#ffc94d",
-        boxShadow: "0 0 40px 10px rgba(255,201,77,0.2), inset -14px -9px 0 rgba(224,152,38,0.6)",
-        transform: `translate(${tilt.x * 8}px, ${tilt.y * 5}px)`,
-      }}>
-        {/* subtle pixel craters */}
-        <div className="absolute top-3.5 left-4.5 w-2.5 h-2.5 rounded-full bg-[#e09826]/40" />
-        <div className="absolute top-8 left-9 w-3.5 h-3.5 rounded-full bg-[#e09826]/35" />
-        <div className="absolute bottom-5 left-5 w-2 h-2 rounded-full bg-[#e09826]/45" />
+        {/* moon with pixel crater shading */}
+        <div className="absolute rounded-full pointer-events-none transition-transform duration-500 ease-out" style={{
+          right: "24%", top: "7%", width: 80, height: 80, background: "#ffc94d",
+          boxShadow: "0 0 40px 10px rgba(255,201,77,0.2), inset -14px -9px 0 rgba(224,152,38,0.6)",
+          transform: `translate(${tilt.x * 8}px, ${tilt.y * 5}px)`,
+        }}>
+          {/* subtle pixel craters */}
+          <div className="absolute top-3.5 left-4.5 w-2.5 h-2.5 rounded-full bg-[#e09826]/40" />
+          <div className="absolute top-8 left-9 w-3.5 h-3.5 rounded-full bg-[#e09826]/35" />
+          <div className="absolute bottom-5 left-5 w-2 h-2 rounded-full bg-[#e09826]/45" />
+        </div>
+
+        {/* drifting clouds */}
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="absolute rounded-full bg-cream/8 pointer-events-none" style={{
+            width: 190 + i * 60, height: 36 + i * 8, top: `${15 + i * 15}%`,
+            animation: `drift ${54 + i * 18}s linear ${-i * 18}s infinite`,
+          }} />
+        ))}
+
+        {/* mountain silhouettes with parallax contained cleanly inside background */}
+        <svg className="absolute bottom-0 w-full pointer-events-none transition-transform duration-500 ease-out" viewBox="0 0 1440 240" preserveAspectRatio="none" style={{ height: "30%", width: "112%", left: "-6%", transform: `translateX(${tilt.x * -14}px)` }}>
+          <path d="M0 240 L0 150 Q240 60 480 140 Q720 220 960 120 Q1200 40 1440 130 L1440 240 Z" fill="#0c2331" />
+        </svg>
+        <svg className="absolute bottom-0 w-full pointer-events-none transition-transform duration-500 ease-out" viewBox="0 0 1440 240" preserveAspectRatio="none" style={{ height: "22%", width: "112%", left: "-6%", transform: `translateX(${tilt.x * -26}px)` }}>
+          <path d="M0 240 L0 190 Q300 120 640 185 Q980 245 1240 175 Q1360 145 1440 165 L1440 240 Z" fill="#071620" />
+        </svg>
       </div>
 
-      {/* drifting clouds */}
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="absolute rounded-full bg-cream/8 pointer-events-none" style={{
-          width: 190 + i * 60, height: 36 + i * 8, top: `${15 + i * 15}%`,
-          animation: `drift ${54 + i * 18}s linear ${-i * 18}s infinite`,
-        }} />
-      ))}
-
-      {/* mountain silhouettes with parallax */}
-      <svg className="absolute bottom-0 w-full pointer-events-none transition-transform duration-500 ease-out" viewBox="0 0 1440 240" preserveAspectRatio="none" style={{ height: "30%", width: "112%", left: "-6%", transform: `translateX(${tilt.x * -14}px)` }}>
-        <path d="M0 240 L0 150 Q240 60 480 140 Q720 220 960 120 Q1200 40 1440 130 L1440 240 Z" fill="#0c2331" />
-      </svg>
-      <svg className="absolute bottom-0 w-full pointer-events-none transition-transform duration-500 ease-out" viewBox="0 0 1440 240" preserveAspectRatio="none" style={{ height: "22%", width: "112%", left: "-6%", transform: `translateX(${tilt.x * -26}px)` }}>
-        <path d="M0 240 L0 190 Q300 120 640 185 Q980 245 1240 175 Q1360 145 1440 165 L1440 240 Z" fill="#071620" />
-      </svg>
-
       {/* Quick Settings Bar at Top */}
-      <div className="relative z-20 w-full max-w-6xl mx-auto px-4 sm:px-8 pt-4 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2.5 bg-[#071620]/90 border-2 border-[#123043] rounded-md px-3.5 py-1.5 backdrop-blur-[2px] shadow-[0_3px_0_#071620]">
+      <div className="relative z-20 w-full max-w-6xl mx-auto px-3 sm:px-6 pt-2.5 sm:pt-4 flex items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 bg-[#071620]/90 border-2 border-[#123043] rounded-md px-2.5 sm:px-3.5 py-1 sm:py-1.5 backdrop-blur-[2px] shadow-[0_3px_0_#071620] shrink-0">
           <span className="w-2 h-2 rounded-[1px] bg-gold animate-pulse" />
           <span className="px-font text-[7px] sm:text-[8px] text-mint tracking-wider">HI-SCORE</span>
-          <span className="px-font text-[11px] sm:text-[13px] text-gold tracking-widest">{String(props.save.high).padStart(6, "0")}</span>
+          <span className="px-font text-[10px] sm:text-[13px] text-gold tracking-widest">{String(props.save.high).padStart(6, "0")}</span>
         </div>
 
         {/* Toolbar Toggles */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
           <button
             onClick={props.onToggleFullscreen}
-            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Fullscreen Zoom (Press F)"
           >
             <FullscreenIcon isFull={props.isFullscreen} />
-            <span className="px-font text-[7px]">{props.isFullscreen ? "EXIT ZOOM (F)" : "ZOOM / FULL (F)"}</span>
+            <span className="px-font text-[6.5px] sm:text-[7px]">{props.isFullscreen ? "EXIT ZOOM" : "ZOOM"}</span>
           </button>
           <button
             onClick={props.onToggleSfx}
-            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Sound Effects"
           >
             <SoundIcon on={props.save.sfx} />
-            <span className="px-font text-[7px]">SFX {props.save.sfx ? "ON" : "OFF"}</span>
+            <span className="px-font text-[6.5px] sm:text-[7px]">SFX {props.save.sfx ? "ON" : "OFF"}</span>
           </button>
           <button
             onClick={props.onToggleMusic}
-            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Chiptune Music"
           >
             <SoundIcon on={props.save.music} />
-            <span className="px-font text-[7px]">BGM {props.save.music ? "ON" : "OFF"}</span>
+            <span className="px-font text-[6.5px] sm:text-[7px]">BGM {props.save.music ? "ON" : "OFF"}</span>
           </button>
           <button
             onClick={props.onToggleScanlines}
-            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle CRT Scanline Effect"
           >
             <CrtIcon on={props.save.scanlines} />
-            <span className="px-font text-[7px]">CRT {props.save.scanlines ? "ON" : "OFF"}</span>
+            <span className="px-font text-[6.5px] sm:text-[7px]">CRT {props.save.scanlines ? "ON" : "OFF"}</span>
           </button>
           <button
             onClick={props.onCycleTouchMode}
-            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Cycle Touch Controls: Auto / Force On / Force Off"
           >
             <GamepadIcon />
-            <span className="px-font text-[7px]">TOUCH {props.save.touchMode.toUpperCase()}</span>
+            <span className="px-font text-[6.5px] sm:text-[7px]">TOUCH {props.save.touchMode.toUpperCase()}</span>
           </button>
         </div>
       </div>
 
       {/* Main Title & Hero Composition */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-8 py-5 sm:py-8 my-auto">
-        <div className="flex items-center justify-between gap-8 lg:gap-14 flex-col lg:flex-row">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 my-auto flex-1 flex flex-col justify-center">
+        <div className="flex items-center justify-between gap-6 md:gap-10 lg:gap-14 flex-col md:flex-row">
           {/* Left Column: Game Title & Cartridge Actions */}
-          <div className="max-w-xl w-full flex flex-col items-center lg:items-start text-center lg:text-left">
+          <div className="max-w-xl w-full flex flex-col items-center md:items-start text-center md:text-left">
             {/* 1. Subtle Retro Arcade Easter Egg Label */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[#071620]/90 border-2 border-[#123043] shadow-[0_2px_0_#071620] mb-4 self-center lg:self-start select-none">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-[#071620]/90 border-2 border-[#123043] shadow-[0_2px_0_#071620] mb-2 sm:mb-3 self-center md:self-start select-none">
               <span className="w-1.5 h-1.5 rounded-[1px] bg-gold animate-pulse" />
-              <span className="px-font text-[7.5px] sm:text-[8.5px] text-mint tracking-[0.24em]">
+              <span className="px-font text-[7px] sm:text-[8px] text-mint tracking-[0.24em]">
                 INSERT COIN // 0 COINS
               </span>
             </div>
@@ -605,49 +612,49 @@ function MenuScreen(props: {
             {/* 2. Dominant Game Title with Crisp Stepped Pixel Shadow */}
             <h1
               className="px-font text-ember retro-title-shadow leading-none tracking-wider select-none"
-              style={{ fontSize: "clamp(2.6rem, 6.6vw, 4.4rem)", animation: "titlePulse 3.2s ease-in-out infinite" }}
+              style={{ fontSize: "clamp(2.2rem, 5.8vw, 4.2rem)", animation: "titlePulse 3.2s ease-in-out infinite" }}
             >
               PIXEL PALS
             </h1>
 
             {/* 3. Framed Subtitle Banner (Cartridge Plaque) */}
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-[#0b1f2c]/90 border-2 border-gold/50 rounded-sm shadow-[0_3px_0_#071620] mt-4 sm:mt-5 self-center lg:self-start select-none">
-              <span className="text-gold text-[9px]">◆</span>
-              <span className="px-font text-gold text-[10.5px] sm:text-[13px] tracking-[0.24em] retro-sub-shadow font-bold">
+            <div className="inline-flex items-center gap-2.5 px-3 py-1 bg-[#0b1f2c]/90 border-2 border-gold/50 rounded-sm shadow-[0_3px_0_#071620] mt-2.5 sm:mt-3.5 self-center md:self-start select-none">
+              <span className="text-gold text-[8.5px]">◆</span>
+              <span className="px-font text-gold text-[9.5px] sm:text-[12px] tracking-[0.24em] retro-sub-shadow font-bold">
                 ADVENTURE RUN
               </span>
-              <span className="text-gold text-[9px]">◆</span>
+              <span className="text-gold text-[8.5px]">◆</span>
             </div>
 
             {/* 4. Short Nostalgic Description */}
-            <p className="font-body text-cream/80 text-sm sm:text-base mt-4 max-w-md leading-relaxed">
+            <p className="font-body text-cream/80 text-xs sm:text-sm mt-2.5 sm:mt-3 max-w-md leading-relaxed">
               Run, leap, and stomp through 5 handcrafted retro worlds to defeat{" "}
               <span className="text-gold font-semibold">Magmor, the Ember King</span>.
             </p>
 
-            {/* Mobile Mascot Island (centered on tablet/mobile screens) */}
-            <div className="block lg:hidden my-6 scale-90 sm:scale-100">
+            {/* Mobile Mascot Island (centered on smaller phones only, md+ uses right column) */}
+            <div className="block md:hidden my-2 sm:my-3 scale-75 sm:scale-90">
               <FloatingIsland />
             </div>
 
             {/* Tactile Real-Game Action Buttons */}
-            <div className="flex items-center gap-3 sm:gap-4 mt-6 sm:mt-8 flex-wrap justify-center lg:justify-start">
+            <div className="flex items-center gap-2.5 sm:gap-3.5 mt-4 sm:mt-6 flex-wrap justify-center md:justify-start">
               <button
-                className="btn8 primary-arcade !text-[12px] sm:!text-[13px] !px-7 sm:!px-8 !py-4 group focus-arcade flex items-center gap-2.5"
+                className="btn8 primary-arcade !text-[11px] sm:!text-[12.5px] !px-6 sm:!px-7 !py-3 sm:!py-3.5 group focus-arcade flex items-center gap-2"
                 onClick={props.onStart}
               >
-                <span className="transition-transform group-hover:translate-x-1 inline-block text-[10px]">▶</span>
+                <span className="transition-transform group-hover:translate-x-1 inline-block text-[9px]">▶</span>
                 <span>START ADVENTURE</span>
               </button>
               <button
-                className="btn8 dark !text-[10px] sm:!text-[11px] !px-5 !py-3.5 focus-arcade flex items-center gap-1.5"
+                className="btn8 dark !text-[9px] sm:!text-[10.5px] !px-4 sm:!px-5 !py-3 focus-arcade flex items-center gap-1.5"
                 onClick={props.onHeroes}
               >
                 <span className="text-gold">★</span>
                 <span>Choose Hero</span>
               </button>
               <button
-                className="btn8 blue !text-[10px] sm:!text-[11px] !px-5 !py-3.5 focus-arcade"
+                className="btn8 blue !text-[9px] sm:!text-[10.5px] !px-4 sm:!px-5 !py-3 focus-arcade"
                 onClick={props.onHelp}
               >
                 Field Guide
@@ -655,9 +662,9 @@ function MenuScreen(props: {
             </div>
           </div>
 
-          {/* Right Column: Floating Island Hero Stage (Desktop view) */}
+          {/* Right Column: Floating Island Hero Stage (Tablet & Desktop view - side-by-side on iPad!) */}
           <div
-            className="hidden lg:block shrink-0 transition-transform duration-500 ease-out"
+            className="hidden md:block shrink-0 transition-transform duration-500 ease-out scale-90 lg:scale-100"
             style={{ transform: `translate(${tilt.x * 14}px, ${tilt.y * 10}px)` }}
           >
             <FloatingIsland />
@@ -665,10 +672,10 @@ function MenuScreen(props: {
         </div>
 
         {/* Selected Hero Showcase & Save Plate */}
-        <div className="panel8 mt-7 sm:mt-8 px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-5 flex-wrap w-full bg-[#0b1f2c]/95 border-2 border-[#123043] shadow-[0_4px_0_#071620]">
-          <div className="flex items-center gap-3.5 min-w-0">
+        <div className="panel8 mt-4 sm:mt-6 px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 sm:gap-5 flex-wrap w-full bg-[#0b1f2c]/95 border-2 border-[#123043] shadow-[0_4px_0_#071620]">
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
             <button
-              className="w-12 h-12 rounded border-2 border-[#123043] shadow-[0_2px_0_#071620] overflow-hidden bg-[#183a4f] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group block shrink-0"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded border-2 border-[#123043] shadow-[0_2px_0_#071620] overflow-hidden bg-[#183a4f] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group block shrink-0"
               onClick={props.onHeroes}
               title="Change active hero"
             >
@@ -678,23 +685,23 @@ function MenuScreen(props: {
               </span>
             </button>
             <div className="text-left min-w-0">
-              <div className="px-font text-[7px] text-mint tracking-widest flex items-center gap-1.5">
+              <div className="px-font text-[6.5px] sm:text-[7px] text-mint tracking-widest flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-[1px] bg-mint inline-block shrink-0" />
                 <span>ACTIVE HERO • {props.hero.species.toUpperCase()}</span>
               </div>
-              <div className="px-font text-[12px] sm:text-[13px] text-cream mt-0.5">
+              <div className="px-font text-[11px] sm:text-[12.5px] text-cream mt-0.5">
                 {props.hero.name.toUpperCase()}
               </div>
-              <div className="font-body text-[12px] text-gold/90 font-medium mt-0.5 flex items-center gap-1">
+              <div className="font-body text-[11px] sm:text-[12px] text-gold/90 font-medium mt-0.5 flex items-center gap-1">
                 <span className="text-gold shrink-0">★</span>
                 <span>{props.hero.passive.name}: {props.hero.passive.desc}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 sm:gap-5 flex-wrap shrink-0">
+          <div className="flex items-center gap-3.5 sm:gap-5 flex-wrap shrink-0">
             <div>
-              <div className="px-font text-[7px] text-mint tracking-widest mb-1.5">
+              <div className="px-font text-[6.5px] sm:text-[7px] text-mint tracking-widest mb-1">
                 WORLDS FREED ({props.clearedCount}/5)
               </div>
               <div className="flex items-center gap-1.5">
@@ -703,7 +710,7 @@ function MenuScreen(props: {
                   return (
                     <div
                       key={i}
-                      className={`w-6 h-6 rounded border-2 border-[#0b1f2c] flex items-center justify-center transition-colors ${
+                      className={`w-5.5 h-5.5 sm:w-6 sm:h-6 rounded border-2 border-[#0b1f2c] flex items-center justify-center transition-colors ${
                         isCleared
                           ? "bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] shadow-[0_0_8px_rgba(255,201,77,0.5)] text-[#241505]"
                           : "bg-[#183a4f] text-cream/30"
@@ -713,7 +720,7 @@ function MenuScreen(props: {
                       {isCleared ? (
                         <CheckIcon />
                       ) : (
-                        <span className="px-font text-[8px]">{i + 1}</span>
+                        <span className="px-font text-[7.5px] sm:text-[8px]">{i + 1}</span>
                       )}
                     </div>
                   );
@@ -722,7 +729,7 @@ function MenuScreen(props: {
             </div>
 
             <button
-              className="btn8 dark !border-2 !shadow-[0_3px_0_#0b1f2c] hover:!shadow-[0_4px_0_#0b1f2c] active:!shadow-[0_1px_0_#0b1f2c] !px-2.5 sm:!px-3 !py-1.5 !text-[8px] sm:!text-[8.5px] focus-arcade active:translate-y-0.5 whitespace-nowrap shrink-0"
+              className="btn8 dark !border-2 !shadow-[0_3px_0_#0b1f2c] hover:!shadow-[0_4px_0_#0b1f2c] active:!shadow-[0_1px_0_#0b1f2c] !px-2.5 sm:!px-3 !py-1.5 !text-[7.5px] sm:!text-[8.5px] focus-arcade active:translate-y-0.5 whitespace-nowrap shrink-0"
               onClick={props.onHeroes}
               title="Switch active hero"
             >
@@ -733,7 +740,7 @@ function MenuScreen(props: {
       </div>
 
       {/* Footer copyright, developer credit, & nostalgic disclaimer */}
-      <div className="relative z-10 w-full border-t border-[#123043]/80 bg-[#071620]/95 px-4 sm:px-8 py-2.5 flex items-center justify-between gap-3 flex-wrap text-center sm:text-left">
+      <div className="relative z-10 w-full shrink-0 border-t border-[#123043]/80 bg-[#071620]/95 px-3 sm:px-6 py-2 flex items-center justify-between gap-2 flex-wrap text-center sm:text-left">
         <div className="flex items-center gap-2 mx-auto sm:mx-0 flex-wrap justify-center">
           <span className="inline-block w-1.5 h-1.5 rounded-[1px] bg-mint/70" />
           <a
@@ -746,11 +753,11 @@ function MenuScreen(props: {
             BUILT BY ABHISHEK
           </a>
           <span className="text-cream/25 text-[10px]">{"//"}</span>
-          <span className="font-body text-[11.5px] sm:text-[12px] text-gold/75 italic tracking-wide">
+          <span className="font-body text-[11px] sm:text-[12px] text-gold/75 italic tracking-wide">
             YOUR CHILDHOOD CALLED. IT WANTS ITS GAME BACK.
           </span>
         </div>
-        <div className="font-body text-[11px] text-cream/35 mx-auto sm:mx-0">
+        <div className="font-body text-[10.5px] sm:text-[11px] text-cream/35 mx-auto sm:mx-0">
           Pixel Pals: Adventure Run • 5 Hand-Crafted Worlds
         </div>
       </div>
@@ -785,8 +792,12 @@ function HeroSelect(props: {
 }) {
   return (
     <div
-      className="relative w-full h-full overflow-y-auto no-scrollbar flex flex-col justify-between"
-      style={{ background: "linear-gradient(180deg,#0b1f2c 0%,#123043 62%,#1d4258 100%)" }}
+      className="relative w-full h-full overflow-y-auto overflow-x-hidden no-scrollbar flex flex-col justify-between"
+      style={{
+        background: "linear-gradient(180deg,#0b1f2c 0%,#123043 62%,#1d4258 100%)",
+        overscrollBehavior: "none",
+        touchAction: "pan-y",
+      }}
     >
       <div className="relative z-10 max-w-6xl w-full mx-auto px-4 sm:px-8 pt-5 sm:pt-7 flex items-center justify-between gap-3">
         <button className="btn8 dark !text-[10px] !px-4" onClick={props.onBack}>
@@ -896,8 +907,12 @@ function LevelSelect(props: {
 }) {
   return (
     <div
-      className="relative w-full h-full overflow-y-auto no-scrollbar flex flex-col justify-between"
-      style={{ background: "linear-gradient(180deg,#0b1f2c 0%,#123043 70%,#1d4258 100%)" }}
+      className="relative w-full h-full overflow-y-auto overflow-x-hidden no-scrollbar flex flex-col justify-between"
+      style={{
+        background: "linear-gradient(180deg,#0b1f2c 0%,#123043 70%,#1d4258 100%)",
+        overscrollBehavior: "none",
+        touchAction: "pan-y",
+      }}
     >
       <div className="relative z-10 max-w-6xl w-full mx-auto px-4 sm:px-8 pt-5 flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">

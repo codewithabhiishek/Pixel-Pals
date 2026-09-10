@@ -14,11 +14,17 @@
 }
 
 html, body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
   background: #0b1f2c;
   color: #fdf3e3;
   font-family: "Chakra Petch", sans-serif;
   overflow: hidden;
-  height: 100%;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
@@ -26,9 +32,19 @@ html, body {
   -webkit-user-select: none;
   user-select: none;
   overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: none;
 }
 
-#root { height: 100%; height: 100dvh; position: relative; }
+#root {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
