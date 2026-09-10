@@ -179,10 +179,10 @@ const FoxMascot = () => {
   return (
     <svg
       ref={svgRef}
-      width="165"
-      height="150"
+      width="220"
+      height="200"
       viewBox="0 0 210 190"
-      className="drop-shadow-[0_8px_0_rgba(0,0,0,0.28)] select-none pointer-events-none"
+      className="drop-shadow-[0_12px_0_rgba(0,0,0,0.3)] select-none pointer-events-none"
     >
       {/* tail with flame flicker */}
       <g className="origin-[40px_148px] animate-[flameFlicker_3.2s_ease-in-out_infinite]">
@@ -237,13 +237,13 @@ const FoxMascot = () => {
 const FloatingIsland = () => (
   <div className="relative flex flex-col items-center select-none pointer-events-none">
     {/* Floating Coin near character's shoulder */}
-    <div className="absolute -top-2 right-2 flex flex-col items-center anim-float z-20">
-      <div className="w-6 h-6 rounded-full bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] border-2 border-[#0b1f2c] shadow-[0_2px_0_#071620] flex items-center justify-center anim-coin-spin">
-        <div className="w-3 h-3 rounded-full border border-[#b8860b] flex items-center justify-center font-bold text-[6px] text-[#8a5a00]">
+    <div className="absolute -top-3 right-3 flex flex-col items-center anim-float z-20">
+      <div className="w-7 h-7 rounded-full bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] border-2 border-[#0b1f2c] shadow-[0_2px_0_#071620] flex items-center justify-center anim-coin-spin">
+        <div className="w-3.5 h-3.5 rounded-full border border-[#b8860b] flex items-center justify-center font-bold text-[7px] text-[#8a5a00]">
           ◆
         </div>
       </div>
-      <span className="px-font text-[6px] text-gold mt-0.5 drop-shadow">100 PTS</span>
+      <span className="px-font text-[6.5px] text-gold mt-1 drop-shadow">100 PTS</span>
     </div>
 
     {/* Mascot with gentle breathing */}
@@ -252,29 +252,29 @@ const FloatingIsland = () => (
     </div>
 
     {/* Floating Pixel Island Stage */}
-    <div className="relative -mt-5 w-[175px] flex flex-col items-center">
+    <div className="relative -mt-6 w-[230px] flex flex-col items-center">
       {/* Ground contact shadow */}
-      <div className="w-22 h-2 rounded-full bg-[#071620]/60 -mb-1.5 z-10 blur-[1px]" />
+      <div className="w-28 h-3 rounded-full bg-[#071620]/60 -mb-2 z-10 blur-[1px]" />
 
       {/* Grass Top Layer with jagged pixel overhangs */}
-      <div className="w-full h-4 bg-[#5cc257] border-2 border-[#0b1f2c] rounded-t-sm relative z-10 shadow-[inset_0_1.5px_0_rgba(255,255,255,0.4)]">
-        <div className="absolute -bottom-1.5 left-2.5 w-3 h-1.5 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
-        <div className="absolute -bottom-2.5 left-9 w-3.5 h-2.5 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
-        <div className="absolute -bottom-2 left-18 w-3 h-2 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
-        <div className="absolute -bottom-2.5 right-7 w-3.5 h-2.5 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
-        <div className="absolute -bottom-1.5 right-17 w-2.5 h-1.5 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+      <div className="w-full h-5 bg-[#5cc257] border-2 border-[#0b1f2c] rounded-t-md relative z-10 shadow-[inset_0_2px_0_rgba(255,255,255,0.4)]">
+        <div className="absolute -bottom-2 left-3 w-3.5 h-2 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+        <div className="absolute -bottom-3 left-12 w-4 h-3 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+        <div className="absolute -bottom-2.5 left-24 w-3.5 h-2.5 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+        <div className="absolute -bottom-3 right-10 w-4 h-3 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+        <div className="absolute -bottom-2 right-22 w-3 h-2 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
       </div>
 
       {/* Earth Dirt Block with rock flecks & dangling vine */}
-      <div className="w-[92%] h-9 bg-[#a5683f] border-x-2 border-b-2 border-[#0b1f2c] rounded-b-md relative overflow-hidden shadow-[0_6px_0_#071620,0_12px_20px_rgba(0,0,0,0.45)]">
-        <div className="absolute inset-x-0 top-0 h-2 bg-[#86512f]" />
+      <div className="w-[92%] h-12 bg-[#a5683f] border-x-2 border-b-2 border-[#0b1f2c] rounded-b-lg relative overflow-hidden shadow-[0_8px_0_#071620,0_16px_24px_rgba(0,0,0,0.5)]">
+        <div className="absolute inset-x-0 top-0 h-2.5 bg-[#86512f]" />
         {/* Pixel rock details */}
-        <div className="absolute top-3 left-4 w-2 h-1.5 bg-[#86512f] rounded-[1px]" />
-        <div className="absolute top-4.5 left-12 w-2.5 h-2 bg-[#5a341d] rounded-[1px]" />
-        <div className="absolute top-3 right-6 w-2.5 h-1.5 bg-[#86512f] rounded-[1px]" />
-        <div className="absolute bottom-1 right-15 w-2 h-1 bg-[#5a341d] rounded-[1px]" />
+        <div className="absolute top-4 left-5 w-2.5 h-2 bg-[#86512f] rounded-[1px]" />
+        <div className="absolute top-6 left-16 w-3 h-2.5 bg-[#5a341d] rounded-[1px]" />
+        <div className="absolute top-4 right-8 w-3 h-2 bg-[#86512f] rounded-[1px]" />
+        <div className="absolute bottom-1 right-20 w-2 h-1.5 bg-[#5a341d] rounded-[1px]" />
         {/* Hanging pixel vine */}
-        <div className="absolute top-0.5 left-10 w-1.5 h-5 bg-[#3fae8c] border-x border-b border-[#0b1f2c] rounded-b-sm" />
+        <div className="absolute top-1 left-14 w-2 h-7 bg-[#3fae8c] border-x border-b border-[#0b1f2c] rounded-b-sm" />
       </div>
     </div>
   </div>
@@ -537,117 +537,117 @@ function MenuScreen(props: {
       </svg>
 
       {/* Quick Settings Bar at Top */}
-      <div className="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-2.5 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2 bg-[#071620]/90 border-2 border-[#123043] rounded px-2.5 py-1 backdrop-blur-[2px] shadow-[0_2px_0_#071620]">
-          <span className="w-1.5 h-1.5 rounded-[1px] bg-gold animate-pulse" />
-          <span className="px-font text-[6.5px] sm:text-[7.5px] text-mint tracking-wider">HI-SCORE</span>
-          <span className="px-font text-[10px] sm:text-[11.5px] text-gold tracking-widest">{String(props.save.high).padStart(6, "0")}</span>
+      <div className="relative z-20 w-full max-w-6xl mx-auto px-4 sm:px-8 pt-4 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5 bg-[#071620]/90 border-2 border-[#123043] rounded-md px-3.5 py-1.5 backdrop-blur-[2px] shadow-[0_3px_0_#071620]">
+          <span className="w-2 h-2 rounded-[1px] bg-gold animate-pulse" />
+          <span className="px-font text-[7px] sm:text-[8px] text-mint tracking-wider">HI-SCORE</span>
+          <span className="px-font text-[11px] sm:text-[13px] text-gold tracking-widest">{String(props.save.high).padStart(6, "0")}</span>
         </div>
 
         {/* Toolbar Toggles */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={props.onToggleFullscreen}
-            className="panel8 !px-2 !py-1 flex items-center gap-1 text-[11px] text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Fullscreen Zoom (Press F)"
           >
             <FullscreenIcon isFull={props.isFullscreen} />
-            <span className="px-font text-[6.5px]">{props.isFullscreen ? "EXIT (F)" : "ZOOM (F)"}</span>
+            <span className="px-font text-[7px]">{props.isFullscreen ? "EXIT ZOOM (F)" : "ZOOM / FULL (F)"}</span>
           </button>
           <button
             onClick={props.onToggleSfx}
-            className="panel8 !px-2 !py-1 flex items-center gap-1 text-[11px] text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Sound Effects"
           >
             <SoundIcon on={props.save.sfx} />
-            <span className="px-font text-[6.5px]">SFX {props.save.sfx ? "ON" : "OFF"}</span>
+            <span className="px-font text-[7px]">SFX {props.save.sfx ? "ON" : "OFF"}</span>
           </button>
           <button
             onClick={props.onToggleMusic}
-            className="panel8 !px-2 !py-1 flex items-center gap-1 text-[11px] text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Chiptune Music"
           >
             <SoundIcon on={props.save.music} />
-            <span className="px-font text-[6.5px]">BGM {props.save.music ? "ON" : "OFF"}</span>
+            <span className="px-font text-[7px]">BGM {props.save.music ? "ON" : "OFF"}</span>
           </button>
           <button
             onClick={props.onToggleScanlines}
-            className="panel8 !px-2 !py-1 flex items-center gap-1 text-[11px] text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle CRT Scanline Effect"
           >
             <CrtIcon on={props.save.scanlines} />
-            <span className="px-font text-[6.5px]">CRT {props.save.scanlines ? "ON" : "OFF"}</span>
+            <span className="px-font text-[7px]">CRT {props.save.scanlines ? "ON" : "OFF"}</span>
           </button>
           <button
             onClick={props.onCycleTouchMode}
-            className="panel8 !px-2 !py-1 flex items-center gap-1 text-[11px] text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Cycle Touch Controls: Auto / Force On / Force Off"
           >
             <GamepadIcon />
-            <span className="px-font text-[6.5px]">TOUCH {props.save.touchMode.toUpperCase()}</span>
+            <span className="px-font text-[7px]">TOUCH {props.save.touchMode.toUpperCase()}</span>
           </button>
         </div>
       </div>
 
       {/* Main Title & Hero Composition */}
-      <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 py-2 sm:py-3 my-auto">
-        <div className="flex items-center justify-between gap-6 lg:gap-10 flex-col lg:flex-row">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-8 py-5 sm:py-8 my-auto">
+        <div className="flex items-center justify-between gap-8 lg:gap-14 flex-col lg:flex-row">
           {/* Left Column: Game Title & Cartridge Actions */}
-          <div className="max-w-lg w-full flex flex-col items-center lg:items-start text-center lg:text-left">
+          <div className="max-w-xl w-full flex flex-col items-center lg:items-start text-center lg:text-left">
             {/* 1. Subtle Retro Arcade Easter Egg Label */}
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-sm bg-[#071620]/90 border-2 border-[#123043] shadow-[0_2px_0_#071620] mb-2.5 sm:mb-3 self-center lg:self-start select-none">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[#071620]/90 border-2 border-[#123043] shadow-[0_2px_0_#071620] mb-4 self-center lg:self-start select-none">
               <span className="w-1.5 h-1.5 rounded-[1px] bg-gold animate-pulse" />
-              <span className="px-font text-[7px] sm:text-[8px] text-mint tracking-[0.24em]">
+              <span className="px-font text-[7.5px] sm:text-[8.5px] text-mint tracking-[0.24em]">
                 INSERT COIN // 0 COINS
               </span>
             </div>
 
-            {/* 2. Crisp, Un-Zoomed Retro Arcade Title with Heartbeat Pulse */}
+            {/* 2. Dominant Game Title with Crisp Stepped Pixel Shadow & Heartbeat Pumping Pulse */}
             <h1
               className="px-font text-ember retro-title-shadow leading-none tracking-wider select-none anim-title-heartbeat"
-              style={{ fontSize: "clamp(1.85rem, 4vw, 2.75rem)" }}
+              style={{ fontSize: "clamp(2.6rem, 6.6vw, 4.4rem)" }}
             >
               PIXEL PALS
             </h1>
 
             {/* 3. Framed Subtitle Banner (Cartridge Plaque) */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#0b1f2c]/90 border-2 border-gold/50 rounded-sm shadow-[0_2px_0_#071620] mt-2.5 sm:mt-3 self-center lg:self-start select-none">
-              <span className="text-gold text-[8px]">◆</span>
-              <span className="px-font text-gold text-[9.5px] sm:text-[11.5px] tracking-[0.24em] retro-sub-shadow font-bold">
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-[#0b1f2c]/90 border-2 border-gold/50 rounded-sm shadow-[0_3px_0_#071620] mt-4 sm:mt-5 self-center lg:self-start select-none">
+              <span className="text-gold text-[9px]">◆</span>
+              <span className="px-font text-gold text-[10.5px] sm:text-[13px] tracking-[0.24em] retro-sub-shadow font-bold">
                 ADVENTURE RUN
               </span>
-              <span className="text-gold text-[8px]">◆</span>
+              <span className="text-gold text-[9px]">◆</span>
             </div>
 
             {/* 4. Short Nostalgic Description */}
-            <p className="font-body text-cream/75 text-xs sm:text-[13px] mt-2.5 max-w-sm leading-relaxed">
+            <p className="font-body text-cream/80 text-sm sm:text-base mt-4 max-w-md leading-relaxed">
               Run, leap, and stomp through 5 handcrafted retro worlds to defeat{" "}
               <span className="text-gold font-semibold">Magmor, the Ember King</span>.
             </p>
 
             {/* Mobile Mascot Island (centered on tablet/mobile screens) */}
-            <div className="block lg:hidden my-3 scale-90 sm:scale-95">
+            <div className="block lg:hidden my-6 scale-90 sm:scale-100">
               <FloatingIsland />
             </div>
 
             {/* Tactile Real-Game Action Buttons */}
-            <div className="flex items-center gap-2.5 sm:gap-3.5 mt-4 sm:mt-5 flex-wrap justify-center lg:justify-start">
+            <div className="flex items-center gap-3 sm:gap-4 mt-6 sm:mt-8 flex-wrap justify-center lg:justify-start">
               <button
-                className="btn8 primary-arcade !text-[10px] sm:!text-[11px] !px-5 sm:!px-6 !py-2.5 sm:!py-3 group focus-arcade flex items-center gap-2"
+                className="btn8 primary-arcade !text-[12px] sm:!text-[13px] !px-7 sm:!px-8 !py-4 group focus-arcade flex items-center gap-2.5"
                 onClick={props.onStart}
               >
-                <span className="transition-transform group-hover:translate-x-1 inline-block text-[9px]">▶</span>
+                <span className="transition-transform group-hover:translate-x-1 inline-block text-[10px]">▶</span>
                 <span>START ADVENTURE</span>
               </button>
               <button
-                className="btn8 dark !text-[8.5px] sm:!text-[9.5px] !px-3.5 !py-2 focus-arcade flex items-center gap-1.5"
+                className="btn8 dark !text-[10px] sm:!text-[11px] !px-5 !py-3.5 focus-arcade flex items-center gap-1.5"
                 onClick={props.onHeroes}
               >
                 <span className="text-gold">★</span>
                 <span>Choose Hero</span>
               </button>
               <button
-                className="btn8 blue !text-[8.5px] sm:!text-[9.5px] !px-3.5 !py-2 focus-arcade"
+                className="btn8 blue !text-[10px] sm:!text-[11px] !px-5 !py-3.5 focus-arcade"
                 onClick={props.onHelp}
               >
                 Field Guide
@@ -658,52 +658,52 @@ function MenuScreen(props: {
           {/* Right Column: Floating Island Hero Stage (Desktop view) */}
           <div
             className="hidden lg:block shrink-0 transition-transform duration-500 ease-out"
-            style={{ transform: `translate(${tilt.x * 12}px, ${tilt.y * 8}px)` }}
+            style={{ transform: `translate(${tilt.x * 14}px, ${tilt.y * 10}px)` }}
           >
             <FloatingIsland />
           </div>
         </div>
 
         {/* Selected Hero Showcase & Save Plate */}
-        <div className="panel8 mt-4 sm:mt-5 px-3.5 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-4 flex-wrap w-full bg-[#0b1f2c]/95 border-2 border-[#123043] shadow-[0_3px_0_#071620]">
-          <div className="flex items-center gap-3">
+        <div className="panel8 mt-7 sm:mt-8 px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-5 flex-wrap w-full bg-[#0b1f2c]/95 border-2 border-[#123043] shadow-[0_4px_0_#071620]">
+          <div className="flex items-center gap-3.5">
             <button
-              className="w-10 h-10 rounded border-2 border-[#123043] shadow-[0_2px_0_#071620] overflow-hidden bg-[#183a4f] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group block"
+              className="w-12 h-12 rounded border-2 border-[#123043] shadow-[0_2px_0_#071620] overflow-hidden bg-[#183a4f] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group block"
               onClick={props.onHeroes}
               title="Change active hero"
             >
               <CharPortrait char={props.hero} />
-              <span className="absolute bottom-0 inset-x-0 bg-[#071620]/85 text-[5.5px] px-font text-gold text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="absolute bottom-0 inset-x-0 bg-[#071620]/85 text-[6px] px-font text-gold text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 EDIT
               </span>
             </button>
             <div className="text-left">
-              <div className="px-font text-[6.5px] text-mint tracking-widest flex items-center gap-1.5">
+              <div className="px-font text-[7px] text-mint tracking-widest flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-[1px] bg-mint inline-block" />
                 ACTIVE HERO • {props.hero.species.toUpperCase()}
               </div>
-              <div className="px-font text-[11px] sm:text-[12px] text-cream mt-0.5">
+              <div className="px-font text-[12px] sm:text-[13px] text-cream mt-0.5">
                 {props.hero.name.toUpperCase()}
               </div>
-              <div className="font-body text-[11px] text-gold/90 font-medium mt-0.5 flex items-center gap-1">
+              <div className="font-body text-[12px] text-gold/90 font-medium mt-0.5 flex items-center gap-1">
                 <span className="text-gold">★</span>
                 <span>{props.hero.passive.name}: {props.hero.passive.desc}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center gap-5 flex-wrap">
             <div>
-              <div className="px-font text-[6.5px] text-mint tracking-widest mb-1">
+              <div className="px-font text-[7px] text-mint tracking-widest mb-1.5">
                 WORLDS FREED ({props.clearedCount}/5)
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1.5">
                 {LEVELS.map((lvl, i) => {
                   const isCleared = props.save.cleared[i];
                   return (
                     <div
                       key={i}
-                      className={`w-5 h-5 rounded border-2 border-[#0b1f2c] flex items-center justify-center transition-colors ${
+                      className={`w-6 h-6 rounded border-2 border-[#0b1f2c] flex items-center justify-center transition-colors ${
                         isCleared
                           ? "bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] shadow-[0_0_8px_rgba(255,201,77,0.5)] text-[#241505]"
                           : "bg-[#183a4f] text-cream/30"
@@ -713,7 +713,7 @@ function MenuScreen(props: {
                       {isCleared ? (
                         <CheckIcon />
                       ) : (
-                        <span className="px-font text-[7px]">{i + 1}</span>
+                        <span className="px-font text-[8px]">{i + 1}</span>
                       )}
                     </div>
                   );
@@ -722,7 +722,7 @@ function MenuScreen(props: {
             </div>
 
             <button
-              className="btn8 dark !px-2.5 !py-1.5 !text-[8px] focus-arcade active:translate-y-0.5"
+              className="btn8 dark !px-3.5 !py-2 !text-[9px] focus-arcade active:translate-y-0.5"
               onClick={props.onHeroes}
             >
               Switch Hero
@@ -732,18 +732,18 @@ function MenuScreen(props: {
       </div>
 
       {/* Footer copyright, developer credit, & nostalgic disclaimer */}
-      <div className="relative z-10 w-full border-t border-[#123043]/80 bg-[#071620]/95 px-4 sm:px-6 py-2 flex items-center justify-between gap-3 flex-wrap text-center sm:text-left">
+      <div className="relative z-10 w-full border-t border-[#123043]/80 bg-[#071620]/95 px-4 sm:px-8 py-2.5 flex items-center justify-between gap-3 flex-wrap text-center sm:text-left">
         <div className="flex items-center gap-2 mx-auto sm:mx-0 flex-wrap justify-center">
           <span className="inline-block w-1.5 h-1.5 rounded-[1px] bg-mint/70" />
-          <span className="px-font text-[7px] sm:text-[7.5px] text-cream/65 tracking-wider">
+          <span className="px-font text-[7.5px] sm:text-[8px] text-cream/65 tracking-wider">
             BUILT BY ABHISHEK
           </span>
-          <span className="text-cream/25 text-[9px]">{"//"}</span>
-          <span className="font-body text-[11px] text-gold/75 italic tracking-wide">
+          <span className="text-cream/25 text-[10px]">{"//"}</span>
+          <span className="font-body text-[11.5px] sm:text-[12px] text-gold/75 italic tracking-wide">
             YOUR CHILDHOOD CALLED. IT WANTS ITS GAME BACK.
           </span>
         </div>
-        <div className="font-body text-[10.5px] text-cream/35 mx-auto sm:mx-0">
+        <div className="font-body text-[11px] text-cream/35 mx-auto sm:mx-0">
           Pixel Pals: Adventure Run • 5 Hand-Crafted Worlds
         </div>
       </div>
