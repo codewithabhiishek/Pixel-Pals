@@ -23,7 +23,7 @@ interface Props {
   onRestartRun: () => void;
   onScore: (score: number) => void;
   onVictory: () => void;
-  onOpenFeedback?: (context?: { world?: string; score?: number; levelIdx?: number; note?: string }) => void;
+  onOpenFeedback?: (context?: { world?: string; score?: number; levelIdx?: number; heroName?: string; note?: string }) => void;
 }
 
 const HeartIcon = ({ on }: { on: boolean }) => (

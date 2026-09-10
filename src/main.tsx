@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { Analytics } from "@vercel/analytics/react";
 import "./index.css";
 import App from "./App";
 
@@ -98,6 +99,7 @@ try {
   ReactDOM.createRoot(container).render(
     <BootBoundary>
       <App />
+      <Analytics />
     </BootBoundary>
   );
   (window as unknown as { __booted: boolean }).__booted = true;
