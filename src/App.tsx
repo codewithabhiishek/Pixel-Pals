@@ -666,9 +666,9 @@ function MenuScreen(props: {
 
         {/* Selected Hero Showcase & Save Plate */}
         <div className="panel8 mt-7 sm:mt-8 px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-5 flex-wrap w-full bg-[#0b1f2c]/95 border-2 border-[#123043] shadow-[0_4px_0_#071620]">
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3.5 min-w-0">
             <button
-              className="w-12 h-12 rounded border-2 border-[#123043] shadow-[0_2px_0_#071620] overflow-hidden bg-[#183a4f] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group block"
+              className="w-12 h-12 rounded border-2 border-[#123043] shadow-[0_2px_0_#071620] overflow-hidden bg-[#183a4f] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group block shrink-0"
               onClick={props.onHeroes}
               title="Change active hero"
             >
@@ -677,27 +677,27 @@ function MenuScreen(props: {
                 EDIT
               </span>
             </button>
-            <div className="text-left">
+            <div className="text-left min-w-0">
               <div className="px-font text-[7px] text-mint tracking-widest flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-[1px] bg-mint inline-block" />
-                ACTIVE HERO • {props.hero.species.toUpperCase()}
+                <span className="w-1.5 h-1.5 rounded-[1px] bg-mint inline-block shrink-0" />
+                <span>ACTIVE HERO • {props.hero.species.toUpperCase()}</span>
               </div>
               <div className="px-font text-[12px] sm:text-[13px] text-cream mt-0.5">
                 {props.hero.name.toUpperCase()}
               </div>
               <div className="font-body text-[12px] text-gold/90 font-medium mt-0.5 flex items-center gap-1">
-                <span className="text-gold">★</span>
+                <span className="text-gold shrink-0">★</span>
                 <span>{props.hero.passive.name}: {props.hero.passive.desc}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-5 flex-wrap">
+          <div className="flex items-center gap-4 sm:gap-5 flex-wrap shrink-0">
             <div>
               <div className="px-font text-[7px] text-mint tracking-widest mb-1.5">
                 WORLDS FREED ({props.clearedCount}/5)
               </div>
-              <div className="flex gap-1.5">
+              <div className="flex items-center gap-1.5">
                 {LEVELS.map((lvl, i) => {
                   const isCleared = props.save.cleared[i];
                   return (
@@ -722,8 +722,9 @@ function MenuScreen(props: {
             </div>
 
             <button
-              className="btn8 dark !px-3.5 !py-2 !text-[9px] focus-arcade active:translate-y-0.5"
+              className="btn8 dark !border-2 !shadow-[0_3px_0_#0b1f2c] hover:!shadow-[0_4px_0_#0b1f2c] active:!shadow-[0_1px_0_#0b1f2c] !px-2.5 sm:!px-3 !py-1.5 !text-[8px] sm:!text-[8.5px] focus-arcade active:translate-y-0.5 whitespace-nowrap shrink-0"
               onClick={props.onHeroes}
+              title="Switch active hero"
             >
               Switch Hero
             </button>
