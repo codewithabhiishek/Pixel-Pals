@@ -602,9 +602,9 @@ function MenuScreen(props: {
               </span>
             </div>
 
-            {/* 2. Crisp, Un-Zoomed Retro Arcade Title */}
+            {/* 2. Crisp, Un-Zoomed Retro Arcade Title with Heartbeat Pulse */}
             <h1
-              className="px-font text-ember retro-title-shadow leading-none tracking-wider select-none"
+              className="px-font text-ember retro-title-shadow leading-none tracking-wider select-none anim-title-heartbeat"
               style={{ fontSize: "clamp(1.85rem, 4vw, 2.75rem)" }}
             >
               PIXEL PALS
