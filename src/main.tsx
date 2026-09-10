@@ -4,24 +4,6 @@ import { Analytics } from "@vercel/analytics/react";
 import "./index.css";
 import App from "./App";
 
-/* Load the display/body fonts without ever blocking first paint. */
-(function loadFonts() {
-  try {
-    const href =
-      "https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap";
-    const l = document.createElement("link");
-    l.rel = "stylesheet";
-    l.href = href;
-    l.media = "print"; // non-blocking
-    l.onload = () => { l.media = "all"; };
-    document.head.appendChild(l);
-    window.setTimeout(() => { if (l.media !== "all") l.media = "all"; }, 1200);
-    window.setTimeout(() => { if (l.media !== "all") l.media = "all"; }, 4000);
-  } catch {
-    /* game runs fine on fallback fonts */
-  }
-})();
-
 /* Prevent iOS Safari double-tap-to-zoom and gesture zooming on fast tapping */
 if (typeof window !== "undefined") {
   let lastTouchEnd = 0;

@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import GameCanvas from "./components/GameCanvas";
-import FeedbackModal from "./components/FeedbackModal";
+import { useEffect, useRef, useState, useCallback, lazy, Suspense } from "react";
 import { AudioEngine } from "./game/audio";
 import { LEVELS, THEMES } from "./game/levels";
 import { CHARACTERS, getCharacter, type CharacterDef } from "./game/characters";
+
+const GameCanvas = lazy(() => import("./components/GameCanvas"));
+const FeedbackModal = lazy(() => import("./components/FeedbackModal"));
 
 /* ---------------- save data ---------------- */
 interface SaveData {
@@ -399,37 +400,65 @@ export default function App() {
     setSave((s) => ({ ...s, scanlines: !s.scanlines }));
   };
 
+  // Proactively prefetch the GameCanvas chunk in the background after the menu first paints
+  useEffect(() => {
+    const prefetch = () => {
+      void import("./components/GameCanvas");
+    };
+    if (typeof window !== "undefined") {
+      if ("requestIdleCallback" in window) {
+        (window as unknown as { requestIdleCallback: (cb: () => void) => void }).requestIdleCallback(prefetch);
+      } else {
+        setTimeout(prefetch, 300);
+      }
+    }
+  }, []);
+
   const clearedCount = save.cleared.filter(Boolean).length;
 
   return (
     <div className="w-full h-full overflow-hidden font-body text-cream bg-ink">
       {screen === "game" && (
-        <GameCanvas
-          key={runKey}
-          level={LEVELS[levelIdx]}
-          levelIdx={levelIdx}
-          initialScore={runScore}
-          initialLives={runLives}
-          char={hero}
-          highScore={save.high}
-          audio={audio}
-          scanlines={save.scanlines}
-          touchMode={save.touchMode}
-          onToggleScanlines={toggleScanlines}
-          onCycleTouchMode={cycleTouchMode}
-          onNext={handleNext}
-          onExit={gotoLevels}
-          onRestartRun={() => startLevel(0)}
-          onScore={handleScore}
-          onOpenFeedback={(ctx) => setFeedbackModal({ open: true, context: ctx })}
-          onVictory={() =>
-            setSave((s) => ({
-              ...s,
-              unlocked: 5,
-              cleared: s.cleared.map((c, i) => (i === 4 ? true : c)),
-            }))
+        <Suspense
+          fallback={
+            <div className="w-full h-full flex flex-col items-center justify-center bg-[#0b1f2c] gap-3 p-6 text-center">
+              <div className="w-7 h-7 rounded-full border-3 border-gold border-t-transparent animate-spin" />
+              <div className="px-font text-gold text-[10.5px] tracking-widest">
+                WARPING TO {LEVELS[levelIdx]?.name?.toUpperCase() || "WORLD"}…
+              </div>
+              <div className="font-body text-cream/60 text-xs">
+                Preparing retro canvas engine
+              </div>
+            </div>
           }
-        />
+        >
+          <GameCanvas
+            key={runKey}
+            level={LEVELS[levelIdx]}
+            levelIdx={levelIdx}
+            initialScore={runScore}
+            initialLives={runLives}
+            char={hero}
+            highScore={save.high}
+            audio={audio}
+            scanlines={save.scanlines}
+            touchMode={save.touchMode}
+            onToggleScanlines={toggleScanlines}
+            onCycleTouchMode={cycleTouchMode}
+            onNext={handleNext}
+            onExit={gotoLevels}
+            onRestartRun={() => startLevel(0)}
+            onScore={handleScore}
+            onOpenFeedback={(ctx) => setFeedbackModal({ open: true, context: ctx })}
+            onVictory={() =>
+              setSave((s) => ({
+                ...s,
+                unlocked: 5,
+                cleared: s.cleared.map((c, i) => (i === 4 ? true : c)),
+              }))
+            }
+          />
+        </Suspense>
       )}
 
       {screen === "menu" && (
@@ -478,11 +507,13 @@ export default function App() {
 
       {showHelp && <HelpModal onClose={act(() => setShowHelp(false))} />}
       {feedbackModal.open && (
-        <FeedbackModal
-          open={feedbackModal.open}
-          onClose={() => setFeedbackModal({ open: false })}
-          context={feedbackModal.context}
-        />
+        <Suspense fallback={null}>
+          <FeedbackModal
+            open={feedbackModal.open}
+            onClose={() => setFeedbackModal({ open: false })}
+            context={feedbackModal.context}
+          />
+        </Suspense>
       )}
     </div>
   );
