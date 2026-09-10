@@ -239,16 +239,6 @@ const FoxMascot = () => {
 
 const FloatingIsland = () => (
   <div className="relative flex flex-col items-center select-none pointer-events-none">
-    {/* Floating Coin near character's shoulder */}
-    <div className="absolute -top-3 right-3 flex flex-col items-center anim-float z-20">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] border-2 border-[#0b1f2c] shadow-[0_2px_0_#071620] flex items-center justify-center anim-coin-spin">
-        <div className="w-3.5 h-3.5 rounded-full border border-[#b8860b] flex items-center justify-center font-bold text-[7px] text-[#8a5a00]">
-          ◆
-        </div>
-      </div>
-      <span className="px-font text-[6.5px] text-gold mt-1 drop-shadow">100 PTS</span>
-    </div>
-
     {/* Mascot with gentle breathing */}
     <div className="anim-breathe relative z-10">
       <FoxMascot />
@@ -561,23 +551,23 @@ function MenuScreen(props: {
           }} />
         ))}
 
-        {/* moon with pixel crater shading */}
+        {/* moon with pixel crater shading in upper right sky */}
         <div className="absolute rounded-full pointer-events-none transition-transform duration-500 ease-out" style={{
-          right: "24%", top: "7%", width: 80, height: 80, background: "#ffc94d",
-          boxShadow: "0 0 40px 10px rgba(255,201,77,0.2), inset -14px -9px 0 rgba(224,152,38,0.6)",
+          right: "4%", top: "3.5%", width: 68, height: 68, background: "#ffc94d",
+          boxShadow: "0 0 35px 8px rgba(255,201,77,0.22), inset -12px -8px 0 rgba(224,152,38,0.6)",
           transform: `translate(${tilt.x * 8}px, ${tilt.y * 5}px)`,
         }}>
           {/* subtle pixel craters */}
-          <div className="absolute top-3.5 left-4.5 w-2.5 h-2.5 rounded-full bg-[#e09826]/40" />
-          <div className="absolute top-8 left-9 w-3.5 h-3.5 rounded-full bg-[#e09826]/35" />
-          <div className="absolute bottom-5 left-5 w-2 h-2 rounded-full bg-[#e09826]/45" />
+          <div className="absolute top-3 left-4 w-2 h-2 rounded-full bg-[#e09826]/40" />
+          <div className="absolute top-7 left-8 w-3 h-3 rounded-full bg-[#e09826]/35" />
+          <div className="absolute bottom-4 left-4 w-1.5 h-1.5 rounded-full bg-[#e09826]/45" />
         </div>
 
-        {/* drifting clouds */}
+        {/* high drifting clouds (soft, elevated above title and mascot) */}
         {[0, 1, 2].map((i) => (
-          <div key={i} className="absolute rounded-full bg-cream/8 pointer-events-none" style={{
-            width: 190 + i * 60, height: 36 + i * 8, top: `${15 + i * 15}%`,
-            animation: `drift ${54 + i * 18}s linear ${-i * 18}s infinite`,
+          <div key={i} className="absolute rounded-full bg-cream/[0.05] pointer-events-none blur-[0.5px]" style={{
+            width: 170 + i * 50, height: 28 + i * 6, top: `${4 + i * 4}%`,
+            animation: `drift ${55 + i * 20}s linear ${-i * 18}s infinite`,
           }} />
         ))}
 
@@ -693,7 +683,7 @@ function MenuScreen(props: {
             </div>
 
             {/* Tactile Real-Game Action Buttons */}
-            <div className="flex items-center gap-2 sm:gap-3.5 mt-2 sm:mt-6 flex-wrap justify-center md:justify-start">
+            <div className="flex items-center gap-2 sm:gap-3.5 mt-2 sm:mt-5 flex-wrap justify-center md:justify-start">
               <button
                 className="btn8 primary-arcade !text-[10px] sm:!text-[12.5px] !px-5 sm:!px-7 !py-2.5 sm:!py-3.5 group focus-arcade flex items-center gap-1.5 sm:gap-2"
                 onClick={props.onStart}
@@ -726,70 +716,57 @@ function MenuScreen(props: {
           </div>
         </div>
 
-        {/* Selected Hero Showcase & Save Plate */}
-        <div className="panel8 mt-2.5 sm:mt-6 px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2.5 sm:gap-5 flex-wrap w-full bg-[#0b1f2c]/95 border-2 border-[#123043] shadow-[0_4px_0_#071620]">
-          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
-            <button
-              className="w-9 h-9 sm:w-11 sm:h-11 rounded border-2 border-[#123043] shadow-[0_2px_0_#071620] overflow-hidden bg-[#183a4f] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group block shrink-0"
-              onClick={props.onHeroes}
-              title="Change active hero"
-            >
+        {/* Sleek Arcade Progress Bar & Active Hero Status Deck */}
+        <div className="panel8 mt-2.5 sm:mt-5 px-3 sm:px-5 py-2 sm:py-2.5 flex items-center justify-between gap-3 flex-wrap w-full bg-[#0b1f2c]/95 border-2 border-[#123043] shadow-[0_3px_0_#071620]">
+          {/* Active Hero Pill - Clickable to switch */}
+          <button
+            onClick={props.onHeroes}
+            className="flex items-center gap-2 sm:gap-3 text-left hover:opacity-90 transition-all cursor-pointer group p-1 -m-1 rounded focus-arcade"
+            title="Click to choose a different hero"
+          >
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded border-2 border-[#123043] group-hover:border-gold/80 bg-[#183a4f] overflow-hidden flex items-center justify-center shrink-0 transition-colors shadow-[0_2px_0_#071620]">
               <CharPortrait char={props.hero} />
-              <span className="absolute bottom-0 inset-x-0 bg-[#071620]/85 text-[6px] px-font text-gold text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                EDIT
-              </span>
-            </button>
-            <div className="text-left min-w-0">
-              <div className="px-font text-[6px] sm:text-[7px] text-mint tracking-widest flex items-center gap-1.5">
+            </div>
+            <div className="min-w-0">
+              <div className="px-font text-[6px] sm:text-[7px] text-mint tracking-wider flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-[1px] bg-mint inline-block shrink-0" />
-                <span>ACTIVE HERO • {props.hero.species.toUpperCase()}</span>
+                <span>ACTIVE HERO • <span className="text-gold">{props.hero.name.toUpperCase()}</span></span>
+                <span className="text-cream/50 text-[5.5px]">({props.hero.species.toUpperCase()})</span>
               </div>
-              <div className="px-font text-[10px] sm:text-[12.5px] text-cream mt-0.5">
-                {props.hero.name.toUpperCase()}
-              </div>
-              <div className="font-body text-[10px] sm:text-[12px] text-gold/90 font-medium mt-0.5 flex items-center gap-1 line-clamp-1 sm:line-clamp-none">
-                <span className="text-gold shrink-0">★</span>
+              <div className="font-body text-[10px] sm:text-[11.5px] text-cream/80 mt-0.5 line-clamp-1 flex items-center gap-1">
+                <span className="text-gold">★</span>
                 <span>{props.hero.passive.name}: {props.hero.passive.desc}</span>
               </div>
             </div>
-          </div>
+          </button>
 
-          <div className="flex items-center gap-2.5 sm:gap-5 flex-wrap shrink-0">
-            <div>
-              <div className="px-font text-[6px] sm:text-[7px] text-mint tracking-widest mb-1">
-                WORLDS FREED ({props.clearedCount}/5)
-              </div>
-              <div className="flex items-center gap-1 sm:gap-1.5">
-                {LEVELS.map((lvl, i) => {
-                  const isCleared = props.save.cleared[i];
-                  return (
-                    <div
-                      key={i}
-                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded border-2 border-[#0b1f2c] flex items-center justify-center transition-colors ${
-                        isCleared
-                          ? "bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] shadow-[0_0_8px_rgba(255,201,77,0.5)] text-[#241505]"
-                          : "bg-[#183a4f] text-cream/30"
-                      }`}
-                      title={`${lvl.name}: ${isCleared ? "Cleared!" : "Locked"}`}
-                    >
-                      {isCleared ? (
-                        <CheckIcon />
-                      ) : (
-                        <span className="px-font text-[7px] sm:text-[8px]">{i + 1}</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+          {/* Worlds Cleared Arcade Tally */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <span className="px-font text-[6px] sm:text-[7px] text-mint tracking-wider">
+              WORLDS ({props.clearedCount}/5)
+            </span>
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              {LEVELS.map((lvl, i) => {
+                const isCleared = props.save.cleared[i];
+                return (
+                  <div
+                    key={i}
+                    className={`w-5 h-5 sm:w-6 sm:h-6 rounded border-2 border-[#0b1f2c] flex items-center justify-center transition-colors ${
+                      isCleared
+                        ? "bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] shadow-[0_0_6px_rgba(255,201,77,0.4)] text-[#241505]"
+                        : "bg-[#183a4f] text-cream/30"
+                    }`}
+                    title={`${lvl.name}: ${isCleared ? "Cleared!" : "Locked"}`}
+                  >
+                    {isCleared ? (
+                      <CheckIcon />
+                    ) : (
+                      <span className="px-font text-[6.5px] sm:text-[7.5px]">{i + 1}</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-
-            <button
-              className="btn8 dark !border-2 !shadow-[0_2px_0_#0b1f2c] !px-2 sm:!px-3 !py-1 sm:!py-1.5 !text-[7px] sm:!text-[8.5px] focus-arcade active:translate-y-0.5 whitespace-nowrap shrink-0"
-              onClick={props.onHeroes}
-              title="Switch active hero"
-            >
-              Switch Hero
-            </button>
           </div>
         </div>
       </div>
