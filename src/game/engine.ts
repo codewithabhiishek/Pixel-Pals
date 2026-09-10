@@ -25,9 +25,6 @@ const VIEW_H = 540;
 const GRAV_UP = 1280;
 const GRAV_DOWN = 1680;
 const GRAV_RELEASE_MULT = 2.1;
-const JUMP_V = 565;
-const WALK = 258;
-const RUN = 372;
 
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;

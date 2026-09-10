@@ -48,7 +48,7 @@ class BootBoundary extends React.Component<{ children: React.ReactNode }, { err:
     return { err: e instanceof Error ? e.message : String(e) };
   }
   componentDidCatch(e: unknown) {
-    try { console.error("[emberfox] render error:", e); } catch { /* noop */ }
+    try { console.error("[pixel-pals] render error:", e); } catch { /* noop */ }
     fail("Render error: " + (e instanceof Error ? e.message : String(e)));
   }
   render() {
@@ -62,10 +62,10 @@ class BootBoundary extends React.Component<{ children: React.ReactNode }, { err:
           }}
         >
           <div style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 16, color: "#ffc94d" }}>
-            THE EMBERS WENT OUT
+            GAME PAUSED UNEXPECTEDLY
           </div>
           <div style={{ fontSize: 13, color: "#fdf3e3", opacity: 0.75, maxWidth: 460 }}>
-            Something went wrong while starting the game:
+            Something went wrong while running the game:
             <br />
             <span style={{ color: "#ff5a5f" }}>{this.state.err}</span>
           </div>
@@ -104,6 +104,6 @@ try {
   );
   (window as unknown as { __booted: boolean }).__booted = true;
 } catch (err) {
-  try { console.error("[emberfox] boot failure:", err); } catch { /* noop */ }
+  try { console.error("[pixel-pals] boot failure:", err); } catch { /* noop */ }
   fail("Failed to start the game: " + (err instanceof Error ? err.message : String(err)));
 }

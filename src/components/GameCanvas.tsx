@@ -76,7 +76,6 @@ export default function GameCanvas(props: Props) {
   const [stats, setStats] = useState({ score: 0, coins: 0, timeBonus: 0, clearBonus: 0 });
   const [isNewHigh, setIsNewHigh] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
-  const [isTouchCoarse, setIsTouchCoarse] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Active state visual tracking for touch buttons
@@ -105,8 +104,6 @@ export default function GameCanvas(props: Props) {
   // Track orientation, touch capability & fullscreen status
   useEffect(() => {
     const updateEnvironment = () => {
-      const coarse = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
-      setIsTouchCoarse(!!coarse);
       const vp = window.visualViewport;
       const w = vp ? vp.width : window.innerWidth;
       const h = vp ? vp.height : window.innerHeight;

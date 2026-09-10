@@ -74,7 +74,7 @@
         if (!window.__booted) {
           var el = document.getElementById("boot");
           var msg = document.getElementById("boot-msg");
-          if (el && msg && msg.textContent.indexOf("KINDLING") === 0) {
+          if (el && msg && !el.classList.contains("err")) {
             el.classList.add("err");
             msg.textContent = "The game script could not start in this window.";
             var sub = el.querySelector(".sub");
