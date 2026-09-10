@@ -23,6 +23,7 @@ interface Props {
   onRestartRun: () => void;
   onScore: (score: number) => void;
   onVictory: () => void;
+  onOpenFeedback?: (context?: { world?: string; score?: number; levelIdx?: number; note?: string }) => void;
 }
 
 const HeartIcon = ({ on }: { on: boolean }) => (
@@ -565,6 +566,26 @@ export default function GameCanvas(props: Props) {
             <button className="btn8 gold w-full !py-2.5 text-xs sm:text-sm" onClick={() => props.onNext(stats.score, engineRef.current?.lives ?? 1, stats.coins)}>
               Next World →
             </button>
+            <div className="mt-3.5 pt-2.5 border-t border-[#123043] flex items-center justify-center">
+              <button
+                type="button"
+                onClick={() =>
+                  props.onOpenFeedback?.({
+                    world: `${level.name} (World ${levelIdx + 1})`,
+                    score: stats.score,
+                    levelIdx,
+                    heroName: props.char.name,
+                    note: "Completed World",
+                  })
+                }
+                className="inline-flex items-center gap-1.5 text-xs text-cream/70 hover:text-gold transition-colors cursor-pointer py-1 px-2.5 rounded hover:bg-[#123043]/70 active:translate-y-0.5"
+              >
+                <span className="text-mint text-[11px]">💡</span>
+                <span className="font-body text-[12px] underline underline-offset-3">
+                  Have a suggestion or spotted a bug in World {levelIdx + 1}?
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -626,6 +647,21 @@ export default function GameCanvas(props: Props) {
             {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
             <div className="flex flex-col gap-2.5">
               <button className="btn8 gold !py-2.5 text-xs sm:text-sm" onClick={props.onRestartRun}>Play Adventure Again</button>
+              <button
+                className="btn8 mint !py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2"
+                onClick={() =>
+                  props.onOpenFeedback?.({
+                    world: "All 5 Worlds Cleared",
+                    score: stats.score,
+                    levelIdx: 4,
+                    heroName: props.char.name,
+                    note: "Game Victory!",
+                  })
+                }
+              >
+                <span>💡</span>
+                <span>Suggestions & Review</span>
+              </button>
               <button className="btn8 dark !py-2 text-xs" onClick={props.onExit}>Back to World Map</button>
             </div>
           </div>

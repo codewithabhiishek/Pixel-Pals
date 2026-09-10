@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import GameCanvas from "./components/GameCanvas";
+import FeedbackModal from "./components/FeedbackModal";
 import { AudioEngine } from "./game/audio";
 import { LEVELS, THEMES } from "./game/levels";
 import { CHARACTERS, getCharacter, type CharacterDef } from "./game/characters";
@@ -292,6 +293,10 @@ export default function App() {
   const [runLives, setRunLives] = useState(3);
   const [runKey, setRunKey] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState<{
+    open: boolean;
+    context?: { world?: string; score?: number; levelIdx?: number; heroName?: string; note?: string };
+  }>({ open: false });
   const [denied, setDenied] = useState(-1);
 
   const audioRef = useRef<AudioEngine | null>(null);
@@ -415,6 +420,7 @@ export default function App() {
           onExit={gotoLevels}
           onRestartRun={() => startLevel(0)}
           onScore={handleScore}
+          onOpenFeedback={(ctx) => setFeedbackModal({ open: true, context: ctx })}
           onVictory={() =>
             setSave((s) => ({
               ...s,
@@ -435,6 +441,7 @@ export default function App() {
           onStart={gotoLevels}
           onHeroes={() => gotoSelect("menu")}
           onHelp={() => setShowHelp(true)}
+          onOpenFeedback={() => setFeedbackModal({ open: true, context: { note: "Main Menu" } })}
           onToggleSfx={() => { audio.unlock(); setSave((s) => ({ ...s, sfx: !s.sfx })); }}
           onToggleMusic={() => { audio.unlock(); setSave((s) => ({ ...s, music: !s.music })); }}
           onToggleScanlines={toggleScanlines}
@@ -469,6 +476,13 @@ export default function App() {
       )}
 
       {showHelp && <HelpModal onClose={act(() => setShowHelp(false))} />}
+      {feedbackModal.open && (
+        <FeedbackModal
+          open={feedbackModal.open}
+          onClose={() => setFeedbackModal({ open: false })}
+          context={feedbackModal.context}
+        />
+      )}
     </div>
   );
 }/* ---------------- menu ---------------- */
@@ -476,6 +490,7 @@ function MenuScreen(props: {
   save: SaveData; hero: CharacterDef; clearedCount: number; audio: AudioEngine;
   isFullscreen: boolean;
   onStart: () => void; onHeroes: () => void; onHelp: () => void;
+  onOpenFeedback: () => void;
   onToggleSfx: () => void; onToggleMusic: () => void;
   onToggleScanlines: () => void; onCycleTouchMode: () => void;
   onToggleFullscreen: () => void;
@@ -592,6 +607,14 @@ function MenuScreen(props: {
           >
             <GamepadIcon />
             <span className="px-font text-[6.5px] sm:text-[7px]">TOUCH {props.save.touchMode.toUpperCase()}</span>
+          </button>
+          <button
+            onClick={props.onOpenFeedback}
+            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            title="Submit Ideas, Feedback, or Bug Reports"
+          >
+            <span className="text-mint text-[9px]">💡</span>
+            <span className="px-font text-[6.5px] sm:text-[7px]">IDEAS</span>
           </button>
         </div>
       </div>
@@ -758,6 +781,17 @@ function MenuScreen(props: {
               <span className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
             </span>
           </a>
+          <button
+            type="button"
+            onClick={props.onOpenFeedback}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0b1f2c] border border-[#1d4258] hover:border-mint/80 hover:bg-[#123043] transition-all duration-150 shadow-[0_2px_0_#071620] hover:shadow-[0_0_12px_rgba(123,224,195,0.35)] cursor-pointer group pointer-events-auto hover:-translate-y-0.5 active:translate-y-0 select-none"
+            title="Submit Feedback, Game Ideas, or Bug Reports"
+          >
+            <span className="text-mint text-[9px] animate-pulse">💡</span>
+            <span className="px-font text-[7px] sm:text-[8px] text-cream/90 group-hover:text-mint tracking-wider transition-colors">
+              SUGGESTIONS
+            </span>
+          </button>
           <span className="text-cream/25 text-[10px]">{"//"}</span>
           <span className="font-body text-[11px] sm:text-[12px] text-gold/75 italic tracking-wide">
             YOUR CHILDHOOD CALLED. IT WANTS ITS GAME BACK.
