@@ -143,16 +143,23 @@ export default function GameCanvas(props: Props) {
     const el = zoneRef.current;
     if (!el) return;
     const fit = () => {
-      const r = el.getBoundingClientRect();
       const isFs = !!document.fullscreenElement;
-      const isNarrow = r.width < 540;
-      // On narrow mobile portrait screens, use edge-to-edge canvas width
-      const padW = isFs ? 4 : (isNarrow ? 4 : 12);
-      const padH = isFs ? 4 : (isNarrow ? 6 : 12);
-      const wMax = Math.max(260, r.width - padW);
-      const hMax = Math.max(150, r.height - padH);
-      const w = Math.min(wMax, (hMax * 16) / 9);
-      setBox({ w: Math.floor(w), h: Math.floor((w * 9) / 16) });
+      const isNarrow = window.innerWidth < 640 && window.innerHeight > window.innerWidth;
+      const parentW = el.parentElement?.clientWidth || window.innerWidth;
+      const padW = isFs ? 4 : (isNarrow ? 8 : 16);
+      const wMax = Math.max(260, parentW - padW);
+
+      if (isNarrow && !isFs) {
+        // Mobile portrait: fill phone width cleanly with 16:9 arcade canvas
+        const w = Math.min(wMax, 540);
+        setBox({ w: Math.floor(w), h: Math.floor((w * 9) / 16) });
+      } else {
+        const r = el.getBoundingClientRect();
+        const padH = isFs ? 4 : 16;
+        const hMax = Math.max(150, (r.height || window.innerHeight * 0.5) - padH);
+        const w = Math.min(wMax, (hMax * 16) / 9);
+        setBox({ w: Math.floor(w), h: Math.floor((w * 9) / 16) });
+      }
     };
     fit();
     const ro = new ResizeObserver(fit);
@@ -302,7 +309,7 @@ export default function GameCanvas(props: Props) {
       {/* ------------ stage zone ------------ */}
       <div
         ref={zoneRef}
-        className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-center p-1 sm:p-2"
+        className={`relative z-10 flex flex-col items-center p-1 sm:p-2 ${showTouchControls && !isLandscape ? "shrink-0 justify-start pt-1 sm:pt-2" : "flex-1 min-h-0 justify-center"}`}
         style={{
           paddingTop: "max(0.25rem, env(safe-area-inset-top))",
           paddingLeft: "max(0.25rem, env(safe-area-inset-left))",
@@ -325,45 +332,55 @@ export default function GameCanvas(props: Props) {
 
           {/* ------------ HUD ------------ */}
           <div className="absolute top-0 left-0 right-0 pointer-events-none z-30">
-            <div className="h-[7px] bg-[#071620]/75">
+            <div className="h-[6px] sm:h-[7px] bg-[#071620]/75">
               <div ref={progEl} className="h-full bg-gradient-to-r from-ember to-gold" style={{ width: "0%" }} />
             </div>
-            <div className="flex items-start justify-between px-2 sm:px-3 pt-2 pb-1.5 bg-[#071620]/65 backdrop-blur-[2px]">
-              <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center justify-between px-2 sm:px-3 py-1 sm:py-1.5 bg-[#071620]/75 backdrop-blur-[2px]">
+              {/* Left: Score & Coins */}
+              <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                 <div>
-                  <div className="px-font text-[7px] sm:text-[8px] text-mint tracking-wider">SCORE</div>
-                  <span ref={scoreEl} className="px-font text-[10px] sm:text-[13px] text-cream">000000</span>
+                  <div className="px-font text-[6px] sm:text-[7.5px] text-mint tracking-wider leading-tight">SCORE</div>
+                  <span ref={scoreEl} className="px-font text-[9px] sm:text-[12px] text-cream leading-tight">000000</span>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-1.5 pt-2">
+                <div className="flex items-center gap-1">
                   <CoinIcon />
-                  <span ref={coinEl} className="px-font text-[9px] sm:text-[11px] text-gold">×00</span>
+                  <span ref={coinEl} className="px-font text-[8.5px] sm:text-[11px] text-gold">×00</span>
                 </div>
                 {powered && (
                   <span
-                    className="px-font text-[7px] text-gold border-2 border-gold/70 rounded px-1 pt-0.5 mt-2 inline-block anim-shimmer"
+                    className="hidden xs:inline-block px-font text-[6px] sm:text-[7px] text-gold border border-gold/70 rounded px-1 py-0.5 anim-shimmer"
                   >
                     EMBER
                   </span>
                 )}
               </div>
-              <div className="text-center pt-0.5">
-                <div className="px-font text-[8px] sm:text-[10px] text-cream/95">W{levelIdx + 1}: {level.name.toUpperCase()}</div>
-                <div className="font-body text-[10px] sm:text-[11px] text-cream/60 hidden sm:block italic">{level.sub}</div>
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="text-right">
-                  <div className="px-font text-[7px] sm:text-[8px] text-mint tracking-wider">TIME</div>
-                  <span ref={timeEl} className="px-font text-[10px] sm:text-[13px] text-cream">{level.time}</span>
+
+              {/* Center: Level name - responsive so it NEVER collides */}
+              <div className="text-center px-1 shrink min-w-0">
+                <div className="px-font text-[7.5px] sm:text-[9.5px] text-cream/95 truncate">
+                  <span className="hidden sm:inline">W{levelIdx + 1}: {level.name.toUpperCase()}</span>
+                  <span className="inline sm:hidden bg-[#123043]/90 border border-[#27556f] px-1.5 py-0.5 rounded text-[7px] text-gold font-bold">
+                    W{levelIdx + 1}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1 pt-1.5">
+                <div className="font-body text-[10px] text-cream/60 hidden md:block italic">{level.sub}</div>
+              </div>
+
+              {/* Right: Time, Lives, Pause */}
+              <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+                <div className="text-right">
+                  <div className="px-font text-[6px] sm:text-[7.5px] text-mint tracking-wider leading-tight">TIME</div>
+                  <span ref={timeEl} className="px-font text-[9px] sm:text-[12px] text-cream leading-tight">{level.time}</span>
+                </div>
+                <div className="flex items-center gap-0.5">
                   <HeartIcon on />
-                  <span className="px-font text-[10px] text-cream">×{Math.max(0, lives)}</span>
+                  <span className="px-font text-[8.5px] sm:text-[10px] text-cream">×{Math.max(0, lives)}</span>
                 </div>
 
-                {/* Fullscreen / Zoom Button */}
+                {/* Fullscreen / Zoom Button (Desktop only) */}
                 <button
                   onClick={toggleFullscreen}
-                  className="pointer-events-auto text-cream/85 hover:text-gold bg-[#071620]/80 border-2 border-[#123043] rounded p-2 sm:p-1.5 cursor-pointer active:translate-y-0.5"
+                  className="hidden md:flex pointer-events-auto text-cream/85 hover:text-gold bg-[#071620]/80 border border-[#123043] rounded p-1 sm:p-1.5 cursor-pointer active:translate-y-0.5"
                   aria-label={isFullscreen ? "Exit Zoom / Fullscreen (F)" : "Zoom Screen / Fullscreen (F)"}
                   title={isFullscreen ? "Exit Fullscreen (F)" : "Zoom Screen / Fullscreen (F)"}
                 >
@@ -373,7 +390,7 @@ export default function GameCanvas(props: Props) {
                 {/* Pause Button */}
                 <button
                   onClick={togglePause}
-                  className="pointer-events-auto text-cream/85 hover:text-gold bg-[#071620]/80 border-2 border-[#123043] rounded p-2 sm:p-1.5 cursor-pointer active:translate-y-0.5"
+                  className="pointer-events-auto text-cream/85 hover:text-gold bg-[#071620]/90 border border-[#123043] hover:border-gold/60 rounded p-1 sm:p-1.5 cursor-pointer active:translate-y-0.5"
                   aria-label="Pause game"
                   title="Pause game"
                 >
@@ -702,66 +719,94 @@ export default function GameCanvas(props: Props) {
       {/* ------------ Portrait Touch Deck - Visible ONLY on phones/tablets ------------ */}
       {showTouchControls && !isLandscape && (
         <div
-          className="relative z-30 shrink-0 flex items-center justify-between gap-2 px-3 sm:px-4 py-2 sm:py-3 border-t-4 border-[#071620] touch-none select-none"
+          className="relative z-30 flex-1 flex flex-col justify-between px-3 sm:px-6 pt-2 sm:pt-3 border-t-4 border-[#071620] touch-none select-none"
           style={{
-            paddingBottom: "max(1.1rem, calc(env(safe-area-inset-bottom) + 0.6rem))",
-            background: "linear-gradient(180deg,#123043 0%,#071620 100%)",
+            paddingBottom: "max(1rem, calc(env(safe-area-inset-bottom) + 0.6rem))",
+            background: "radial-gradient(120% 120% at 50% 0%, #123043 0%, #0b1f2c 65%, #071620 100%)",
             touchAction: "none",
           }}
           onContextMenu={(e) => e.preventDefault()}
         >
-          <div className="flex gap-2.5 sm:gap-3 touch-none select-none">
+          {/* Top Status & Quick Pause Strip */}
+          <div className="flex items-center justify-between px-2 py-1 bg-[#071620]/60 rounded border border-[#123043] shrink-0">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-[1px] bg-mint animate-pulse" />
+              <span className="px-font text-[7px] sm:text-[8.5px] text-cream/90 tracking-wider">
+                WORLD {levelIdx + 1} • {level.name.toUpperCase()}
+              </span>
+            </div>
             <button
-              className={`touch-btn bg-[#1d4258] text-cream text-[22px] w-16 h-14 select-none touch-none ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
-              aria-label="Move left"
-              onPointerDown={(e) => { e.preventDefault(); key("left", true); }}
-              onPointerUp={(e) => { e.preventDefault(); key("left", false); }}
-              onPointerLeave={() => key("left", false)}
-              onPointerCancel={() => key("left", false)}
-              onContextMenu={(e) => e.preventDefault()}
+              type="button"
+              onClick={togglePause}
+              className="btn8 dark !py-0.5 !px-2 !text-[7px] focus-arcade active:translate-y-0.5 pointer-events-auto"
+              aria-label="Pause game"
             >
-              &larr;
-            </button>
-            <button
-              className={`touch-btn bg-[#1d4258] text-cream text-[22px] w-16 h-14 select-none touch-none ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
-              aria-label="Move right"
-              onPointerDown={(e) => { e.preventDefault(); key("right", true); }}
-              onPointerUp={(e) => { e.preventDefault(); key("right", false); }}
-              onPointerLeave={() => key("right", false)}
-              onPointerCancel={() => key("right", false)}
-              onContextMenu={(e) => e.preventDefault()}
-            >
-              &rarr;
+              PAUSE ❚❚
             </button>
           </div>
 
-          <div className="px-font text-[7px] text-cream/40 text-center leading-relaxed hidden sm:block select-none pointer-events-none">
-            ROTATE FOR<br />WIDE VIEW
+          {/* Main Handheld Thumb Play Zone */}
+          <div className="flex items-center justify-between gap-3 my-auto py-2 px-1">
+            {/* Steering D-Pad: Left & Right */}
+            <div className="flex items-center gap-2.5 sm:gap-3.5 touch-none select-none">
+              <button
+                className={`touch-btn bg-[#1d4258] text-cream text-[26px] w-[68px] h-[64px] sm:w-[76px] sm:h-[70px] rounded-xl border-2 border-[#2b5d7d] shadow-[0_5px_0_#071620] active:shadow-[0_1px_0_#071620] active:translate-y-1 flex items-center justify-center select-none touch-none pointer-events-auto ${activeKeys.left ? "active bg-[#2b5d7d] translate-y-1 shadow-[0_1px_0_#071620]" : ""}`}
+                aria-label="Move left"
+                onPointerDown={(e) => { e.preventDefault(); key("left", true); }}
+                onPointerUp={(e) => { e.preventDefault(); key("left", false); }}
+                onPointerLeave={() => key("left", false)}
+                onPointerCancel={() => key("left", false)}
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                ◀
+              </button>
+              <button
+                className={`touch-btn bg-[#1d4258] text-cream text-[26px] w-[68px] h-[64px] sm:w-[76px] sm:h-[70px] rounded-xl border-2 border-[#2b5d7d] shadow-[0_5px_0_#071620] active:shadow-[0_1px_0_#071620] active:translate-y-1 flex items-center justify-center select-none touch-none pointer-events-auto ${activeKeys.right ? "active bg-[#2b5d7d] translate-y-1 shadow-[0_1px_0_#071620]" : ""}`}
+                aria-label="Move right"
+                onPointerDown={(e) => { e.preventDefault(); key("right", true); }}
+                onPointerUp={(e) => { e.preventDefault(); key("right", false); }}
+                onPointerLeave={() => key("right", false)}
+                onPointerCancel={() => key("right", false)}
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                ▶
+              </button>
+            </div>
+
+            {/* Action Buttons: RUN & JUMP */}
+            <div className="flex items-center gap-2.5 sm:gap-3.5 touch-none select-none">
+              <button
+                className={`touch-btn bg-[#e04f4f] text-cream px-font text-[9.5px] sm:text-[11px] w-[66px] h-[64px] sm:w-[74px] sm:h-[70px] rounded-xl border-2 border-[#ff7b7b] shadow-[0_5px_0_#5a1a1a] active:shadow-[0_1px_0_#5a1a1a] active:translate-y-1 flex flex-col items-center justify-center select-none touch-none pointer-events-auto ${activeKeys.run ? "active bg-[#ef6161] translate-y-1 shadow-[0_1px_0_#5a1a1a]" : ""}`}
+                aria-label="Run"
+                onPointerDown={(e) => { e.preventDefault(); key("run", true); }}
+                onPointerUp={(e) => { e.preventDefault(); key("run", false); }}
+                onPointerLeave={() => key("run", false)}
+                onPointerCancel={() => key("run", false)}
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                <span>RUN</span>
+                <span className="text-[6.5px] text-cream/70 font-sans tracking-tight">HOLD</span>
+              </button>
+              <button
+                className={`touch-btn bg-[#e8a92f] text-[#241505] px-font text-[11px] sm:text-[13px] font-bold w-[76px] h-[64px] sm:w-[84px] sm:h-[70px] rounded-xl border-2 border-[#ffd23f] shadow-[0_5px_0_#6c490a] active:shadow-[0_1px_0_#6c490a] active:translate-y-1 flex flex-col items-center justify-center select-none touch-none pointer-events-auto ${activeKeys.jump ? "active bg-[#f7bd4a] translate-y-1 shadow-[0_1px_0_#6c490a]" : ""}`}
+                aria-label="Jump"
+                onPointerDown={(e) => { e.preventDefault(); key("jump", true); }}
+                onPointerUp={(e) => { e.preventDefault(); key("jump", false); }}
+                onPointerLeave={() => key("jump", false)}
+                onPointerCancel={() => key("jump", false)}
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                <span>JUMP</span>
+                <span className="text-[7px] text-[#241505]/70 font-sans tracking-tight">TAP</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex gap-2 sm:gap-3 touch-none select-none">
-            <button
-              className={`touch-btn bg-[#e04f4f] text-cream text-[10px] px-4 sm:px-5 h-14 select-none touch-none ${activeKeys.run ? "active bg-[#ef6161]" : ""}`}
-              aria-label="Run"
-              onPointerDown={(e) => { e.preventDefault(); key("run", true); }}
-              onPointerUp={(e) => { e.preventDefault(); key("run", false); }}
-              onPointerLeave={() => key("run", false)}
-              onPointerCancel={() => key("run", false)}
-              onContextMenu={(e) => e.preventDefault()}
-            >
-              RUN
-            </button>
-            <button
-              className={`touch-btn bg-[#e8a92f] text-[#241505] text-[11px] px-6 sm:px-7 h-14 select-none touch-none ${activeKeys.jump ? "active bg-[#f7bd4a]" : ""}`}
-              aria-label="Jump"
-              onPointerDown={(e) => { e.preventDefault(); key("jump", true); }}
-              onPointerUp={(e) => { e.preventDefault(); key("jump", false); }}
-              onPointerLeave={() => key("jump", false)}
-              onPointerCancel={() => key("jump", false)}
-              onContextMenu={(e) => e.preventDefault()}
-            >
-              JUMP
-            </button>
+          {/* Bottom helper footnote */}
+          <div className="flex items-center justify-between text-cream/35 text-[9px] px-1 font-body shrink-0">
+            <span>◄ STEERING</span>
+            <span className="italic text-gold/60">Tip: Rotate for widescreen</span>
+            <span>ACTIONS ►</span>
           </div>
         </div>
       )}
