@@ -511,37 +511,71 @@ export default function GameCanvas(props: Props) {
       {/* ------------ Fullscreen In-Game Overlays (Never cropped by 16:9 canvas box) ------------ */}
       {overlay === "pause" && (
         <div className="fixed inset-0 bg-[#071620]/85 backdrop-blur-[3px] flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
-          <div className="panel8 anim-pop px-5 sm:px-8 py-5 sm:py-6 text-center w-[min(380px,94vw)] max-h-[88vh] overflow-y-auto no-scrollbar my-auto shadow-2xl">
-            <div className="px-font text-[18px] sm:text-[20px] text-cream mb-1 title-shadow">PAUSED</div>
-            <div className="font-body text-xs sm:text-sm text-cream/60 mb-4">Take a breather, hero.</div>
-            <div className="flex flex-col gap-2">
-              <button className="btn8 gold w-full !py-2.5 text-xs sm:text-sm" onClick={() => { engineRef.current!.paused = false; audio.select(); setOv("none"); }}>
-                Resume
+          <div className="panel8 anim-pop px-5 sm:px-8 py-5 sm:py-6 text-center w-[min(400px,94vw)] max-h-[88vh] overflow-y-auto no-scrollbar my-auto shadow-2xl">
+            <div className="px-font text-[18px] sm:text-[22px] text-cream mb-1 title-shadow">PAUSED</div>
+            <div className="font-body text-xs sm:text-sm text-cream/60 mb-4 sm:mb-5">Take a breather, hero.</div>
+            <div className="flex flex-col gap-2.5">
+              <button
+                className="btn8 gold w-full !py-2.5 !text-[11px] sm:!text-[12px] flex items-center justify-center gap-2 whitespace-nowrap"
+                onClick={() => { engineRef.current!.paused = false; audio.select(); setOv("none"); }}
+              >
+                <span>▶</span>
+                <span>Resume</span>
               </button>
-              <button className="btn8 w-full !py-2 text-xs" onClick={toggleFullscreen}>
-                🖥️ {isFullscreen ? "Exit Fullscreen (F)" : "Zoom In / Fullscreen (F)"}
+              <button
+                className="btn8 w-full !py-2.5 !text-[11px] sm:!text-[12px] flex items-center justify-center gap-2 whitespace-nowrap"
+                onClick={toggleFullscreen}
+              >
+                <span>🖥️</span>
+                <span>{isFullscreen ? "Exit Fullscreen" : "Fullscreen"}{!isMobileOrTabletDevice() ? " (F)" : ""}</span>
               </button>
-              <button className="btn8 blue w-full !py-2 text-xs" onClick={retryLevel}>
-                Restart World
+              <button
+                className="btn8 blue w-full !py-2.5 !text-[11px] sm:!text-[12px] flex items-center justify-center gap-2 whitespace-nowrap"
+                onClick={retryLevel}
+              >
+                <span>🔄</span>
+                <span>Restart World</span>
               </button>
               {props.onToggleScanlines && (
-                <button className="btn8 dark w-full text-[10px] !py-1.5" onClick={props.onToggleScanlines}>
-                  📺 Scanlines: {scanlines ? "ON" : "OFF"}
+                <button
+                  className="btn8 dark w-full !py-2.5 !text-[11px] sm:!text-[12px] flex items-center justify-center gap-2 whitespace-nowrap"
+                  onClick={props.onToggleScanlines}
+                >
+                  <span>📺</span>
+                  <span>Scanlines: {scanlines ? "ON" : "OFF"}</span>
                 </button>
               )}
               {props.onCycleTouchMode && (
-                <button className="btn8 dark w-full text-[10px] !py-1.5" onClick={props.onCycleTouchMode}>
-                  🎮 Touch Deck: {touchMode.toUpperCase()}
+                <button
+                  className="btn8 dark w-full !py-2.5 !text-[11px] sm:!text-[12px] flex items-center justify-center gap-2 whitespace-nowrap"
+                  onClick={props.onCycleTouchMode}
+                >
+                  <span>🎮</span>
+                  <span>Touch Deck: {touchMode.toUpperCase()}</span>
                 </button>
               )}
-              <button className="btn8 red w-full !py-2 text-xs" onClick={props.onExit}>
-                Quit to Map
+              <button
+                className="btn8 red w-full !py-2.5 !text-[11px] sm:!text-[12px] flex items-center justify-center gap-2 whitespace-nowrap"
+                onClick={props.onExit}
+              >
+                <span>🚪</span>
+                <span>Quit to Map</span>
               </button>
             </div>
-            <div className="mt-4 text-left space-y-1 font-body text-[11px] text-cream/70 hidden sm:block border-t border-[#0b1f2c] pt-2.5">
-              <div><span className="kbd">←→</span> move &nbsp;<span className="kbd">SPACE</span> jump</div>
-              <div><span className="kbd">SHIFT</span> run &nbsp;<span className="kbd">F</span> zoom/fullscreen</div>
-            </div>
+
+            {/* Desktop / Laptop Keyboard Shortcuts Guide (Hidden on iPad/tablets/phones where touch is used) */}
+            {!isMobileOrTabletDevice() && (
+              <div className="mt-4 text-center space-y-1.5 font-body text-[11px] text-cream/75 border-t-2 border-[#0b1f2c] pt-3">
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <span><span className="kbd">←→</span> Move</span>
+                  <span><span className="kbd">SPACE</span> Jump</span>
+                </div>
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <span><span className="kbd">SHIFT</span> Run</span>
+                  <span><span className="kbd">F</span> Fullscreen</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
