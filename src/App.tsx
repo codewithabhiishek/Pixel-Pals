@@ -771,9 +771,17 @@ function MenuScreen(props: {
         </div>
       </div>
 
-      {/* Footer copyright, developer credit, & nostalgic disclaimer */}
-      <div className="relative z-10 w-full shrink-0 border-t border-[#123043]/80 bg-[#071620]/95 px-3 sm:px-6 py-1.5 sm:py-2 flex items-center justify-between gap-2 sm:gap-3 flex-wrap text-center sm:text-left mt-2 md:mt-0">
-        <div className="flex items-center gap-2 mx-auto sm:mx-0 flex-wrap justify-center">
+      {/* Footer copyright, developer credit, & suggestions */}
+      <div className="relative z-10 w-full shrink-0 border-t border-[#123043]/80 bg-[#071620]/95 px-3 sm:px-6 py-1.5 sm:py-2 flex items-center justify-between gap-3 text-center mt-2 md:mt-0">
+        {/* Left: Handcrafted Worlds Info */}
+        <div className="hidden lg:flex items-center gap-2 font-body text-[10.5px] sm:text-[11px] text-cream/40 flex-1 justify-start">
+          <span>Pixel Pals: Adventure Run</span>
+          <span className="text-cream/20">•</span>
+          <span className="text-gold/70 font-mono text-[9px] tracking-wide">5 WORLDS</span>
+        </div>
+
+        {/* Center: BUILT BY ABHISHEK + SUGGESTIONS + Tagline */}
+        <div className="flex items-center gap-2 sm:gap-2.5 mx-auto justify-center flex-wrap">
           <a
             href="https://abhiishek.is-a.dev/"
             target="_blank"
@@ -790,6 +798,7 @@ function MenuScreen(props: {
               <span className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
             </span>
           </a>
+
           <button
             type="button"
             onClick={props.onOpenFeedback}
@@ -801,13 +810,16 @@ function MenuScreen(props: {
               SUGGESTIONS
             </span>
           </button>
-          <span className="hidden sm:inline text-cream/25 text-[10px]">{"//"}</span>
-          <span className="hidden sm:inline font-body text-[11px] sm:text-[12px] text-gold/75 italic tracking-wide">
-            YOUR CHILDHOOD CALLED. IT WANTS ITS GAME BACK.
+
+          <span className="hidden sm:inline text-cream/20 text-[10px]">{"//"}</span>
+          <span className="hidden sm:inline font-body text-[11px] sm:text-[12px] text-gold/80 tracking-wide font-medium">
+            CRAFTED WITH PIXEL PASSION
           </span>
         </div>
-        <div className="font-body text-[9.5px] sm:text-[11px] text-cream/35 mx-auto sm:mx-0">
-          Pixel Pals: Adventure Run • 5 Hand-Crafted Worlds
+
+        {/* Right: Retro Arcade Tag */}
+        <div className="hidden lg:flex items-center justify-end font-body text-[10.5px] sm:text-[11px] text-cream/35 flex-1">
+          <span>Speedrun • Retro 2D Canvas</span>
         </div>
       </div>
     </div>
