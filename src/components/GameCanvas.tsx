@@ -446,12 +446,12 @@ export default function GameCanvas(props: Props) {
           <>
             {/* Left wing: D-Pad */}
             <div
-              className="fixed left-3 bottom-5 z-40 flex gap-2 pointer-events-auto"
+              className="fixed left-3 bottom-5 z-40 flex gap-2.5 pointer-events-auto"
               style={{ paddingLeft: "env(safe-area-inset-left)" }}
               onContextMenu={(e) => e.preventDefault()}
             >
               <button
-                className={`touch-btn bg-[#1d4258]/85 text-cream text-[20px] w-14 h-14 ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
+                className={`touch-btn bg-[#1d4258]/85 text-cream text-[22px] w-15 h-15 ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
                 aria-label="Move left"
                 onPointerDown={(e) => { e.preventDefault(); key("left", true); }}
                 onPointerUp={() => key("left", false)}
@@ -461,7 +461,7 @@ export default function GameCanvas(props: Props) {
                 &larr;
               </button>
               <button
-                className={`touch-btn bg-[#1d4258]/85 text-cream text-[20px] w-14 h-14 ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
+                className={`touch-btn bg-[#1d4258]/85 text-cream text-[22px] w-15 h-15 ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
                 aria-label="Move right"
                 onPointerDown={(e) => { e.preventDefault(); key("right", true); }}
                 onPointerUp={() => key("right", false)}
@@ -469,17 +469,6 @@ export default function GameCanvas(props: Props) {
                 onPointerCancel={() => key("right", false)}
               >
                 &rarr;
-              </button>
-              <button
-                className={`touch-btn bg-[#1d4258]/85 text-cream text-[16px] w-12 h-14 ${activeKeys.down ? "active bg-[#27556f]" : ""}`}
-                aria-label="Drop through planks"
-                title="Drop down"
-                onPointerDown={(e) => { e.preventDefault(); key("down", true); }}
-                onPointerUp={() => key("down", false)}
-                onPointerLeave={() => key("down", false)}
-                onPointerCancel={() => key("down", false)}
-              >
-                &darr;
               </button>
             </div>
 
@@ -649,9 +638,9 @@ export default function GameCanvas(props: Props) {
           }}
           onContextMenu={(e) => e.preventDefault()}
         >
-          <div className="flex gap-2 sm:gap-3">
+          <div className="flex gap-2.5 sm:gap-3">
             <button
-              className={`touch-btn bg-[#1d4258] text-cream text-[20px] w-14 h-14 ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
+              className={`touch-btn bg-[#1d4258] text-cream text-[22px] w-16 h-14 ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
               aria-label="Move left"
               onPointerDown={(e) => { e.preventDefault(); key("left", true); }}
               onPointerUp={() => key("left", false)}
@@ -661,7 +650,7 @@ export default function GameCanvas(props: Props) {
               &larr;
             </button>
             <button
-              className={`touch-btn bg-[#1d4258] text-cream text-[20px] w-14 h-14 ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
+              className={`touch-btn bg-[#1d4258] text-cream text-[22px] w-16 h-14 ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
               aria-label="Move right"
               onPointerDown={(e) => { e.preventDefault(); key("right", true); }}
               onPointerUp={() => key("right", false)}
@@ -669,17 +658,6 @@ export default function GameCanvas(props: Props) {
               onPointerCancel={() => key("right", false)}
             >
               &rarr;
-            </button>
-            <button
-              className={`touch-btn bg-[#1d4258] text-cream text-[16px] w-11 h-14 ${activeKeys.down ? "active bg-[#27556f]" : ""}`}
-              aria-label="Drop through planks"
-              title="Drop down"
-              onPointerDown={(e) => { e.preventDefault(); key("down", true); }}
-              onPointerUp={() => key("down", false)}
-              onPointerLeave={() => key("down", false)}
-              onPointerCancel={() => key("down", false)}
-            >
-              &darr;
             </button>
           </div>
 
@@ -719,7 +697,6 @@ export default function GameCanvas(props: Props) {
             <span className="kbd mr-1">←→</span> move &nbsp;
             <span className="kbd mx-1">SPACE / Z</span> jump &nbsp;
             <span className="kbd mx-1">SHIFT / X</span> run &nbsp;
-            <span className="kbd mx-1">↓+JUMP</span> drop &nbsp;
             <span className="kbd mx-1">F</span> zoom/fullscreen &nbsp;
             <span className="kbd mx-1">ESC / P</span> pause
           </span>
