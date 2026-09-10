@@ -74,14 +74,16 @@ const CATEGORIES: Category[] = [
 
 const COOLDOWN_SECONDS = 60;
 const MAX_HOURLY_DISPATCHES = 5;
-const WEB3FORMS_KEY =
-  (import.meta as any).env?.VITE_WEB3FORMS_KEY || "8a1e06e5-be91-4200-8d77-df95f527bcd9";
+const WEB3FORMS_KEY: string =
+  (import.meta as any).env?.VITE_WEB3FORMS_KEY || "";
 
 function getRecentDispatchesCount(): number {
   try {
     const raw = JSON.parse(localStorage.getItem("pixel_pals:feedback_history") || "[]");
     const oneHourAgo = Date.now() - 60 * 60 * 1000;
-    const valid = Array.isArray(raw) ? raw.filter((ts: number) => ts > oneHourAgo) : [];
+    const valid = Array.isArray(raw)
+      ? raw.filter((ts: unknown): ts is number => typeof ts === "number" && Number.isFinite(ts) && ts > oneHourAgo)
+      : [];
     return valid.length;
   } catch {
     return 0;
@@ -92,7 +94,9 @@ function recordDispatchTimestamp(): void {
   try {
     const raw = JSON.parse(localStorage.getItem("pixel_pals:feedback_history") || "[]");
     const oneHourAgo = Date.now() - 60 * 60 * 1000;
-    const valid = Array.isArray(raw) ? raw.filter((ts: number) => ts > oneHourAgo) : [];
+    const valid = Array.isArray(raw)
+      ? raw.filter((ts: unknown): ts is number => typeof ts === "number" && Number.isFinite(ts) && ts > oneHourAgo)
+      : [];
     valid.push(Date.now());
     localStorage.setItem("pixel_pals:feedback_history", JSON.stringify(valid));
   } catch {}
@@ -198,7 +202,7 @@ export default function FeedbackModal({ open, onClose, context }: FeedbackModalP
         return;
       }
 
-      // 5. Input Validation & Sanitization (Strip HTML tags)
+      // 5. Input Validation & Sanitization (Strip HTML tags and CRLF injection)
       const cleanMessage = message.replace(/<[^>]*>?/gm, "").trim().slice(0, 500);
       if (!cleanMessage) {
         setErrorMessage("Please enter your suggestion or feedback.");
@@ -206,8 +210,29 @@ export default function FeedbackModal({ open, onClose, context }: FeedbackModalP
         return;
       }
 
-      const cleanName = name.replace(/<[^>]*>?/gm, "").trim().slice(0, 60);
-      const cleanEmail = email.replace(/<[^>]*>?/gm, "").trim().slice(0, 80);
+      const cleanName = name
+        .replace(/<[^>]*>?/gm, "")
+        .replace(/[\r\n\t]/g, " ")
+        .trim()
+        .slice(0, 60);
+
+      const cleanEmail = email
+        .replace(/<[^>]*>?/gm, "")
+        .replace(/[\r\n\t]/g, "")
+        .trim()
+        .slice(0, 80);
+
+      if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+        setErrorMessage("Please enter a valid email address or leave it blank.");
+        setStatus("error");
+        return;
+      }
+
+      if (!WEB3FORMS_KEY) {
+        setErrorMessage("Feedback service is currently in offline mode (missing API key).");
+        setStatus("error");
+        return;
+      }
 
       // Save user identity in localStorage
       try {

@@ -33,10 +33,11 @@ function loadSave(): SaveData {
   try {
     const raw = localStorage.getItem(SAVE_KEY) ?? localStorage.getItem("emberfox_save_v1");
     if (!raw) return defaultSave;
-    const p = JSON.parse(raw) as Partial<SaveData>;
+    const p = JSON.parse(raw);
+    if (!p || typeof p !== "object" || Array.isArray(p)) return defaultSave;
     return {
-      high: typeof p.high === "number" ? p.high : 0,
-      unlocked: typeof p.unlocked === "number" ? Math.min(5, Math.max(1, p.unlocked)) : 1,
+      high: typeof p.high === "number" && Number.isFinite(p.high) && p.high >= 0 ? Math.floor(p.high) : 0,
+      unlocked: typeof p.unlocked === "number" && Number.isFinite(p.unlocked) ? Math.min(5, Math.max(1, Math.floor(p.unlocked))) : 1,
       cleared: Array.isArray(p.cleared) && p.cleared.length === 5 ? p.cleared.map(Boolean) : defaultSave.cleared,
       sfx: p.sfx !== false,
       music: p.music !== false,
