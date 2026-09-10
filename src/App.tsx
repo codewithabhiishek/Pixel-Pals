@@ -94,20 +94,25 @@ const FullscreenIcon = ({ isFull }: { isFull: boolean }) => (
 );
 
 const FoxMascot = () => (
-  <svg width="220" height="200" viewBox="0 0 210 190" className="anim-float drop-shadow-[0_14px_0_rgba(0,0,0,0.35)]">
-    {/* tail */}
-    <path d="M30 150 Q4 138 10 112 Q26 122 40 118 Q34 138 44 148 Z" fill="#e0702a" />
-    <circle cx="13" cy="117" r="9" fill="#fdf3e3" />
+  <svg width="220" height="200" viewBox="0 0 210 190" className="drop-shadow-[0_12px_0_rgba(0,0,0,0.3)] select-none pointer-events-none">
+    {/* tail with flame flicker */}
+    <g className="origin-[40px_148px] animate-[flameFlicker_3.2s_ease-in-out_infinite]">
+      <path d="M30 150 Q4 138 10 112 Q26 122 40 118 Q34 138 44 148 Z" fill="#e0702a" />
+      <circle cx="13" cy="117" r="9" fill="#fdf3e3" />
+      <path d="M14 112 Q6 100 14 90 Q16 102 24 104 Q18 108 14 112 Z" fill="#ff7a2f" />
+    </g>
     {/* body */}
     <rect x="40" y="106" width="86" height="62" rx="26" fill="#ff8c3b" />
     <ellipse cx="88" cy="146" rx="26" ry="17" fill="#fdf3e3" />
     {/* head */}
     <circle cx="120" cy="78" r="46" fill="#ff8c3b" />
-    {/* ears */}
-    <path d="M84 48 L74 6 L110 34 Z" fill="#ff8c3b" />
-    <path d="M156 48 L166 6 L130 34 Z" fill="#ff8c3b" />
-    <path d="M82 40 L77 16 L99 33 Z" fill="#3c1c0c" />
-    <path d="M158 40 L163 16 L141 33 Z" fill="#3c1c0c" />
+    {/* ears with subtle twitch */}
+    <g className="origin-[120px_78px]">
+      <path d="M84 48 L74 6 L110 34 Z" fill="#ff8c3b" />
+      <path d="M156 48 L166 6 L130 34 Z" fill="#ff8c3b" />
+      <path d="M82 40 L77 16 L99 33 Z" fill="#3c1c0c" />
+      <path d="M158 40 L163 16 L141 33 Z" fill="#3c1c0c" />
+    </g>
     {/* muzzle */}
     <ellipse cx="138" cy="92" rx="20" ry="14" fill="#fdf3e3" />
     <circle cx="150" cy="87" r="5" fill="#3c1c0c" />
@@ -124,9 +129,53 @@ const FoxMascot = () => (
     {/* feet */}
     <rect x="54" y="160" width="20" height="14" rx="6" fill="#c65f22" />
     <rect x="94" y="160" width="20" height="14" rx="6" fill="#c65f22" />
-    {/* flame tail tip */}
-    <path d="M14 112 Q6 100 14 90 Q16 102 24 104 Q18 108 14 112 Z" fill="#ff7a2f" />
   </svg>
+);
+
+const FloatingIsland = () => (
+  <div className="relative flex flex-col items-center select-none pointer-events-none">
+    {/* Floating Coin above platform */}
+    <div className="absolute -top-6 -right-2 flex flex-col items-center anim-float z-20">
+      <div className="w-8 h-8 rounded-full bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] border-2 border-[#0b1f2c] shadow-[0_3px_0_#071620] flex items-center justify-center anim-coin-spin">
+        <div className="w-4 h-4 rounded-full border border-[#b8860b] flex items-center justify-center font-bold text-[8px] text-[#8a5a00]">
+          ◆
+        </div>
+      </div>
+      <span className="px-font text-[6px] text-gold mt-1 drop-shadow">100 PTS</span>
+    </div>
+
+    {/* Mascot with gentle breathing */}
+    <div className="anim-breathe relative z-10">
+      <FoxMascot />
+    </div>
+
+    {/* Floating Pixel Island Stage */}
+    <div className="relative -mt-6 w-[230px] flex flex-col items-center">
+      {/* Ground contact shadow */}
+      <div className="w-28 h-3 rounded-full bg-[#071620]/60 -mb-2 z-10 blur-[1px]" />
+
+      {/* Grass Top Layer with jagged pixel overhangs */}
+      <div className="w-full h-5 bg-[#5cc257] border-2 border-[#0b1f2c] rounded-t-md relative z-10 shadow-[inset_0_2px_0_rgba(255,255,255,0.4)]">
+        <div className="absolute -bottom-2 left-3 w-3.5 h-2 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+        <div className="absolute -bottom-3 left-12 w-4 h-3 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+        <div className="absolute -bottom-2.5 left-24 w-3.5 h-2.5 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+        <div className="absolute -bottom-3 right-10 w-4 h-3 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+        <div className="absolute -bottom-2 right-22 w-3 h-2 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+      </div>
+
+      {/* Earth Dirt Block with rock flecks & dangling vine */}
+      <div className="w-[92%] h-12 bg-[#a5683f] border-x-2 border-b-2 border-[#0b1f2c] rounded-b-lg relative overflow-hidden shadow-[0_8px_0_#071620,0_16px_24px_rgba(0,0,0,0.5)]">
+        <div className="absolute inset-x-0 top-0 h-2.5 bg-[#86512f]" />
+        {/* Pixel rock details */}
+        <div className="absolute top-4 left-5 w-2.5 h-2 bg-[#86512f] rounded-[1px]" />
+        <div className="absolute top-6 left-16 w-3 h-2.5 bg-[#5a341d] rounded-[1px]" />
+        <div className="absolute top-4 right-8 w-3 h-2 bg-[#86512f] rounded-[1px]" />
+        <div className="absolute bottom-1 right-20 w-2 h-1.5 bg-[#5a341d] rounded-[1px]" />
+        {/* Hanging pixel vine */}
+        <div className="absolute top-1 left-14 w-2 h-7 bg-[#3fae8c] border-x border-b border-[#0b1f2c] rounded-b-sm" />
+      </div>
+    </div>
+  </div>
 );
 
 /* ---------------- screens ---------------- */
@@ -320,9 +369,7 @@ export default function App() {
       {showHelp && <HelpModal onClose={act(() => setShowHelp(false))} />}
     </div>
   );
-}
-
-/* ---------------- menu ---------------- */
+}/* ---------------- menu ---------------- */
 function MenuScreen(props: {
   save: SaveData; hero: CharacterDef; clearedCount: number; audio: AudioEngine;
   isFullscreen: boolean;
@@ -336,55 +383,70 @@ function MenuScreen(props: {
   return (
     <div
       className="relative w-full h-full overflow-y-auto no-scrollbar flex flex-col justify-between"
-      style={{ background: "linear-gradient(180deg,#0b1f2c 0%,#123043 62%,#1d4258 100%)" }}
+      style={{ background: "linear-gradient(180deg,#071620 0%,#0b1f2c 30%,#123043 70%,#183a4f 100%)" }}
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
         setTilt({ x: (e.clientX - r.left) / r.width - 0.5, y: (e.clientY - r.top) / r.height - 0.5 });
       }}
     >
       {/* starfield */}
-      {Array.from({ length: 28 }).map((_, i) => (
-        <div key={i} className="absolute rounded-full bg-cream/70 pointer-events-none" style={{
-          left: `${(i * 37 + 11) % 100}%`, top: `${(i * 23 + 5) % 50}%`, width: i % 4 === 0 ? 3 : 2, height: i % 4 === 0 ? 3 : 2,
+      {Array.from({ length: 32 }).map((_, i) => (
+        <div key={i} className="absolute rounded-full bg-cream/75 pointer-events-none" style={{
+          left: `${(i * 37 + 11) % 100}%`, top: `${(i * 23 + 5) % 52}%`, width: i % 4 === 0 ? 3 : 2, height: i % 4 === 0 ? 3 : 2,
           animation: `blinkStep ${2 + (i % 4)}s ease-in-out ${(i % 5) * 0.4}s infinite`,
         }} />
       ))}
 
-      {/* moon */}
-      <div className="absolute rounded-full pointer-events-none transition-transform duration-500 ease-out" style={{
-        right: "12%", top: "8%", width: 92, height: 92, background: "#ffc94d",
-        boxShadow: "0 0 60px 18px rgba(255,201,77,0.3), inset -14px -8px 0 rgba(232,169,47,0.6)",
-        transform: `translate(${tilt.x * 10}px, ${tilt.y * 6}px)`,
-      }} />
-
-      {/* drifting clouds */}
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="absolute rounded-full bg-cream/10 pointer-events-none" style={{
-          width: 180 + i * 60, height: 34 + i * 8, top: `${16 + i * 16}%`,
-          animation: `drift ${52 + i * 20}s linear ${-i * 18}s infinite`,
+      {/* drifting stardust / fireflies */}
+      {[0, 1, 2, 3].map((i) => (
+        <div key={`star-${i}`} className="absolute rounded-[1px] bg-gold/50 pointer-events-none" style={{
+          width: 3, height: 3, top: `${20 + i * 14}%`, left: `${10 + i * 22}%`,
+          boxShadow: "0 0 8px rgba(255,201,77,0.7)",
+          animation: `floaty ${3 + i * 1.2}s ease-in-out ${i * 0.7}s infinite`,
         }} />
       ))}
 
-      {/* mountain silhouettes */}
-      <svg className="absolute bottom-0 w-full pointer-events-none transition-transform duration-500 ease-out" viewBox="0 0 1440 240" preserveAspectRatio="none" style={{ height: "32%", width: "112%", left: "-6%", transform: `translateX(${tilt.x * -14}px)` }}>
-        <path d="M0 240 L0 150 Q240 60 480 140 Q720 220 960 120 Q1200 40 1440 130 L1440 240 Z" fill="#0e2a3a" />
+      {/* moon with pixel crater shading */}
+      <div className="absolute rounded-full pointer-events-none transition-transform duration-500 ease-out" style={{
+        right: "12%", top: "7%", width: 96, height: 96, background: "#ffc94d",
+        boxShadow: "0 0 64px 20px rgba(255,201,77,0.28), inset -16px -10px 0 rgba(224,152,38,0.65)",
+        transform: `translate(${tilt.x * 10}px, ${tilt.y * 6}px)`,
+      }}>
+        {/* subtle pixel craters */}
+        <div className="absolute top-4 left-5 w-3 h-3 rounded-full bg-[#e09826]/40" />
+        <div className="absolute top-9 left-11 w-4.5 h-4.5 rounded-full bg-[#e09826]/35" />
+        <div className="absolute bottom-6 left-6 w-2.5 h-2.5 rounded-full bg-[#e09826]/45" />
+      </div>
+
+      {/* drifting clouds */}
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="absolute rounded-full bg-cream/8 pointer-events-none" style={{
+          width: 190 + i * 60, height: 36 + i * 8, top: `${15 + i * 15}%`,
+          animation: `drift ${54 + i * 18}s linear ${-i * 18}s infinite`,
+        }} />
+      ))}
+
+      {/* mountain silhouettes with parallax */}
+      <svg className="absolute bottom-0 w-full pointer-events-none transition-transform duration-500 ease-out" viewBox="0 0 1440 240" preserveAspectRatio="none" style={{ height: "30%", width: "112%", left: "-6%", transform: `translateX(${tilt.x * -14}px)` }}>
+        <path d="M0 240 L0 150 Q240 60 480 140 Q720 220 960 120 Q1200 40 1440 130 L1440 240 Z" fill="#0c2331" />
       </svg>
-      <svg className="absolute bottom-0 w-full pointer-events-none transition-transform duration-500 ease-out" viewBox="0 0 1440 240" preserveAspectRatio="none" style={{ height: "24%", width: "112%", left: "-6%", transform: `translateX(${tilt.x * -26}px)` }}>
+      <svg className="absolute bottom-0 w-full pointer-events-none transition-transform duration-500 ease-out" viewBox="0 0 1440 240" preserveAspectRatio="none" style={{ height: "22%", width: "112%", left: "-6%", transform: `translateX(${tilt.x * -26}px)` }}>
         <path d="M0 240 L0 190 Q300 120 640 185 Q980 245 1240 175 Q1360 145 1440 165 L1440 240 Z" fill="#071620" />
       </svg>
 
       {/* Quick Settings Bar at Top */}
       <div className="relative z-20 w-full max-w-6xl mx-auto px-4 sm:px-8 pt-4 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2 bg-[#071620]/75 border-2 border-[#123043] rounded-md px-3 py-1.5 backdrop-blur-[2px]">
-          <span className="px-font text-[7px] sm:text-[8px] text-mint">HIGH SCORE</span>
-          <span className="px-font text-[10px] sm:text-[12px] text-gold">{String(props.save.high).padStart(6, "0")}</span>
+        <div className="flex items-center gap-2.5 bg-[#071620]/90 border-2 border-[#123043] rounded-md px-3.5 py-1.5 backdrop-blur-[2px] shadow-[0_3px_0_#071620]">
+          <span className="w-2 h-2 rounded-[1px] bg-gold animate-pulse" />
+          <span className="px-font text-[7px] sm:text-[8px] text-mint tracking-wider">HI-SCORE</span>
+          <span className="px-font text-[11px] sm:text-[13px] text-gold tracking-widest">{String(props.save.high).padStart(6, "0")}</span>
         </div>
 
         {/* Toolbar Toggles */}
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={props.onToggleFullscreen}
-            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors"
+            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Fullscreen Zoom (Press F)"
           >
             <FullscreenIcon isFull={props.isFullscreen} />
@@ -392,7 +454,7 @@ function MenuScreen(props: {
           </button>
           <button
             onClick={props.onToggleSfx}
-            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors"
+            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Sound Effects"
           >
             <SoundIcon on={props.save.sfx} />
@@ -400,7 +462,7 @@ function MenuScreen(props: {
           </button>
           <button
             onClick={props.onToggleMusic}
-            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors"
+            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Chiptune Music"
           >
             <SoundIcon on={props.save.music} />
@@ -408,7 +470,7 @@ function MenuScreen(props: {
           </button>
           <button
             onClick={props.onToggleScanlines}
-            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors"
+            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle CRT Scanline Effect"
           >
             <CrtIcon on={props.save.scanlines} />
@@ -416,7 +478,7 @@ function MenuScreen(props: {
           </button>
           <button
             onClick={props.onCycleTouchMode}
-            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors"
+            className="panel8 !px-2.5 !py-1.5 flex items-center gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Cycle Touch Controls: Auto / Force On / Force Off"
           >
             <GamepadIcon />
@@ -425,97 +487,162 @@ function MenuScreen(props: {
         </div>
       </div>
 
-      {/* Hero & Title Content */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-8 py-6 my-auto">
-        <div className="flex items-center justify-between gap-6 lg:gap-10 flex-wrap">
-          <div className="max-w-xl w-full lg:w-auto">
-            <div className="px-font text-[8px] sm:text-[10px] text-mint tracking-[0.25em] mb-2">
-              RETRO 2D ANIMAL PLATFORMER
+      {/* Main Title & Hero Composition */}
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-8 py-5 sm:py-8 my-auto">
+        <div className="flex items-center justify-between gap-8 lg:gap-14 flex-col lg:flex-row">
+          {/* Left Column: Game Title & Cartridge Actions */}
+          <div className="max-w-xl w-full flex flex-col items-center lg:items-start text-center lg:text-left">
+            {/* Retro Arcade Label Easter Egg */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-[#071620]/90 border-2 border-[#123043] shadow-[0_3px_0_#071620] mb-3 self-center lg:self-start">
+              <span className="w-2 h-2 rounded-[1px] bg-gold animate-pulse" />
+              <span className="px-font text-[8px] sm:text-[9px] text-mint tracking-[0.2em]">
+                INSERT COIN // 0 COINS
+              </span>
             </div>
+
+            {/* Retro 3D Pixel Art Title */}
             <h1
-              className="px-font text-ember title-shadow leading-none"
-              style={{ fontSize: "clamp(2rem, 6.5vw, 4.2rem)", animation: "titlePulse 3.2s ease-in-out infinite" }}
+              className="px-font text-ember retro-title-shadow leading-none tracking-wider select-none"
+              style={{ fontSize: "clamp(2.5rem, 6.8vw, 4.4rem)", animation: "titlePulse 3.5s ease-in-out infinite" }}
             >
               PIXEL PALS
             </h1>
-            <div className="px-font text-gold text-[12px] sm:text-[16px] tracking-[0.25em] mt-2 mb-3">
-              ADVENTURE RUN
+
+            {/* Subtitle Banner with Diamond Studs */}
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1 bg-[#071620]/85 border-2 border-gold/40 rounded shadow-[0_3px_0_#071620] mt-3 mb-3 self-center lg:self-start">
+              <span className="text-gold text-[10px]">◆</span>
+              <span className="px-font text-gold text-[11px] sm:text-[14px] tracking-[0.22em] retro-sub-shadow font-bold">
+                ADVENTURE RUN
+              </span>
+              <span className="text-gold text-[10px]">◆</span>
             </div>
-            <p className="font-body text-cream/85 text-base sm:text-lg mt-2 max-w-md leading-relaxed">
-              Run, leap, and stomp your way through 5 perilous worlds — then conquer{" "}
-              <span className="text-ember font-semibold">Magmor, the Ember King</span>, in his fiery forge!
+
+            {/* Indie Tagline */}
+            <p className="font-body text-cream/85 text-base sm:text-lg mt-1 max-w-md leading-relaxed">
+              Run, leap, and stomp your way through 5 perilously hand-crafted worlds — then topple{" "}
+              <span className="text-ember font-semibold underline decoration-ember/40 underline-offset-4">Magmor, the Ember King</span>, in his volcanic forge.
             </p>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 sm:gap-4 mt-7 flex-wrap">
-              <button className="btn8 gold !text-[13px] !px-7 !py-4.5" onClick={props.onStart}>
-                <PlayIcon /> Start Adventure
+            {/* Mobile Mascot Island (centered on tablet/mobile screens) */}
+            <div className="block lg:hidden my-6 scale-90 sm:scale-100">
+              <FloatingIsland />
+            </div>
+
+            {/* Tactile Real-Game Action Buttons */}
+            <div className="flex gap-3 sm:gap-4 mt-5 sm:mt-7 flex-wrap justify-center lg:justify-start">
+              <button
+                className="btn8 primary-arcade !text-[12px] sm:!text-[13px] !px-7 sm:!px-8 !py-4 group focus-arcade"
+                onClick={props.onStart}
+              >
+                <span className="transition-transform group-hover:translate-x-1 inline-block">▶</span>
+                <span>START ADVENTURE</span>
               </button>
-              <button className="btn8 dark !text-[11px]" onClick={props.onHeroes}>
-                Choose Hero
+              <button
+                className="btn8 dark !text-[10px] sm:!text-[11px] !px-5 !py-3.5 focus-arcade"
+                onClick={props.onHeroes}
+              >
+                <span className="text-gold">★</span> Choose Hero
               </button>
-              <button className="btn8 blue !text-[11px]" onClick={props.onHelp}>
+              <button
+                className="btn8 blue !text-[10px] sm:!text-[11px] !px-5 !py-3.5 focus-arcade"
+                onClick={props.onHelp}
+              >
                 Field Guide
               </button>
             </div>
           </div>
 
+          {/* Right Column: Floating Island Hero Stage (Desktop view) */}
           <div
             className="hidden lg:block shrink-0 transition-transform duration-500 ease-out"
-            style={{ transform: `translate(${tilt.x * 16}px, ${tilt.y * 10}px)` }}
+            style={{ transform: `translate(${tilt.x * 14}px, ${tilt.y * 10}px)` }}
           >
-            <FoxMascot />
+            <FloatingIsland />
           </div>
         </div>
 
         {/* Selected Hero Showcase & Save Plate */}
-        <div className="panel8 mt-8 px-4 sm:px-6 py-4 flex items-center justify-between gap-6 flex-wrap w-full bg-[#123043]/90">
-          <button
-            className="flex items-center gap-3 cursor-pointer group text-left"
-            onClick={props.onHeroes}
-            title="Change active hero"
-          >
-            <span className="w-12 h-12 rounded-full border-[3px] border-[#0b1f2c] shadow-[0_3px_0_#071620] overflow-hidden bg-[#1d4258] transition-transform group-hover:scale-105">
+        <div className="panel8 mt-7 sm:mt-8 px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-6 flex-wrap w-full bg-[#123043]/95 border-2 border-[#0b1f2c]">
+          <div className="flex items-center gap-3.5">
+            <button
+              className="w-13 h-13 rounded-md border-[3px] border-[#0b1f2c] shadow-[0_3px_0_#071620] overflow-hidden bg-[#1d4258] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group"
+              onClick={props.onHeroes}
+              title="Change active hero"
+            >
               <CharPortrait char={props.hero} />
-            </span>
-            <div>
-              <div className="px-font text-[7px] text-mint tracking-widest">ACTIVE HERO</div>
-              <div className="px-font text-[12px] text-cream group-hover:text-gold transition-colors">
-                {props.hero.name.toUpperCase()} ({props.hero.species.toUpperCase()})
+              <span className="absolute bottom-0 inset-x-0 bg-[#071620]/85 text-[6px] px-font text-gold text-center py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                EDIT
+              </span>
+            </button>
+            <div className="text-left">
+              <div className="px-font text-[7px] text-mint tracking-widest flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-[1px] bg-mint inline-block" />
+                ACTIVE HERO • {props.hero.species.toUpperCase()}
               </div>
-              <div className="font-body text-[12px] text-gold/90 font-medium">
-                ★ {props.hero.passive.name}: {props.hero.passive.desc}
+              <div className="px-font text-[12px] sm:text-[13px] text-cream mt-0.5">
+                {props.hero.name.toUpperCase()}
               </div>
-            </div>
-          </button>
-
-          <div className="flex items-center gap-6 flex-wrap">
-            <div>
-              <div className="px-font text-[7px] text-mint tracking-widest mb-1">WORLDS FREED</div>
-              <div className="flex gap-1.5 mt-1">
-                {LEVELS.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-5 h-5 rounded-sm border-2 border-[#0b1f2c] flex items-center justify-center ${
-                      props.save.cleared[i] ? "bg-gold shadow-[0_0_8px_rgba(255,201,77,0.6)]" : "bg-[#1d4258]"
-                    }`}
-                  >
-                    {props.save.cleared[i] && <CheckIcon />}
-                  </div>
-                ))}
+              <div className="font-body text-[12px] text-gold/90 font-medium mt-0.5 flex items-center gap-1">
+                <span className="text-gold">★</span>
+                <span>{props.hero.passive.name}: {props.hero.passive.desc}</span>
               </div>
             </div>
+          </div>
 
-            <button className="btn8 !px-3.5 !py-2 !text-[9px] dark" onClick={props.onHeroes}>
+          <div className="flex items-center gap-5 flex-wrap">
+            <div>
+              <div className="px-font text-[7px] text-mint tracking-widest mb-1.5">
+                WORLDS FREED ({props.clearedCount}/5)
+              </div>
+              <div className="flex gap-1.5">
+                {LEVELS.map((lvl, i) => {
+                  const isCleared = props.save.cleared[i];
+                  return (
+                    <div
+                      key={i}
+                      className={`w-6 h-6 rounded border-2 border-[#0b1f2c] flex items-center justify-center transition-colors ${
+                        isCleared
+                          ? "bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] shadow-[0_0_8px_rgba(255,201,77,0.5)] text-[#241505]"
+                          : "bg-[#1d4258] text-cream/30"
+                      }`}
+                      title={`${lvl.name}: ${isCleared ? "Cleared!" : "Locked"}`}
+                    >
+                      {isCleared ? (
+                        <CheckIcon />
+                      ) : (
+                        <span className="px-font text-[8px]">{i + 1}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button
+              className="btn8 dark !px-3.5 !py-2 !text-[9px] focus-arcade active:translate-y-0.5"
+              onClick={props.onHeroes}
+            >
               Switch Hero
             </button>
           </div>
         </div>
       </div>
 
-      {/* Footer copyright / tip */}
-      <div className="relative z-10 pb-3 text-center font-body text-[12px] text-cream/40">
-        Pixel Pals: Adventure Run — Authentic pixel physics, original procedural chiptunes, and 5 hand-crafted worlds.
+      {/* Footer copyright, developer credit, & nostalgic disclaimer */}
+      <div className="relative z-10 w-full border-t border-[#123043]/90 bg-[#071620]/95 px-4 sm:px-8 py-2.5 flex items-center justify-between gap-3 flex-wrap text-center sm:text-left">
+        <div className="flex items-center gap-2 mx-auto sm:mx-0 flex-wrap justify-center">
+          <span className="inline-block w-1.5 h-1.5 rounded-[1px] bg-mint/80" />
+          <span className="px-font text-[8px] text-cream/70 tracking-wider">
+            BUILT BY ABHISHEK
+          </span>
+          <span className="text-cream/30 text-[10px]">{"//"}</span>
+          <span className="font-body text-[12px] text-gold/80 italic tracking-wide">
+            YOUR CHILDHOOD CALLED. IT WANTS ITS GAME BACK.
+          </span>
+        </div>
+        <div className="font-body text-[11px] text-cream/40 mx-auto sm:mx-0">
+          Pixel Pals: Adventure Run • 5 Hand-Crafted Worlds
+        </div>
       </div>
     </div>
   );

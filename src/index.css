@@ -141,6 +141,71 @@ canvas {
     0 14px 24px rgba(0, 0, 0, 0.5);
 }
 
+/* Authentic Retro Cartridge Title Shadows */
+.retro-title-shadow {
+  text-shadow:
+    -3px -3px 0 #071620,
+     3px -3px 0 #071620,
+    -3px  3px 0 #071620,
+     3px  3px 0 #071620,
+     0    5px 0 #8c3214,
+     0    9px 0 #521808,
+     0   13px 0 #071620,
+     3px 14px 0 #071620;
+}
+
+.retro-sub-shadow {
+  text-shadow:
+    -2px -2px 0 #071620,
+     2px -2px 0 #071620,
+    -2px  2px 0 #071620,
+     2px  2px 0 #071620,
+     0    3px 0 #8c6010,
+     0    6px 0 #071620;
+}
+
+/* Primary Arcade Button with Tactile Micro-Switch Feel */
+.btn8.primary-arcade {
+  background: linear-gradient(180deg, #f7bd4a 0%, #e8a92f 52%, #c68216 100%);
+  color: #1a0f03;
+  border: 3px solid #071620;
+  border-radius: 6px;
+  box-shadow:
+    0 6px 0 #071620,
+    0 11px 0 rgba(7, 22, 32, 0.45),
+    inset 0 2px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.06em;
+  position: relative;
+}
+.btn8.primary-arcade:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(180deg, #ffe07a 0%, #f7bd4a 52%, #d8911f 100%);
+  box-shadow:
+    0 8px 0 #071620,
+    0 14px 0 rgba(7, 22, 32, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.2);
+}
+.btn8.primary-arcade:active {
+  transform: translateY(4px);
+  box-shadow:
+    0 2px 0 #071620,
+    0 4px 0 rgba(7, 22, 32, 0.3),
+    inset 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+@keyframes gentleBreathe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-4px) scale(1.02, 0.98); }
+}
+@keyframes coinBlink {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.2); }
+}
+.anim-breathe { animation: gentleBreathe 3.2s ease-in-out infinite; }
+.anim-coin-spin { animation: coinBlink 2.4s ease-in-out infinite; }
+
 /* Touch controls deck */
 .touch-btn {
   font-family: "Press Start 2P", monospace;
