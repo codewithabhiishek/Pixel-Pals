@@ -134,14 +134,14 @@ const FoxMascot = () => (
 
 const FloatingIsland = () => (
   <div className="relative flex flex-col items-center select-none pointer-events-none">
-    {/* Floating Coin above platform */}
-    <div className="absolute -top-6 -right-2 flex flex-col items-center anim-float z-20">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] border-2 border-[#0b1f2c] shadow-[0_3px_0_#071620] flex items-center justify-center anim-coin-spin">
-        <div className="w-4 h-4 rounded-full border border-[#b8860b] flex items-center justify-center font-bold text-[8px] text-[#8a5a00]">
+    {/* Floating Coin near character's shoulder */}
+    <div className="absolute -top-3 right-3 flex flex-col items-center anim-float z-20">
+      <div className="w-7 h-7 rounded-full bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] border-2 border-[#0b1f2c] shadow-[0_2px_0_#071620] flex items-center justify-center anim-coin-spin">
+        <div className="w-3.5 h-3.5 rounded-full border border-[#b8860b] flex items-center justify-center font-bold text-[7px] text-[#8a5a00]">
           ◆
         </div>
       </div>
-      <span className="px-font text-[6px] text-gold mt-1 drop-shadow">100 PTS</span>
+      <span className="px-font text-[6.5px] text-gold mt-1 drop-shadow">100 PTS</span>
     </div>
 
     {/* Mascot with gentle breathing */}
@@ -406,16 +406,16 @@ function MenuScreen(props: {
         }} />
       ))}
 
-      {/* moon with pixel crater shading */}
+      {/* moon with pixel crater shading - positioned to frame the sky without crowding the mascot */}
       <div className="absolute rounded-full pointer-events-none transition-transform duration-500 ease-out" style={{
-        right: "12%", top: "7%", width: 96, height: 96, background: "#ffc94d",
-        boxShadow: "0 0 64px 20px rgba(255,201,77,0.28), inset -16px -10px 0 rgba(224,152,38,0.65)",
-        transform: `translate(${tilt.x * 10}px, ${tilt.y * 6}px)`,
+        right: "24%", top: "7%", width: 80, height: 80, background: "#ffc94d",
+        boxShadow: "0 0 40px 10px rgba(255,201,77,0.2), inset -14px -9px 0 rgba(224,152,38,0.6)",
+        transform: `translate(${tilt.x * 8}px, ${tilt.y * 5}px)`,
       }}>
         {/* subtle pixel craters */}
-        <div className="absolute top-4 left-5 w-3 h-3 rounded-full bg-[#e09826]/40" />
-        <div className="absolute top-9 left-11 w-4.5 h-4.5 rounded-full bg-[#e09826]/35" />
-        <div className="absolute bottom-6 left-6 w-2.5 h-2.5 rounded-full bg-[#e09826]/45" />
+        <div className="absolute top-3.5 left-4.5 w-2.5 h-2.5 rounded-full bg-[#e09826]/40" />
+        <div className="absolute top-8 left-9 w-3.5 h-3.5 rounded-full bg-[#e09826]/35" />
+        <div className="absolute bottom-5 left-5 w-2 h-2 rounded-full bg-[#e09826]/45" />
       </div>
 
       {/* drifting clouds */}
@@ -492,35 +492,35 @@ function MenuScreen(props: {
         <div className="flex items-center justify-between gap-8 lg:gap-14 flex-col lg:flex-row">
           {/* Left Column: Game Title & Cartridge Actions */}
           <div className="max-w-xl w-full flex flex-col items-center lg:items-start text-center lg:text-left">
-            {/* Retro Arcade Label Easter Egg */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-[#071620]/90 border-2 border-[#123043] shadow-[0_3px_0_#071620] mb-3 self-center lg:self-start">
-              <span className="w-2 h-2 rounded-[1px] bg-gold animate-pulse" />
-              <span className="px-font text-[8px] sm:text-[9px] text-mint tracking-[0.2em]">
+            {/* 1. Subtle Retro Arcade Easter Egg Label */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[#071620]/90 border-2 border-[#123043] shadow-[0_2px_0_#071620] mb-4 self-center lg:self-start select-none">
+              <span className="w-1.5 h-1.5 rounded-[1px] bg-gold animate-pulse" />
+              <span className="px-font text-[7.5px] sm:text-[8.5px] text-mint tracking-[0.24em]">
                 INSERT COIN // 0 COINS
               </span>
             </div>
 
-            {/* Retro 3D Pixel Art Title */}
+            {/* 2. Dominant Game Title with Crisp Stepped Pixel Shadow */}
             <h1
               className="px-font text-ember retro-title-shadow leading-none tracking-wider select-none"
-              style={{ fontSize: "clamp(2.5rem, 6.8vw, 4.4rem)", animation: "titlePulse 3.5s ease-in-out infinite" }}
+              style={{ fontSize: "clamp(2.6rem, 6.6vw, 4.4rem)" }}
             >
               PIXEL PALS
             </h1>
 
-            {/* Subtitle Banner with Diamond Studs */}
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1 bg-[#071620]/85 border-2 border-gold/40 rounded shadow-[0_3px_0_#071620] mt-3 mb-3 self-center lg:self-start">
-              <span className="text-gold text-[10px]">◆</span>
-              <span className="px-font text-gold text-[11px] sm:text-[14px] tracking-[0.22em] retro-sub-shadow font-bold">
+            {/* 3. Framed Subtitle Banner (Cartridge Plaque) */}
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-[#0b1f2c]/90 border-2 border-gold/50 rounded-sm shadow-[0_3px_0_#071620] mt-4 sm:mt-5 self-center lg:self-start select-none">
+              <span className="text-gold text-[9px]">◆</span>
+              <span className="px-font text-gold text-[10.5px] sm:text-[13px] tracking-[0.24em] retro-sub-shadow font-bold">
                 ADVENTURE RUN
               </span>
-              <span className="text-gold text-[10px]">◆</span>
+              <span className="text-gold text-[9px]">◆</span>
             </div>
 
-            {/* Indie Tagline */}
-            <p className="font-body text-cream/85 text-base sm:text-lg mt-1 max-w-md leading-relaxed">
-              Run, leap, and stomp your way through 5 perilously hand-crafted worlds — then topple{" "}
-              <span className="text-ember font-semibold underline decoration-ember/40 underline-offset-4">Magmor, the Ember King</span>, in his volcanic forge.
+            {/* 4. Short Nostalgic Description */}
+            <p className="font-body text-cream/80 text-sm sm:text-base mt-4 max-w-md leading-relaxed">
+              Run, leap, and stomp through 5 handcrafted retro worlds to defeat{" "}
+              <span className="text-gold font-semibold">Magmor, the Ember King</span>.
             </p>
 
             {/* Mobile Mascot Island (centered on tablet/mobile screens) */}
@@ -529,19 +529,20 @@ function MenuScreen(props: {
             </div>
 
             {/* Tactile Real-Game Action Buttons */}
-            <div className="flex gap-3 sm:gap-4 mt-5 sm:mt-7 flex-wrap justify-center lg:justify-start">
+            <div className="flex items-center gap-3 sm:gap-4 mt-6 sm:mt-8 flex-wrap justify-center lg:justify-start">
               <button
-                className="btn8 primary-arcade !text-[12px] sm:!text-[13px] !px-7 sm:!px-8 !py-4 group focus-arcade"
+                className="btn8 primary-arcade !text-[12px] sm:!text-[13px] !px-7 sm:!px-8 !py-4 group focus-arcade flex items-center gap-2.5"
                 onClick={props.onStart}
               >
-                <span className="transition-transform group-hover:translate-x-1 inline-block">▶</span>
+                <span className="transition-transform group-hover:translate-x-1 inline-block text-[10px]">▶</span>
                 <span>START ADVENTURE</span>
               </button>
               <button
-                className="btn8 dark !text-[10px] sm:!text-[11px] !px-5 !py-3.5 focus-arcade"
+                className="btn8 dark !text-[10px] sm:!text-[11px] !px-5 !py-3.5 focus-arcade flex items-center gap-1.5"
                 onClick={props.onHeroes}
               >
-                <span className="text-gold">★</span> Choose Hero
+                <span className="text-gold">★</span>
+                <span>Choose Hero</span>
               </button>
               <button
                 className="btn8 blue !text-[10px] sm:!text-[11px] !px-5 !py-3.5 focus-arcade"
@@ -562,10 +563,10 @@ function MenuScreen(props: {
         </div>
 
         {/* Selected Hero Showcase & Save Plate */}
-        <div className="panel8 mt-7 sm:mt-8 px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-6 flex-wrap w-full bg-[#123043]/95 border-2 border-[#0b1f2c]">
+        <div className="panel8 mt-7 sm:mt-8 px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between gap-5 flex-wrap w-full bg-[#0b1f2c]/95 border-2 border-[#123043] shadow-[0_4px_0_#071620]">
           <div className="flex items-center gap-3.5">
             <button
-              className="w-13 h-13 rounded-md border-[3px] border-[#0b1f2c] shadow-[0_3px_0_#071620] overflow-hidden bg-[#1d4258] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group"
+              className="w-12 h-12 rounded border-2 border-[#123043] shadow-[0_2px_0_#071620] overflow-hidden bg-[#183a4f] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group block"
               onClick={props.onHeroes}
               title="Change active hero"
             >
@@ -603,7 +604,7 @@ function MenuScreen(props: {
                       className={`w-6 h-6 rounded border-2 border-[#0b1f2c] flex items-center justify-center transition-colors ${
                         isCleared
                           ? "bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] shadow-[0_0_8px_rgba(255,201,77,0.5)] text-[#241505]"
-                          : "bg-[#1d4258] text-cream/30"
+                          : "bg-[#183a4f] text-cream/30"
                       }`}
                       title={`${lvl.name}: ${isCleared ? "Cleared!" : "Locked"}`}
                     >
@@ -629,18 +630,18 @@ function MenuScreen(props: {
       </div>
 
       {/* Footer copyright, developer credit, & nostalgic disclaimer */}
-      <div className="relative z-10 w-full border-t border-[#123043]/90 bg-[#071620]/95 px-4 sm:px-8 py-2.5 flex items-center justify-between gap-3 flex-wrap text-center sm:text-left">
+      <div className="relative z-10 w-full border-t border-[#123043]/80 bg-[#071620]/95 px-4 sm:px-8 py-2.5 flex items-center justify-between gap-3 flex-wrap text-center sm:text-left">
         <div className="flex items-center gap-2 mx-auto sm:mx-0 flex-wrap justify-center">
-          <span className="inline-block w-1.5 h-1.5 rounded-[1px] bg-mint/80" />
-          <span className="px-font text-[8px] text-cream/70 tracking-wider">
+          <span className="inline-block w-1.5 h-1.5 rounded-[1px] bg-mint/70" />
+          <span className="px-font text-[7.5px] sm:text-[8px] text-cream/65 tracking-wider">
             BUILT BY ABHISHEK
           </span>
-          <span className="text-cream/30 text-[10px]">{"//"}</span>
-          <span className="font-body text-[12px] text-gold/80 italic tracking-wide">
+          <span className="text-cream/25 text-[10px]">{"//"}</span>
+          <span className="font-body text-[11.5px] sm:text-[12px] text-gold/75 italic tracking-wide">
             YOUR CHILDHOOD CALLED. IT WANTS ITS GAME BACK.
           </span>
         </div>
-        <div className="font-body text-[11px] text-cream/40 mx-auto sm:mx-0">
+        <div className="font-body text-[11px] text-cream/35 mx-auto sm:mx-0">
           Pixel Pals: Adventure Run • 5 Hand-Crafted Worlds
         </div>
       </div>

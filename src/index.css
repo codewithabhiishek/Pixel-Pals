@@ -144,24 +144,23 @@ canvas {
 /* Authentic Retro Cartridge Title Shadows */
 .retro-title-shadow {
   text-shadow:
-    -3px -3px 0 #071620,
-     3px -3px 0 #071620,
-    -3px  3px 0 #071620,
-     3px  3px 0 #071620,
-     0    5px 0 #8c3214,
-     0    9px 0 #521808,
-     0   13px 0 #071620,
-     3px 14px 0 #071620;
-}
-
-.retro-sub-shadow {
-  text-shadow:
     -2px -2px 0 #071620,
      2px -2px 0 #071620,
     -2px  2px 0 #071620,
      2px  2px 0 #071620,
-     0    3px 0 #8c6010,
-     0    6px 0 #071620;
+     0    3px 0 #9e3615,
+     0    6px 0 #521808,
+     0    9px 0 #071620;
+}
+
+.retro-sub-shadow {
+  text-shadow:
+    -1px -1px 0 #071620,
+     1px -1px 0 #071620,
+    -1px  1px 0 #071620,
+     1px  1px 0 #071620,
+     0    2px 0 #8c6010,
+     0    4px 0 #071620;
 }
 
 /* Primary Arcade Button with Tactile Micro-Switch Feel */
