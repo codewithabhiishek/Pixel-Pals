@@ -531,11 +531,11 @@ function MenuScreen(props: {
 
   return (
     <div
-      className="relative w-full h-full overflow-hidden select-none touch-none flex flex-col justify-between"
+      className="relative w-full h-full overflow-y-auto overflow-x-hidden md:overflow-hidden select-none touch-pan-y md:touch-none flex flex-col justify-between no-scrollbar"
       style={{
         background: "linear-gradient(180deg,#071620 0%,#0b1f2c 30%,#123043 70%,#183a4f 100%)",
-        overscrollBehavior: "none",
-        touchAction: "none",
+        overscrollBehaviorX: "none",
+        WebkitOverflowScrolling: "touch",
       }}
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
@@ -591,18 +591,18 @@ function MenuScreen(props: {
       </div>
 
       {/* Quick Settings Bar at Top */}
-      <div className="relative z-20 w-full max-w-6xl mx-auto px-3 sm:px-6 pt-2.5 sm:pt-4 flex items-center justify-between gap-2 shrink-0">
-        <div className="flex items-center gap-2 sm:gap-2.5 bg-[#071620]/90 border-2 border-[#123043] rounded-md px-2.5 sm:px-3.5 py-1 sm:py-1.5 backdrop-blur-[2px] shadow-[0_3px_0_#071620] shrink-0">
-          <span className="w-2 h-2 rounded-[1px] bg-gold animate-pulse" />
-          <span className="px-font text-[7px] sm:text-[8px] text-mint tracking-wider">HI-SCORE</span>
-          <span className="px-font text-[10px] sm:text-[13px] text-gold tracking-widest">{String(props.save.high).padStart(6, "0")}</span>
+      <div className="relative z-20 w-full max-w-6xl mx-auto px-3 sm:px-6 pt-2 sm:pt-4 flex items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 bg-[#071620]/90 border-2 border-[#123043] rounded-md px-2 sm:px-3.5 py-1 sm:py-1.5 backdrop-blur-[2px] shadow-[0_3px_0_#071620] shrink-0">
+          <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-[1px] bg-gold animate-pulse" />
+          <span className="px-font text-[6.5px] sm:text-[8px] text-mint tracking-wider">HI-SCORE</span>
+          <span className="px-font text-[9.5px] sm:text-[13px] text-gold tracking-widest">{String(props.save.high).padStart(6, "0")}</span>
         </div>
 
-        {/* Toolbar Toggles */}
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+        {/* Toolbar Toggles - single sleek line on mobile, full labels on larger screens */}
+        <div className="flex items-center gap-1 sm:gap-2 flex-nowrap justify-end shrink-0">
           <button
             onClick={props.onToggleFullscreen}
-            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="hidden sm:flex panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Fullscreen Zoom (Press F)"
           >
             <FullscreenIcon isFull={props.isFullscreen} />
@@ -610,31 +610,31 @@ function MenuScreen(props: {
           </button>
           <button
             onClick={props.onToggleSfx}
-            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !p-1.5 sm:!px-2.5 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Sound Effects"
           >
             <SoundIcon on={props.save.sfx} />
-            <span className="px-font text-[6.5px] sm:text-[7px]">SFX {props.save.sfx ? "ON" : "OFF"}</span>
+            <span className="hidden sm:inline px-font text-[6.5px] sm:text-[7px]">SFX {props.save.sfx ? "ON" : "OFF"}</span>
           </button>
           <button
             onClick={props.onToggleMusic}
-            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !p-1.5 sm:!px-2.5 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle Chiptune Music"
           >
             <SoundIcon on={props.save.music} />
-            <span className="px-font text-[6.5px] sm:text-[7px]">BGM {props.save.music ? "ON" : "OFF"}</span>
+            <span className="hidden sm:inline px-font text-[6.5px] sm:text-[7px]">BGM {props.save.music ? "ON" : "OFF"}</span>
           </button>
           <button
             onClick={props.onToggleScanlines}
-            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !p-1.5 sm:!px-2.5 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Toggle CRT Scanline Effect"
           >
             <CrtIcon on={props.save.scanlines} />
-            <span className="px-font text-[6.5px] sm:text-[7px]">CRT {props.save.scanlines ? "ON" : "OFF"}</span>
+            <span className="hidden sm:inline px-font text-[6.5px] sm:text-[7px]">CRT {props.save.scanlines ? "ON" : "OFF"}</span>
           </button>
           <button
             onClick={props.onCycleTouchMode}
-            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="hidden md:flex panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Cycle Touch Controls: Auto / Force On / Force Off"
           >
             <GamepadIcon />
@@ -642,24 +642,24 @@ function MenuScreen(props: {
           </button>
           <button
             onClick={props.onOpenFeedback}
-            className="panel8 !px-2 sm:!px-2.5 !py-1 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            className="panel8 !p-1.5 sm:!px-2.5 sm:!py-1.5 flex items-center gap-1 sm:gap-1.5 text-xs text-cream/80 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
             title="Submit Ideas, Feedback, or Bug Reports"
           >
-            <span className="text-mint text-[9px]">💡</span>
-            <span className="px-font text-[6.5px] sm:text-[7px]">IDEAS</span>
+            <span className="text-mint text-[10px] sm:text-[9px]">💡</span>
+            <span className="hidden sm:inline px-font text-[6.5px] sm:text-[7px]">IDEAS</span>
           </button>
         </div>
       </div>
 
       {/* Main Title & Hero Composition */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 my-auto flex-1 flex flex-col justify-center">
-        <div className="flex items-center justify-between gap-6 md:gap-10 lg:gap-14 flex-col md:flex-row">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 my-auto flex-1 flex flex-col justify-center py-2 sm:py-0">
+        <div className="flex items-center justify-between gap-4 md:gap-10 lg:gap-14 flex-col md:flex-row">
           {/* Left Column: Game Title & Cartridge Actions */}
           <div className="max-w-xl w-full flex flex-col items-center md:items-start text-center md:text-left">
             {/* 1. Subtle Retro Arcade Easter Egg Label */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-[#071620]/90 border-2 border-[#123043] shadow-[0_2px_0_#071620] mb-2 sm:mb-3 self-center md:self-start select-none">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-sm bg-[#071620]/90 border-2 border-[#123043] shadow-[0_2px_0_#071620] mb-1 sm:mb-3 self-center md:self-start select-none">
               <span className="w-1.5 h-1.5 rounded-[1px] bg-gold animate-pulse" />
-              <span className="px-font text-[7px] sm:text-[8px] text-mint tracking-[0.24em]">
+              <span className="px-font text-[6.5px] sm:text-[8px] text-mint tracking-[0.2em] sm:tracking-[0.24em]">
                 INSERT COIN // 0 COINS
               </span>
             </div>
@@ -667,49 +667,49 @@ function MenuScreen(props: {
             {/* 2. Dominant Game Title with Crisp Stepped Pixel Shadow */}
             <h1
               className="px-font text-ember retro-title-shadow leading-none tracking-wider select-none"
-              style={{ fontSize: "clamp(2.2rem, 5.8vw, 4.2rem)", animation: "titlePulse 3.2s ease-in-out infinite" }}
+              style={{ fontSize: "clamp(1.9rem, 6.2vw, 4.2rem)", animation: "titlePulse 3.2s ease-in-out infinite" }}
             >
               PIXEL PALS
             </h1>
 
             {/* 3. Framed Subtitle Banner (Cartridge Plaque) */}
-            <div className="inline-flex items-center gap-2.5 px-3 py-1 bg-[#0b1f2c]/90 border-2 border-gold/50 rounded-sm shadow-[0_3px_0_#071620] mt-2.5 sm:mt-3.5 self-center md:self-start select-none">
-              <span className="text-gold text-[8.5px]">◆</span>
-              <span className="px-font text-gold text-[9.5px] sm:text-[12px] tracking-[0.24em] retro-sub-shadow font-bold">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 bg-[#0b1f2c]/90 border-2 border-gold/50 rounded-sm shadow-[0_3px_0_#071620] mt-1.5 sm:mt-3.5 self-center md:self-start select-none">
+              <span className="text-gold text-[7.5px] sm:text-[8.5px]">◆</span>
+              <span className="px-font text-gold text-[8.5px] sm:text-[12px] tracking-[0.2em] sm:tracking-[0.24em] retro-sub-shadow font-bold">
                 ADVENTURE RUN
               </span>
-              <span className="text-gold text-[8.5px]">◆</span>
+              <span className="text-gold text-[7.5px] sm:text-[8.5px]">◆</span>
             </div>
 
             {/* 4. Short Nostalgic Description */}
-            <p className="font-body text-cream/80 text-xs sm:text-sm mt-2.5 sm:mt-3 max-w-md leading-relaxed">
+            <p className="font-body text-cream/80 text-[11px] sm:text-sm mt-1.5 sm:mt-3 max-w-sm sm:max-w-md leading-relaxed">
               Run, leap, and stomp through 5 handcrafted retro worlds to defeat{" "}
               <span className="text-gold font-semibold">Magmor, the Ember King</span>.
             </p>
 
             {/* Mobile Mascot Island (centered on smaller phones only, md+ uses right column) */}
-            <div className="block md:hidden my-2 sm:my-3 scale-75 sm:scale-90">
+            <div className="block md:hidden my-0 sm:my-2 scale-[0.62] sm:scale-75 -my-4 sm:-my-1 origin-center">
               <FloatingIsland />
             </div>
 
             {/* Tactile Real-Game Action Buttons */}
-            <div className="flex items-center gap-2.5 sm:gap-3.5 mt-4 sm:mt-6 flex-wrap justify-center md:justify-start">
+            <div className="flex items-center gap-2 sm:gap-3.5 mt-2 sm:mt-6 flex-wrap justify-center md:justify-start">
               <button
-                className="btn8 primary-arcade !text-[11px] sm:!text-[12.5px] !px-6 sm:!px-7 !py-3 sm:!py-3.5 group focus-arcade flex items-center gap-2"
+                className="btn8 primary-arcade !text-[10px] sm:!text-[12.5px] !px-5 sm:!px-7 !py-2.5 sm:!py-3.5 group focus-arcade flex items-center gap-1.5 sm:gap-2"
                 onClick={props.onStart}
               >
-                <span className="transition-transform group-hover:translate-x-1 inline-block text-[9px]">▶</span>
+                <span className="transition-transform group-hover:translate-x-1 inline-block text-[8.5px]">▶</span>
                 <span>START ADVENTURE</span>
               </button>
               <button
-                className="btn8 dark !text-[9px] sm:!text-[10.5px] !px-4 sm:!px-5 !py-3 focus-arcade flex items-center gap-1.5"
+                className="btn8 dark !text-[8.5px] sm:!text-[10.5px] !px-3.5 sm:!px-5 !py-2 sm:!py-3 focus-arcade flex items-center gap-1"
                 onClick={props.onHeroes}
               >
                 <span className="text-gold">★</span>
                 <span>Choose Hero</span>
               </button>
               <button
-                className="btn8 blue !text-[9px] sm:!text-[10.5px] !px-4 sm:!px-5 !py-3 focus-arcade"
+                className="btn8 blue !text-[8.5px] sm:!text-[10.5px] !px-3.5 sm:!px-5 !py-2 sm:!py-3 focus-arcade"
                 onClick={props.onHelp}
               >
                 Field Guide
@@ -727,10 +727,10 @@ function MenuScreen(props: {
         </div>
 
         {/* Selected Hero Showcase & Save Plate */}
-        <div className="panel8 mt-4 sm:mt-6 px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 sm:gap-5 flex-wrap w-full bg-[#0b1f2c]/95 border-2 border-[#123043] shadow-[0_4px_0_#071620]">
-          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+        <div className="panel8 mt-2.5 sm:mt-6 px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-2.5 sm:gap-5 flex-wrap w-full bg-[#0b1f2c]/95 border-2 border-[#123043] shadow-[0_4px_0_#071620]">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
             <button
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded border-2 border-[#123043] shadow-[0_2px_0_#071620] overflow-hidden bg-[#183a4f] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group block shrink-0"
+              className="w-9 h-9 sm:w-11 sm:h-11 rounded border-2 border-[#123043] shadow-[0_2px_0_#071620] overflow-hidden bg-[#183a4f] transition-transform hover:scale-105 active:translate-y-0.5 cursor-pointer relative group block shrink-0"
               onClick={props.onHeroes}
               title="Change active hero"
             >
@@ -740,32 +740,32 @@ function MenuScreen(props: {
               </span>
             </button>
             <div className="text-left min-w-0">
-              <div className="px-font text-[6.5px] sm:text-[7px] text-mint tracking-widest flex items-center gap-1.5">
+              <div className="px-font text-[6px] sm:text-[7px] text-mint tracking-widest flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-[1px] bg-mint inline-block shrink-0" />
                 <span>ACTIVE HERO • {props.hero.species.toUpperCase()}</span>
               </div>
-              <div className="px-font text-[11px] sm:text-[12.5px] text-cream mt-0.5">
+              <div className="px-font text-[10px] sm:text-[12.5px] text-cream mt-0.5">
                 {props.hero.name.toUpperCase()}
               </div>
-              <div className="font-body text-[11px] sm:text-[12px] text-gold/90 font-medium mt-0.5 flex items-center gap-1">
+              <div className="font-body text-[10px] sm:text-[12px] text-gold/90 font-medium mt-0.5 flex items-center gap-1 line-clamp-1 sm:line-clamp-none">
                 <span className="text-gold shrink-0">★</span>
                 <span>{props.hero.passive.name}: {props.hero.passive.desc}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3.5 sm:gap-5 flex-wrap shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-5 flex-wrap shrink-0">
             <div>
-              <div className="px-font text-[6.5px] sm:text-[7px] text-mint tracking-widest mb-1">
+              <div className="px-font text-[6px] sm:text-[7px] text-mint tracking-widest mb-1">
                 WORLDS FREED ({props.clearedCount}/5)
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 sm:gap-1.5">
                 {LEVELS.map((lvl, i) => {
                   const isCleared = props.save.cleared[i];
                   return (
                     <div
                       key={i}
-                      className={`w-5.5 h-5.5 sm:w-6 sm:h-6 rounded border-2 border-[#0b1f2c] flex items-center justify-center transition-colors ${
+                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded border-2 border-[#0b1f2c] flex items-center justify-center transition-colors ${
                         isCleared
                           ? "bg-gradient-to-b from-[#ffd23f] to-[#e8a92f] shadow-[0_0_8px_rgba(255,201,77,0.5)] text-[#241505]"
                           : "bg-[#183a4f] text-cream/30"
@@ -775,7 +775,7 @@ function MenuScreen(props: {
                       {isCleared ? (
                         <CheckIcon />
                       ) : (
-                        <span className="px-font text-[7.5px] sm:text-[8px]">{i + 1}</span>
+                        <span className="px-font text-[7px] sm:text-[8px]">{i + 1}</span>
                       )}
                     </div>
                   );
@@ -784,7 +784,7 @@ function MenuScreen(props: {
             </div>
 
             <button
-              className="btn8 dark !border-2 !shadow-[0_3px_0_#0b1f2c] hover:!shadow-[0_4px_0_#0b1f2c] active:!shadow-[0_1px_0_#0b1f2c] !px-2.5 sm:!px-3 !py-1.5 !text-[7.5px] sm:!text-[8.5px] focus-arcade active:translate-y-0.5 whitespace-nowrap shrink-0"
+              className="btn8 dark !border-2 !shadow-[0_2px_0_#0b1f2c] !px-2 sm:!px-3 !py-1 sm:!py-1.5 !text-[7px] sm:!text-[8.5px] focus-arcade active:translate-y-0.5 whitespace-nowrap shrink-0"
               onClick={props.onHeroes}
               title="Switch active hero"
             >
@@ -795,20 +795,20 @@ function MenuScreen(props: {
       </div>
 
       {/* Footer copyright, developer credit, & nostalgic disclaimer */}
-      <div className="relative z-10 w-full shrink-0 border-t border-[#123043]/80 bg-[#071620]/95 px-3 sm:px-6 py-2 flex items-center justify-between gap-3 flex-wrap text-center sm:text-left">
-        <div className="flex items-center gap-2.5 mx-auto sm:mx-0 flex-wrap justify-center">
+      <div className="relative z-10 w-full shrink-0 border-t border-[#123043]/80 bg-[#071620]/95 px-3 sm:px-6 py-1.5 sm:py-2 flex items-center justify-between gap-2 sm:gap-3 flex-wrap text-center sm:text-left mt-2 md:mt-0">
+        <div className="flex items-center gap-2 mx-auto sm:mx-0 flex-wrap justify-center">
           <a
             href="https://abhiishek.is-a.dev/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0b1f2c] border border-[#1d4258] hover:border-gold/80 hover:bg-[#123043] transition-all duration-150 shadow-[0_2px_0_#071620] hover:shadow-[0_0_12px_rgba(255,201,77,0.35)] cursor-pointer group pointer-events-auto hover:-translate-y-0.5 active:translate-y-0 select-none"
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-[#0b1f2c] border border-[#1d4258] hover:border-gold/80 hover:bg-[#123043] transition-all duration-150 shadow-[0_2px_0_#071620] hover:shadow-[0_0_12px_rgba(255,201,77,0.35)] cursor-pointer group pointer-events-auto hover:-translate-y-0.5 active:translate-y-0 select-none"
             title="Visit Abhishek's Portfolio (abhiishek.is-a.dev) ↗"
           >
             <span className="w-1.5 h-1.5 rounded-[1px] bg-mint group-hover:bg-gold transition-colors animate-pulse shrink-0" />
-            <span className="px-font text-[7px] sm:text-[8px] text-cream/90 group-hover:text-gold tracking-wider transition-colors">
+            <span className="px-font text-[6.5px] sm:text-[8px] text-cream/90 group-hover:text-gold tracking-wider transition-colors">
               BUILT BY ABHISHEK
             </span>
-            <span className="px-font text-[6.5px] sm:text-[7.5px] text-gold/90 bg-[#1d4258] group-hover:bg-[#ffc94d] group-hover:text-[#0b1f2c] px-1.5 py-0.5 rounded transition-all flex items-center gap-0.5 font-bold">
+            <span className="px-font text-[6px] sm:text-[7.5px] text-gold/90 bg-[#1d4258] group-hover:bg-[#ffc94d] group-hover:text-[#0b1f2c] px-1.5 py-0.5 rounded transition-all flex items-center gap-0.5 font-bold">
               <span>PORTFOLIO</span>
               <span className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
             </span>
@@ -816,20 +816,20 @@ function MenuScreen(props: {
           <button
             type="button"
             onClick={props.onOpenFeedback}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0b1f2c] border border-[#1d4258] hover:border-mint/80 hover:bg-[#123043] transition-all duration-150 shadow-[0_2px_0_#071620] hover:shadow-[0_0_12px_rgba(123,224,195,0.35)] cursor-pointer group pointer-events-auto hover:-translate-y-0.5 active:translate-y-0 select-none"
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded bg-[#0b1f2c] border border-[#1d4258] hover:border-mint/80 hover:bg-[#123043] transition-all duration-150 shadow-[0_2px_0_#071620] hover:shadow-[0_0_12px_rgba(123,224,195,0.35)] cursor-pointer group pointer-events-auto hover:-translate-y-0.5 active:translate-y-0 select-none"
             title="Submit Feedback, Game Ideas, or Bug Reports"
           >
-            <span className="text-mint text-[9px] animate-pulse">💡</span>
-            <span className="px-font text-[7px] sm:text-[8px] text-cream/90 group-hover:text-mint tracking-wider transition-colors">
+            <span className="text-mint text-[8px] sm:text-[9px] animate-pulse">💡</span>
+            <span className="px-font text-[6.5px] sm:text-[8px] text-cream/90 group-hover:text-mint tracking-wider transition-colors">
               SUGGESTIONS
             </span>
           </button>
-          <span className="text-cream/25 text-[10px]">{"//"}</span>
-          <span className="font-body text-[11px] sm:text-[12px] text-gold/75 italic tracking-wide">
+          <span className="hidden sm:inline text-cream/25 text-[10px]">{"//"}</span>
+          <span className="hidden sm:inline font-body text-[11px] sm:text-[12px] text-gold/75 italic tracking-wide">
             YOUR CHILDHOOD CALLED. IT WANTS ITS GAME BACK.
           </span>
         </div>
-        <div className="font-body text-[10.5px] sm:text-[11px] text-cream/35 mx-auto sm:mx-0">
+        <div className="font-body text-[9.5px] sm:text-[11px] text-cream/35 mx-auto sm:mx-0">
           Pixel Pals: Adventure Run • 5 Hand-Crafted Worlds
         </div>
       </div>
