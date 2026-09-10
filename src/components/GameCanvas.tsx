@@ -104,19 +104,24 @@ export default function GameCanvas(props: Props) {
   // Track orientation, touch capability & fullscreen status
   useEffect(() => {
     const updateEnvironment = () => {
-      const coarse = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window || navigator.maxTouchPoints > 0;
-      setIsTouchCoarse(coarse);
-      setIsLandscape(window.innerWidth > window.innerHeight);
+      const coarse = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+      setIsTouchCoarse(!!coarse);
+      const vp = window.visualViewport;
+      const w = vp ? vp.width : window.innerWidth;
+      const h = vp ? vp.height : window.innerHeight;
+      setIsLandscape(w > h);
       setIsFullscreen(!!document.fullscreenElement);
     };
     updateEnvironment();
     window.addEventListener("resize", updateEnvironment);
     window.addEventListener("orientationchange", updateEnvironment);
     document.addEventListener("fullscreenchange", updateEnvironment);
+    window.visualViewport?.addEventListener("resize", updateEnvironment);
     return () => {
       window.removeEventListener("resize", updateEnvironment);
       window.removeEventListener("orientationchange", updateEnvironment);
       document.removeEventListener("fullscreenchange", updateEnvironment);
+      window.visualViewport?.removeEventListener("resize", updateEnvironment);
     };
   }, []);
 
@@ -142,9 +147,12 @@ export default function GameCanvas(props: Props) {
     const fit = () => {
       const r = el.getBoundingClientRect();
       const isFs = !!document.fullscreenElement;
-      // When zoomed in or in fullscreen, allow the canvas to expand to full bounds
-      const wMax = isFs ? Math.max(280, r.width - 8) : Math.max(280, Math.min(r.width - 12, 1600));
-      const hMax = isFs ? Math.max(158, r.height - 8) : Math.max(158, r.height - 12);
+      const isNarrow = r.width < 540;
+      // On narrow mobile portrait screens, use edge-to-edge canvas width
+      const padW = isFs ? 4 : (isNarrow ? 4 : 12);
+      const padH = isFs ? 4 : (isNarrow ? 6 : 12);
+      const wMax = Math.max(260, r.width - padW);
+      const hMax = Math.max(150, r.height - padH);
       const w = Math.min(wMax, (hMax * 16) / 9);
       setBox({ w: Math.floor(w), h: Math.floor((w * 9) / 16) });
     };
@@ -152,8 +160,15 @@ export default function GameCanvas(props: Props) {
     const ro = new ResizeObserver(fit);
     ro.observe(el);
     window.addEventListener("orientationchange", fit);
-    return () => { ro.disconnect(); window.removeEventListener("orientationchange", fit); };
-  }, [isFullscreen]);
+    window.addEventListener("resize", fit);
+    window.visualViewport?.addEventListener("resize", fit);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("orientationchange", fit);
+      window.removeEventListener("resize", fit);
+      window.visualViewport?.removeEventListener("resize", fit);
+    };
+  }, [isFullscreen, isLandscape]);
 
   useEffect(() => {
     const cv = canvasRef.current;
@@ -289,13 +304,21 @@ export default function GameCanvas(props: Props) {
       {/* ------------ stage zone ------------ */}
       <div
         ref={zoneRef}
-        className="relative z-10 flex-1 min-h-0 flex items-center justify-center p-1 sm:p-2"
+        className="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-center p-1 sm:p-2"
         style={{
           paddingTop: "max(0.25rem, env(safe-area-inset-top))",
           paddingLeft: "max(0.25rem, env(safe-area-inset-left))",
           paddingRight: "max(0.25rem, env(safe-area-inset-right))",
         }}
       >
+        {/* Mobile Portrait Rotation Helper */}
+        {showTouchControls && !isLandscape && (
+          <div className="mb-1 flex items-center gap-1.5 px-3 py-1 bg-[#123043]/90 border border-[#27556f] rounded-full text-cream/80 text-[10px] sm:text-[11px] font-body shadow-sm">
+            <span className="text-gold text-xs">🔄</span>
+            <span>Tip: Rotate phone sideways for widescreen arcade</span>
+          </div>
+        )}
+
         <div
           className={`relative overflow-hidden rounded-md sm:rounded-lg border-[3px] sm:border-4 border-[#071620] shadow-[0_10px_0_#071620,0_24px_60px_rgba(0,0,0,0.6)] ${scanlines ? "scanlines" : ""}`}
           style={{ width: box.w, height: box.h }}
@@ -416,131 +439,6 @@ export default function GameCanvas(props: Props) {
               </div>
             </div>
           )}
-
-          {/* ------------ Overlays ------------ */}
-          {overlay === "pause" && (
-            <div className="absolute inset-0 bg-[#071620]/82 flex items-center justify-center p-2 z-40">
-              <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-7 text-center w-[min(380px,94vw)] max-h-full overflow-y-auto no-scrollbar">
-                <div className="px-font text-[20px] text-cream mb-1 title-shadow">PAUSED</div>
-                <div className="font-body text-sm text-cream/60 mb-5">Take a breather, hero.</div>
-                <div className="flex flex-col gap-2.5">
-                  <button className="btn8 gold w-full" onClick={() => { engineRef.current!.paused = false; audio.select(); setOv("none"); }}>
-                    Resume
-                  </button>
-                  <button className="btn8" onClick={toggleFullscreen}>
-                    🖥️ {isFullscreen ? "Exit Fullscreen (F)" : "Zoom In / Fullscreen (F)"}
-                  </button>
-                  <button className="btn8 blue w-full" onClick={retryLevel}>
-                    Restart World
-                  </button>
-                  {props.onToggleScanlines && (
-                    <button className="btn8 dark w-full text-[10px]" onClick={props.onToggleScanlines}>
-                      📺 Scanlines: {scanlines ? "ON" : "OFF"}
-                    </button>
-                  )}
-                  {props.onCycleTouchMode && (
-                    <button className="btn8 dark w-full text-[10px]" onClick={props.onCycleTouchMode}>
-                      🎮 Touch Deck: {touchMode.toUpperCase()}
-                    </button>
-                  )}
-                  <button className="btn8 red w-full" onClick={props.onExit}>
-                    Quit to Map
-                  </button>
-                </div>
-                <div className="mt-5 text-left space-y-1 font-body text-[12px] text-cream/70 hidden sm:block border-t border-[#0b1f2c] pt-3">
-                  <div><span className="kbd">←→</span> move &nbsp;<span className="kbd">SPACE</span> jump</div>
-                  <div><span className="kbd">SHIFT</span> run &nbsp;<span className="kbd">F</span> zoom/fullscreen</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {overlay === "clear" && (
-            <div className="absolute inset-0 bg-[#071620]/75 flex items-center justify-center p-2 z-40">
-              <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-8 w-[min(420px,94vw)] max-h-full overflow-y-auto no-scrollbar text-center border-ember" style={{ borderWidth: 4 }}>
-                <div className="px-font text-[17px] sm:text-[22px] text-gold title-shadow">WORLD CLEAR!</div>
-                <div className="font-body text-sm text-cream/60 mt-1 mb-5">World {levelIdx + 1} — {level.name}</div>
-                <div className="space-y-2 font-body text-[15px] text-cream/90 mb-5">
-                  <div className="flex justify-between anim-slide-up" style={{ animationDelay: "0.15s" }}>
-                    <span>Time bonus</span><span className="px-font text-[11px] text-mint pt-0.5">+{stats.timeBonus}</span>
-                  </div>
-                  <div className="flex justify-between anim-slide-up" style={{ animationDelay: "0.35s" }}>
-                    <span>Clear bonus</span><span className="px-font text-[11px] text-mint pt-0.5">+{stats.clearBonus}</span>
-                  </div>
-                  <div className="flex justify-between anim-slide-up border-t-2 border-[#0b1f2c] pt-2" style={{ animationDelay: "0.55s" }}>
-                    <span className="font-semibold">Score</span><span className="px-font text-[13px] text-gold pt-0.5">{stats.score}</span>
-                  </div>
-                </div>
-                {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
-                <button className="btn8 gold w-full" onClick={() => props.onNext(stats.score, engineRef.current?.lives ?? 1, stats.coins)}>
-                  Next World →
-                </button>
-              </div>
-            </div>
-          )}
-
-          {overlay === "gameover" && (
-            <div className="absolute inset-0 bg-[#23080d]/88 flex items-center justify-center p-2 z-40">
-              <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-8 w-[min(400px,94vw)] max-h-full overflow-y-auto no-scrollbar text-center" style={{ borderColor: "#ff5a5f", borderWidth: 4 }}>
-                <div className="px-font text-[18px] sm:text-[24px] text-coral title-shadow mb-2">GAME OVER</div>
-                <div className="font-body text-sm text-cream/60 mb-5">Paws down, but heroes always rise again.</div>
-                <div className="flex justify-center gap-8 mb-6 font-body">
-                  <div>
-                    <div className="px-font text-[8px] text-mint mb-1">SCORE</div>
-                    <div className="px-font text-[14px] text-cream">{stats.score}</div>
-                  </div>
-                  <div>
-                    <div className="px-font text-[8px] text-mint mb-1">BEST</div>
-                    <div className="px-font text-[14px] text-gold">{Math.max(props.highScore, stats.score)}</div>
-                  </div>
-                </div>
-                {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
-                <div className="flex flex-col gap-3">
-                  <button className="btn8 gold" onClick={retryLevel}>Retry World {levelIdx + 1}</button>
-                  <button className="btn8 dark" onClick={props.onExit}>Back to Map</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {overlay === "victory" && (
-            <div className="absolute inset-0 bg-[#071620]/85 flex items-center justify-center overflow-hidden p-2 z-40">
-              {Array.from({ length: 30 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute w-2.5 h-2.5 rounded-sm"
-                  style={{
-                    left: `${(i * 41) % 100}%`,
-                    top: 0,
-                    background: ["#ff8c3b", "#ffc94d", "#7be0c3", "#ff5a5f"][i % 4],
-                    animation: `confall ${2.4 + (i % 5) * 0.5}s linear ${(i % 8) * 0.3}s infinite`,
-                  }}
-                />
-              ))}
-              <div className="panel8 anim-pop px-6 sm:px-10 py-6 sm:py-8 w-[min(460px,94vw)] max-h-full overflow-y-auto no-scrollbar text-center relative" style={{ borderColor: "#ffc94d", borderWidth: 4 }}>
-                <div className="px-font text-[9px] sm:text-[11px] text-mint mb-2 tracking-widest">THE FORGE FALLS SILENT</div>
-                <div className="px-font text-[20px] sm:text-[28px] text-gold title-shadow mb-2">VICTORY!</div>
-                <div className="font-body text-sm sm:text-[15px] text-cream/80 mb-6 leading-relaxed">
-                  Magmor crumbles to cold stone. The Pixel Pals' journey blazes into legend — all five worlds are freed!
-                </div>
-                <div className="flex justify-center gap-8 mb-6 font-body">
-                  <div>
-                    <div className="px-font text-[8px] text-mint mb-1">FINAL SCORE</div>
-                    <div className="px-font text-[16px] text-cream">{stats.score}</div>
-                  </div>
-                  <div>
-                    <div className="px-font text-[8px] text-mint mb-1">BEST</div>
-                    <div className="px-font text-[16px] text-gold">{Math.max(props.highScore, stats.score)}</div>
-                  </div>
-                </div>
-                {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
-                <div className="flex flex-col gap-3">
-                  <button className="btn8 gold" onClick={props.onRestartRun}>Play Adventure Again</button>
-                  <button className="btn8 dark" onClick={props.onExit}>Back to World Map</button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Floating Landscape Touch Wings (Left & Right) - Visible ONLY on phones/tablets */}
@@ -616,12 +514,137 @@ export default function GameCanvas(props: Props) {
         )}
       </div>
 
+      {/* ------------ Fullscreen In-Game Overlays (Never cropped by 16:9 canvas box) ------------ */}
+      {overlay === "pause" && (
+        <div className="fixed inset-0 bg-[#071620]/85 backdrop-blur-[3px] flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+          <div className="panel8 anim-pop px-5 sm:px-8 py-5 sm:py-6 text-center w-[min(380px,94vw)] max-h-[88vh] overflow-y-auto no-scrollbar my-auto shadow-2xl">
+            <div className="px-font text-[18px] sm:text-[20px] text-cream mb-1 title-shadow">PAUSED</div>
+            <div className="font-body text-xs sm:text-sm text-cream/60 mb-4">Take a breather, hero.</div>
+            <div className="flex flex-col gap-2">
+              <button className="btn8 gold w-full !py-2.5 text-xs sm:text-sm" onClick={() => { engineRef.current!.paused = false; audio.select(); setOv("none"); }}>
+                Resume
+              </button>
+              <button className="btn8 w-full !py-2 text-xs" onClick={toggleFullscreen}>
+                🖥️ {isFullscreen ? "Exit Fullscreen (F)" : "Zoom In / Fullscreen (F)"}
+              </button>
+              <button className="btn8 blue w-full !py-2 text-xs" onClick={retryLevel}>
+                Restart World
+              </button>
+              {props.onToggleScanlines && (
+                <button className="btn8 dark w-full text-[10px] !py-1.5" onClick={props.onToggleScanlines}>
+                  📺 Scanlines: {scanlines ? "ON" : "OFF"}
+                </button>
+              )}
+              {props.onCycleTouchMode && (
+                <button className="btn8 dark w-full text-[10px] !py-1.5" onClick={props.onCycleTouchMode}>
+                  🎮 Touch Deck: {touchMode.toUpperCase()}
+                </button>
+              )}
+              <button className="btn8 red w-full !py-2 text-xs" onClick={props.onExit}>
+                Quit to Map
+              </button>
+            </div>
+            <div className="mt-4 text-left space-y-1 font-body text-[11px] text-cream/70 hidden sm:block border-t border-[#0b1f2c] pt-2.5">
+              <div><span className="kbd">←→</span> move &nbsp;<span className="kbd">SPACE</span> jump</div>
+              <div><span className="kbd">SHIFT</span> run &nbsp;<span className="kbd">F</span> zoom/fullscreen</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {overlay === "clear" && (
+        <div className="fixed inset-0 bg-[#071620]/85 backdrop-blur-[3px] flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+          <div className="panel8 anim-pop px-5 sm:px-8 py-5 sm:py-7 w-[min(420px,94vw)] max-h-[88vh] overflow-y-auto no-scrollbar text-center border-ember my-auto shadow-2xl" style={{ borderWidth: 4 }}>
+            <div className="px-font text-[17px] sm:text-[22px] text-gold title-shadow">WORLD CLEAR!</div>
+            <div className="font-body text-xs sm:text-sm text-cream/60 mt-1 mb-4">World {levelIdx + 1} — {level.name}</div>
+            <div className="space-y-2 font-body text-[14px] sm:text-[15px] text-cream/90 mb-5">
+              <div className="flex justify-between anim-slide-up" style={{ animationDelay: "0.15s" }}>
+                <span>Time bonus</span><span className="px-font text-[11px] text-mint pt-0.5">+{stats.timeBonus}</span>
+              </div>
+              <div className="flex justify-between anim-slide-up" style={{ animationDelay: "0.35s" }}>
+                <span>Clear bonus</span><span className="px-font text-[11px] text-mint pt-0.5">+{stats.clearBonus}</span>
+              </div>
+              <div className="flex justify-between anim-slide-up border-t-2 border-[#0b1f2c] pt-2" style={{ animationDelay: "0.55s" }}>
+                <span className="font-semibold">Score</span><span className="px-font text-[13px] text-gold pt-0.5">{stats.score}</span>
+              </div>
+            </div>
+            {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
+            <button className="btn8 gold w-full !py-2.5 text-xs sm:text-sm" onClick={() => props.onNext(stats.score, engineRef.current?.lives ?? 1, stats.coins)}>
+              Next World →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {overlay === "gameover" && (
+        <div className="fixed inset-0 bg-[#23080d]/90 backdrop-blur-[3px] flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+          <div className="panel8 anim-pop px-5 sm:px-8 py-5 sm:py-7 w-[min(400px,94vw)] max-h-[88vh] overflow-y-auto no-scrollbar text-center my-auto shadow-2xl" style={{ borderColor: "#ff5a5f", borderWidth: 4 }}>
+            <div className="px-font text-[18px] sm:text-[24px] text-coral title-shadow mb-2">GAME OVER</div>
+            <div className="font-body text-xs sm:text-sm text-cream/60 mb-4">Paws down, but heroes always rise again.</div>
+            <div className="flex justify-center gap-8 mb-5 font-body">
+              <div>
+                <div className="px-font text-[8px] text-mint mb-1">SCORE</div>
+                <div className="px-font text-[14px] text-cream">{stats.score}</div>
+              </div>
+              <div>
+                <div className="px-font text-[8px] text-mint mb-1">BEST</div>
+                <div className="px-font text-[14px] text-gold">{Math.max(props.highScore, stats.score)}</div>
+              </div>
+            </div>
+            {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
+            <div className="flex flex-col gap-2.5">
+              <button className="btn8 gold !py-2.5 text-xs sm:text-sm" onClick={retryLevel}>Retry World {levelIdx + 1}</button>
+              <button className="btn8 dark !py-2 text-xs" onClick={props.onExit}>Back to Map</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {overlay === "victory" && (
+        <div className="fixed inset-0 bg-[#071620]/90 backdrop-blur-[3px] flex items-center justify-center overflow-hidden p-3 sm:p-4 z-50">
+          {Array.from({ length: 30 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2.5 h-2.5 rounded-sm"
+              style={{
+                left: `${(i * 41) % 100}%`,
+                top: 0,
+                background: ["#ff8c3b", "#ffc94d", "#7be0c3", "#ff5a5f"][i % 4],
+                animation: `confall ${2.4 + (i % 5) * 0.5}s linear ${(i % 8) * 0.3}s infinite`,
+              }}
+            />
+          ))}
+          <div className="panel8 anim-pop px-5 sm:px-8 py-5 sm:py-7 w-[min(460px,94vw)] max-h-[88vh] overflow-y-auto no-scrollbar text-center relative my-auto shadow-2xl" style={{ borderColor: "#ffc94d", borderWidth: 4 }}>
+            <div className="px-font text-[9px] sm:text-[11px] text-mint mb-2 tracking-widest">THE FORGE FALLS SILENT</div>
+            <div className="px-font text-[18px] sm:text-[26px] text-gold title-shadow mb-2">VICTORY!</div>
+            <div className="font-body text-xs sm:text-sm text-cream/80 mb-5 leading-relaxed">
+              Magmor crumbles to cold stone. The Pixel Pals' journey blazes into legend — all five worlds are freed!
+            </div>
+            <div className="flex justify-center gap-8 mb-5 font-body">
+              <div>
+                <div className="px-font text-[8px] text-mint mb-1">FINAL SCORE</div>
+                <div className="px-font text-[15px] text-cream">{stats.score}</div>
+              </div>
+              <div>
+                <div className="px-font text-[8px] text-mint mb-1">BEST</div>
+                <div className="px-font text-[15px] text-gold">{Math.max(props.highScore, stats.score)}</div>
+              </div>
+            </div>
+            {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
+            <div className="flex flex-col gap-2.5">
+              <button className="btn8 gold !py-2.5 text-xs sm:text-sm" onClick={props.onRestartRun}>Play Adventure Again</button>
+              <button className="btn8 dark !py-2 text-xs" onClick={props.onExit}>Back to World Map</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ------------ Portrait Touch Deck - Visible ONLY on phones/tablets ------------ */}
       {showTouchControls && !isLandscape && (
         <div
-          className="relative z-30 shrink-0 flex items-center justify-between gap-2 px-4 py-3 border-t-4 border-[#071620]"
+          className="relative z-30 shrink-0 flex items-center justify-between gap-2 px-3 sm:px-4 py-2 sm:py-3 border-t-4 border-[#071620]"
           style={{
-            paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+            paddingBottom: "max(1.1rem, calc(env(safe-area-inset-bottom) + 0.6rem))",
             background: "linear-gradient(180deg,#123043 0%,#071620 100%)",
           }}
           onContextMenu={(e) => e.preventDefault()}
