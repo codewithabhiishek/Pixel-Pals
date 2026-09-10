@@ -539,35 +539,30 @@ export default function FeedbackModal({ open, onClose, context }: FeedbackModalP
             )}
 
             {/* Action Buttons */}
-            <div className="pt-1 flex items-center justify-between gap-3 flex-wrap">
-              <div className="font-body text-[10.5px] text-cream/45">
-                Protected by Strix anti-spam & Web3Forms
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="btn8 dark !px-3 !py-2 !text-[8.5px] focus-arcade"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={status === "submitting" || cooldownRemaining > 0}
-                  className="btn8 primary-arcade !px-5 !py-2 !text-[9px] focus-arcade flex items-center gap-1.5"
-                >
-                  {status === "submitting" ? (
-                    <span>DISPATCHING…</span>
-                  ) : cooldownRemaining > 0 ? (
-                    <span>COOLDOWN ({cooldownRemaining}s)</span>
-                  ) : (
-                    <>
-                      <span>SEND SUGGESTION</span>
-                      <span>➤</span>
-                    </>
-                  )}
-                </button>
-              </div>
+            <div className="pt-2 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn8 dark !px-3.5 !py-2 !text-[8.5px] focus-arcade"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={status === "submitting" || cooldownRemaining > 0}
+                className="btn8 primary-arcade !px-5 !py-2 !text-[9px] focus-arcade flex items-center gap-1.5"
+              >
+                {status === "submitting" ? (
+                  <span>DISPATCHING…</span>
+                ) : cooldownRemaining > 0 ? (
+                  <span>COOLDOWN ({cooldownRemaining}s)</span>
+                ) : (
+                  <>
+                    <span>SEND SUGGESTION</span>
+                    <span>➤</span>
+                  </>
+                )}
+              </button>
             </div>
           </form>
         )}
