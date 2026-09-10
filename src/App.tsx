@@ -736,9 +736,15 @@ function MenuScreen(props: {
       <div className="relative z-10 w-full border-t border-[#123043]/80 bg-[#071620]/95 px-4 sm:px-8 py-2.5 flex items-center justify-between gap-3 flex-wrap text-center sm:text-left">
         <div className="flex items-center gap-2 mx-auto sm:mx-0 flex-wrap justify-center">
           <span className="inline-block w-1.5 h-1.5 rounded-[1px] bg-mint/70" />
-          <span className="px-font text-[7.5px] sm:text-[8px] text-cream/65 tracking-wider">
+          <a
+            href="https://abhiishek.is-a.dev/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-font text-[7.5px] sm:text-[8px] text-cream/75 hover:text-gold tracking-wider transition-colors cursor-pointer hover:underline underline-offset-4"
+            title="Visit Abhishek's Portfolio (abhiishek.is-a.dev)"
+          >
             BUILT BY ABHISHEK
-          </span>
+          </a>
           <span className="text-cream/25 text-[10px]">{"//"}</span>
           <span className="font-body text-[11.5px] sm:text-[12px] text-gold/75 italic tracking-wide">
             YOUR CHILDHOOD CALLED. IT WANTS ITS GAME BACK.
