@@ -49,7 +49,7 @@ interface Enemy {
   dir: number; t: number; alive: boolean; squish: number;
   ax: number; ay: number; speed: number;
   hp: number; mode: string; timer: number; invuln: number; pipeTop: number;
-  nextAction: "spit" | "leap" | "charge";
+  nextAction: "spit" | "leap" | "charge" | "eruption";
   isMinion?: boolean;
   diveState?: number;
   diveTimer?: number;
@@ -859,10 +859,10 @@ export class Engine {
     const T = TILE;
     if (b.mode === "sleep") return;
     const phase = 1 + Math.floor((b.hp <= 0 ? 6 : 6 - b.hp) / 2);
-    const speed = [0, 45, 64, 86][phase];
+    const speed = [0, 125, 175, 235][phase];
     b.timer -= dt;
 
-    if (b.mode !== "leap") {
+    if (b.mode !== "leap" && b.mode !== "hurt") {
       b.vy = Math.min(b.vy + 1650 * dt, 1000);
       b.y += b.vy * dt;
       const fr = Math.floor((b.y + b.h + 2) / T);
@@ -877,84 +877,131 @@ export class Engine {
     if (b.mode === "walk") {
       b.dir = p.x + p.w / 2 > b.x + b.w / 2 ? 1 : -1;
       b.x += b.dir * speed * dt;
+
+      // Anti-Air check: if player is camping on high platforms (row <= 7)
+      const playerOnHighPlatform = p.y < 8 * T && Math.abs(p.x - b.x) < 280;
+
       if (b.timer <= 0) {
-        const dx = Math.abs(p.x - b.x);
+        const dx = Math.abs(p.x + p.w / 2 - (b.x + b.w / 2));
         b.mode = "tele";
-        if (phase === 1) {
-          b.nextAction = dx > 220 || Math.random() < 0.5 ? "spit" : "leap";
+
+        if (playerOnHighPlatform) {
+          b.nextAction = Math.random() < 0.6 ? "eruption" : "leap";
+        } else if (phase === 1) {
+          b.nextAction = dx > 260 ? (Math.random() < 0.6 ? "charge" : "leap") : (Math.random() < 0.5 ? "spit" : "leap");
         } else if (phase === 2) {
           const roll = Math.random();
-          b.nextAction = roll < 0.45 ? "charge" : roll < 0.75 ? "leap" : "spit";
+          b.nextAction = roll < 0.4 ? "charge" : roll < 0.75 ? "leap" : "spit";
         } else {
           const roll = Math.random();
           b.nextAction = roll < 0.45 ? "charge" : roll < 0.8 ? "leap" : "spit";
         }
-        b.timer = b.nextAction === "charge" ? 0.7 : 0.5;
+
+        b.timer = b.nextAction === "charge" ? (phase === 3 ? 0.38 : 0.55) : (phase === 3 ? 0.28 : 0.45);
         this.audio.bump();
       }
     } else if (b.mode === "tele") {
-      if (b.nextAction === "charge") {
-        this.dust(b.x + 16, b.y + 12, 1, "#ffffff");
-        this.dust(b.x + b.w - 16, b.y + 12, 1, "#ffffff");
-        this.shake = Math.max(this.shake, 2.5);
-      }
+      this.dust(b.x + 16, b.y + 12, 1, "#ffffff");
+      this.dust(b.x + b.w - 16, b.y + 12, 1, "#ffffff");
+      this.shake = Math.max(this.shake, phase === 3 ? 3.5 : 2.0);
+
       if (b.timer <= 0) {
         if (b.nextAction === "charge") {
           b.mode = "charge";
           b.dir = p.x + p.w / 2 > b.x + b.w / 2 ? 1 : -1;
-          b.vx = b.dir * (phase === 3 ? 340 : 280);
-          b.timer = 2.2;
+          b.vx = b.dir * (phase === 3 ? 480 : phase === 2 ? 400 : 340);
+          b.timer = 1.4;
           this.audio.roar();
         } else if (b.nextAction === "leap") {
           b.mode = "leap";
-          b.vy = phase === 3 ? -750 : -640;
+          b.vy = phase === 3 ? -840 : phase === 2 ? -780 : -720;
           const dx = p.x + p.w / 2 - (b.x + b.w / 2);
-          b.vx = clamp(dx / 0.92, -320, 320);
+          b.vx = clamp(dx / 0.76, -420, 420);
           this.audio.jump();
+        } else if (b.nextAction === "eruption") {
+          b.mode = "walk";
+          this.shake = 16;
+          this.audio.stomp();
+          this.audio.fire();
+          this.dust(b.x + b.w / 2, b.y + b.h, 24, "#ff3b30");
+          const count = phase === 3 ? 5 : 3;
+          for (let i = 0; i < count; i++) {
+            const spread = (i - (count - 1) / 2) * 80;
+            this.shots.push({
+              x: clamp(p.x + spread, 153 * T, 186 * T),
+              y: 2 * T,
+              vx: (Math.random() - 0.5) * 40,
+              vy: 240 + Math.random() * 80,
+              kind: "arc",
+              life: 3.5,
+            });
+          }
+          b.timer = [0, 1.2, 0.8, 0.5][phase];
         } else {
           b.mode = "walk";
-          const count = phase === 1 ? 3 : phase === 2 ? 4 : 5;
+          const count = phase === 1 ? 3 : phase === 2 ? 5 : 7;
           const bx = b.x + b.w / 2, by = b.y + 26;
           for (let i = 0; i < count; i++) {
             const dx = p.x + p.w / 2 - bx;
+            const spread = (i - (count - 1) / 2) * 55;
             this.shots.push({
               x: bx, y: by,
-              vx: clamp(dx / 0.85 + (i - (count - 1) / 2) * 65, -360, 360),
-              vy: -310 + (i - (count - 1) / 2) * 35,
+              vx: clamp(dx / 0.78 + spread, -380, 380),
+              vy: -320 + Math.abs(spread) * 0.4,
               kind: "arc", life: 4,
             });
           }
           this.audio.fire();
-          b.timer = [0, 2.5, 2.0, 1.6][phase];
+          b.timer = [0, 1.3, 0.9, 0.55][phase];
         }
       }
     } else if (b.mode === "charge") {
       b.x += b.vx * dt;
       this.dust(b.x + b.w / 2, b.y + b.h - 4, 3, "#ff8c3b");
+
       const hitLeft = b.x <= 151 * T;
       const hitRight = b.x >= 187 * T - b.w;
-      if (hitLeft || hitRight || b.timer <= 0) {
+      const passedPlayer = (b.vx > 0 && b.x > p.x + p.w + 90) || (b.vx < 0 && b.x + b.w < p.x - 90);
+
+      if (hitLeft || hitRight || passedPlayer || b.timer <= 0) {
         b.vx = 0;
+        const wallSlam = hitLeft || hitRight;
         b.mode = "stunned";
-        b.timer = 1.3;
-        this.shake = 14;
+        b.timer = wallSlam ? (phase === 3 ? 0.35 : 0.55) : (phase === 3 ? 0.25 : 0.4);
+        this.shake = wallSlam ? 16 : 10;
         this.audio.stomp();
-        this.dust(b.x + b.w / 2, b.y + b.h / 2, 18, "#ff8c3b");
-        for (let i = 0; i < 3; i++) {
-          this.shots.push({
-            x: clamp(b.x + (i - 1) * 70, 153 * T, 186 * T),
-            y: 2 * T,
-            vx: (Math.random() - 0.5) * 40,
-            vy: 200 + Math.random() * 80,
-            kind: "arc",
-            life: 3.5,
-          });
+        this.dust(b.x + b.w / 2, b.y + b.h / 2, wallSlam ? 20 : 12, "#ff8c3b");
+
+        // Release shockwave in direction of player!
+        const toPlayer = p.x + p.w / 2 > b.x + b.w / 2 ? 1 : -1;
+        this.shots.push({
+          x: b.x + (toPlayer > 0 ? b.w : 0),
+          y: b.y + b.h - 14,
+          vx: toPlayer * (phase === 3 ? 320 : 250),
+          vy: 0,
+          kind: "slide",
+          life: 2.5,
+        });
+
+        // If he slammed the wall, drop debris on the PLAYER's location (NOT on the boss himself!)
+        if (wallSlam) {
+          const debrisCount = phase === 3 ? 4 : 3;
+          for (let i = 0; i < debrisCount; i++) {
+            this.shots.push({
+              x: clamp(p.x + (i - (debrisCount - 1) / 2) * 70, 153 * T, 186 * T),
+              y: 2 * T,
+              vx: (Math.random() - 0.5) * 40,
+              vy: 220 + Math.random() * 80,
+              kind: "arc",
+              life: 3.5,
+            });
+          }
         }
       }
     } else if (b.mode === "stunned") {
       if (b.timer <= 0) {
         b.mode = "walk";
-        b.timer = [0, 2.4, 2.0, 1.5][phase];
+        b.timer = [0, 1.0, 0.7, 0.4][phase];
       }
     } else if (b.mode === "leap") {
       b.vy = Math.min(b.vy + 1650 * dt, 1000);
@@ -966,24 +1013,45 @@ export class Engine {
         b.y = footR * T - b.h - 0.01;
         b.vy = 0; b.vx = 0;
         b.mode = "walk";
-        b.timer = [0, 2.5, 2.0, 1.5][phase];
-        this.shake = 12;
+        b.timer = [0, 1.1, 0.8, 0.45][phase];
+        this.shake = 16;
         this.audio.stomp();
-        this.dust(b.x + b.w / 2, b.y + b.h, 16, "#ff8c3b");
-        this.shots.push({ x: b.x + 8, y: b.y + b.h - 14, vx: -190, vy: 0, kind: "slide", life: 2.8 });
-        this.shots.push({ x: b.x + b.w - 8, y: b.y + b.h - 14, vx: 190, vy: 0, kind: "slide", life: 2.8 });
+        this.dust(b.x + b.w / 2, b.y + b.h, 20, "#ff8c3b");
+
+        // Dual ground shockwaves rushing outward!
+        const waveSpeed = phase === 3 ? 310 : 250;
+        this.shots.push({ x: b.x + 8, y: b.y + b.h - 14, vx: -waveSpeed, vy: 0, kind: "slide", life: 3.0 });
+        this.shots.push({ x: b.x + b.w - 8, y: b.y + b.h - 14, vx: waveSpeed, vy: 0, kind: "slide", life: 3.0 });
         this.audio.fire();
-        if (phase === 3) {
-          for (let i = 0; i < 3; i++) {
-            this.shots.push({
-              x: b.x + b.w / 2, y: b.y + 20,
-              vx: (i - 1) * 140, vy: -280, kind: "arc", life: 3,
-            });
-          }
+
+        // Upward flame sparks
+        const sparkCount = phase === 3 ? 4 : 2;
+        for (let i = 0; i < sparkCount; i++) {
+          this.shots.push({
+            x: b.x + b.w / 2, y: b.y + 20,
+            vx: (i - (sparkCount - 1) / 2) * 160,
+            vy: -320,
+            kind: "arc",
+            life: 3,
+          });
         }
       }
     } else if (b.mode === "hurt") {
-      if (b.timer <= 0) { b.mode = "walk"; b.timer = 1.0; }
+      b.vy = Math.min(b.vy + 1650 * dt, 1000);
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
+      const fr = Math.floor((b.y + b.h + 2) / T);
+      const cc = Math.floor((b.x + b.w / 2) / T);
+      const floorCell = this.cell(cc, fr);
+      if (b.vy >= 0 && floorCell && (this.solid(cc, fr) || floorCell.t === 7)) {
+        b.y = fr * T - b.h - 0.01;
+        b.vy = 0;
+        b.vx = 0;
+      }
+      if (b.timer <= 0) {
+        b.mode = "walk";
+        b.timer = [0, 0.8, 0.5, 0.3][phase];
+      }
     }
 
     b.x = clamp(b.x, 151 * T, 187 * T - b.w);
@@ -1003,17 +1071,38 @@ export class Engine {
     if (stompable && falling && fromAbove) {
       if (e.kind === "boss") {
         if (e.invuln > 0 || e.mode === "sleep") { p.vy = -380; return; }
+        // If boss is charging head-on with blazing horns, stomping him deflects/damages player!
+        if (e.mode === "charge") {
+          this.audio.bump();
+          p.vy = -400;
+          this.damagePlayer();
+          return;
+        }
         e.hp--;
-        e.invuln = 1.2;
+        e.invuln = 1.0;
         e.mode = "hurt";
-        e.timer = 0.65;
-        p.vy = -500;
+        e.timer = 0.45;
+        // Evasive counter-leap
+        e.vy = -560;
+        e.vx = -e.dir * 280;
+        p.vy = this.jumpHeld ? -520 : -420;
         this.audio.bossHit();
-        this.shake = 12;
+        this.shake = 16;
         this.hitstop = Math.max(this.hitstop, 0.12);
         this.score += 500;
         this.popups.push({ x: e.x + e.w / 2, y: e.y - 10, text: "+500", life: 0.9, color: "#ffc94d" });
-        this.dust(e.x + e.w / 2, e.y + 10, 14, "#ff8c3b");
+        this.dust(e.x + e.w / 2, e.y + 10, 18, "#ff8c3b");
+        // Drop retaliatory fire drops from ceiling over arena
+        for (let i = 0; i < 2; i++) {
+          this.shots.push({
+            x: clamp(p.x + (i === 0 ? -90 : 90), 153 * TILE, 186 * TILE),
+            y: 2 * TILE,
+            vx: (Math.random() - 0.5) * 50,
+            vy: 240 + Math.random() * 80,
+            kind: "arc",
+            life: 3.5,
+          });
+        }
         if (e.hp === 2) {
           this.audio.roar();
           this.popups.push({ x: e.x + e.w / 2, y: e.y - 36, text: "BERSERK!", life: 1.4, color: "#ff3b30" });
