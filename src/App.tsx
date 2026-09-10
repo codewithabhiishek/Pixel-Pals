@@ -740,17 +740,23 @@ function MenuScreen(props: {
       </div>
 
       {/* Footer copyright, developer credit, & nostalgic disclaimer */}
-      <div className="relative z-10 w-full shrink-0 border-t border-[#123043]/80 bg-[#071620]/95 px-3 sm:px-6 py-2 flex items-center justify-between gap-2 flex-wrap text-center sm:text-left">
-        <div className="flex items-center gap-2 mx-auto sm:mx-0 flex-wrap justify-center">
-          <span className="inline-block w-1.5 h-1.5 rounded-[1px] bg-mint/70" />
+      <div className="relative z-10 w-full shrink-0 border-t border-[#123043]/80 bg-[#071620]/95 px-3 sm:px-6 py-2 flex items-center justify-between gap-3 flex-wrap text-center sm:text-left">
+        <div className="flex items-center gap-2.5 mx-auto sm:mx-0 flex-wrap justify-center">
           <a
             href="https://abhiishek.is-a.dev/"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-font text-[7.5px] sm:text-[8px] text-cream/75 hover:text-gold tracking-wider transition-colors cursor-pointer hover:underline underline-offset-4"
-            title="Visit Abhishek's Portfolio (abhiishek.is-a.dev)"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0b1f2c] border border-[#1d4258] hover:border-gold/80 hover:bg-[#123043] transition-all duration-150 shadow-[0_2px_0_#071620] hover:shadow-[0_0_12px_rgba(255,201,77,0.35)] cursor-pointer group pointer-events-auto hover:-translate-y-0.5 active:translate-y-0 select-none"
+            title="Visit Abhishek's Portfolio (abhiishek.is-a.dev) ↗"
           >
-            BUILT BY ABHISHEK
+            <span className="w-1.5 h-1.5 rounded-[1px] bg-mint group-hover:bg-gold transition-colors animate-pulse shrink-0" />
+            <span className="px-font text-[7px] sm:text-[8px] text-cream/90 group-hover:text-gold tracking-wider transition-colors">
+              BUILT BY ABHISHEK
+            </span>
+            <span className="px-font text-[6.5px] sm:text-[7.5px] text-gold/90 bg-[#1d4258] group-hover:bg-[#ffc94d] group-hover:text-[#0b1f2c] px-1.5 py-0.5 rounded transition-all flex items-center gap-0.5 font-bold">
+              <span>PORTFOLIO</span>
+              <span className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
+            </span>
           </a>
           <span className="text-cream/25 text-[10px]">{"//"}</span>
           <span className="font-body text-[11px] sm:text-[12px] text-gold/75 italic tracking-wide">
