@@ -21,6 +21,26 @@ import App from "./App";
   }
 })();
 
+/* Prevent iOS Safari double-tap-to-zoom and gesture zooming on fast tapping */
+if (typeof window !== "undefined") {
+  let lastTouchEnd = 0;
+  document.addEventListener(
+    "touchend",
+    (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 320) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    },
+    { passive: false }
+  );
+
+  document.addEventListener("gesturestart", (e) => e.preventDefault());
+  document.addEventListener("gesturechange", (e) => e.preventDefault());
+  document.addEventListener("gestureend", (e) => e.preventDefault());
+}
+
 class BootBoundary extends React.Component<{ children: React.ReactNode }, { err: string | null }> {
   state = { err: null as string | null };
   static getDerivedStateFromError(e: unknown) {

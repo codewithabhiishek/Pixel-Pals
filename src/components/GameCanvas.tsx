@@ -323,7 +323,7 @@ export default function GameCanvas(props: Props) {
           className={`relative overflow-hidden rounded-md sm:rounded-lg border-[3px] sm:border-4 border-[#071620] shadow-[0_10px_0_#071620,0_24px_60px_rgba(0,0,0,0.6)] ${scanlines ? "scanlines" : ""}`}
           style={{ width: box.w, height: box.h }}
         >
-          <canvas ref={canvasRef} className="w-full h-full block" />
+          <canvas ref={canvasRef} className="w-full h-full block touch-none select-none" />
 
           {/* ------------ HUD ------------ */}
           <div className="absolute top-0 left-0 right-0 pointer-events-none z-30">
@@ -446,27 +446,29 @@ export default function GameCanvas(props: Props) {
           <>
             {/* Left wing: D-Pad */}
             <div
-              className="fixed left-3 bottom-5 z-40 flex gap-2.5 pointer-events-auto"
-              style={{ paddingLeft: "env(safe-area-inset-left)" }}
+              className="fixed left-3 bottom-5 z-40 flex gap-2.5 pointer-events-auto select-none touch-none"
+              style={{ paddingLeft: "env(safe-area-inset-left)", touchAction: "none" }}
               onContextMenu={(e) => e.preventDefault()}
             >
               <button
-                className={`touch-btn bg-[#1d4258]/85 text-cream text-[22px] w-15 h-15 ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
+                className={`touch-btn bg-[#1d4258]/85 text-cream text-[22px] w-15 h-15 select-none touch-none ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
                 aria-label="Move left"
                 onPointerDown={(e) => { e.preventDefault(); key("left", true); }}
-                onPointerUp={() => key("left", false)}
+                onPointerUp={(e) => { e.preventDefault(); key("left", false); }}
                 onPointerLeave={() => key("left", false)}
                 onPointerCancel={() => key("left", false)}
+                onContextMenu={(e) => e.preventDefault()}
               >
                 &larr;
               </button>
               <button
-                className={`touch-btn bg-[#1d4258]/85 text-cream text-[22px] w-15 h-15 ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
+                className={`touch-btn bg-[#1d4258]/85 text-cream text-[22px] w-15 h-15 select-none touch-none ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
                 aria-label="Move right"
                 onPointerDown={(e) => { e.preventDefault(); key("right", true); }}
-                onPointerUp={() => key("right", false)}
+                onPointerUp={(e) => { e.preventDefault(); key("right", false); }}
                 onPointerLeave={() => key("right", false)}
                 onPointerCancel={() => key("right", false)}
+                onContextMenu={(e) => e.preventDefault()}
               >
                 &rarr;
               </button>
@@ -474,27 +476,29 @@ export default function GameCanvas(props: Props) {
 
             {/* Right wing: Action Buttons */}
             <div
-              className="fixed right-3 bottom-5 z-40 flex gap-3 pointer-events-auto"
-              style={{ paddingRight: "env(safe-area-inset-right)" }}
+              className="fixed right-3 bottom-5 z-40 flex gap-3 pointer-events-auto select-none touch-none"
+              style={{ paddingRight: "env(safe-area-inset-right)", touchAction: "none" }}
               onContextMenu={(e) => e.preventDefault()}
             >
               <button
-                className={`touch-btn bg-[#e04f4f]/85 text-cream text-[10px] px-5 h-14 ${activeKeys.run ? "active bg-[#ef6161]" : ""}`}
+                className={`touch-btn bg-[#e04f4f]/85 text-cream text-[10px] px-5 h-14 select-none touch-none ${activeKeys.run ? "active bg-[#ef6161]" : ""}`}
                 aria-label="Run"
                 onPointerDown={(e) => { e.preventDefault(); key("run", true); }}
-                onPointerUp={() => key("run", false)}
+                onPointerUp={(e) => { e.preventDefault(); key("run", false); }}
                 onPointerLeave={() => key("run", false)}
                 onPointerCancel={() => key("run", false)}
+                onContextMenu={(e) => e.preventDefault()}
               >
                 RUN
               </button>
               <button
-                className={`touch-btn bg-[#e8a92f]/90 text-[#241505] text-[11px] px-6 h-14 ${activeKeys.jump ? "active bg-[#f7bd4a]" : ""}`}
+                className={`touch-btn bg-[#e8a92f]/90 text-[#241505] text-[11px] px-6 h-14 select-none touch-none ${activeKeys.jump ? "active bg-[#f7bd4a]" : ""}`}
                 aria-label="Jump"
                 onPointerDown={(e) => { e.preventDefault(); key("jump", true); }}
-                onPointerUp={() => key("jump", false)}
+                onPointerUp={(e) => { e.preventDefault(); key("jump", false); }}
                 onPointerLeave={() => key("jump", false)}
                 onPointerCancel={() => key("jump", false)}
+                onContextMenu={(e) => e.preventDefault()}
               >
                 JUMP
               </button>
@@ -631,58 +635,63 @@ export default function GameCanvas(props: Props) {
       {/* ------------ Portrait Touch Deck - Visible ONLY on phones/tablets ------------ */}
       {showTouchControls && !isLandscape && (
         <div
-          className="relative z-30 shrink-0 flex items-center justify-between gap-2 px-3 sm:px-4 py-2 sm:py-3 border-t-4 border-[#071620]"
+          className="relative z-30 shrink-0 flex items-center justify-between gap-2 px-3 sm:px-4 py-2 sm:py-3 border-t-4 border-[#071620] touch-none select-none"
           style={{
             paddingBottom: "max(1.1rem, calc(env(safe-area-inset-bottom) + 0.6rem))",
             background: "linear-gradient(180deg,#123043 0%,#071620 100%)",
+            touchAction: "none",
           }}
           onContextMenu={(e) => e.preventDefault()}
         >
-          <div className="flex gap-2.5 sm:gap-3">
+          <div className="flex gap-2.5 sm:gap-3 touch-none select-none">
             <button
-              className={`touch-btn bg-[#1d4258] text-cream text-[22px] w-16 h-14 ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
+              className={`touch-btn bg-[#1d4258] text-cream text-[22px] w-16 h-14 select-none touch-none ${activeKeys.left ? "active bg-[#27556f]" : ""}`}
               aria-label="Move left"
               onPointerDown={(e) => { e.preventDefault(); key("left", true); }}
-              onPointerUp={() => key("left", false)}
+              onPointerUp={(e) => { e.preventDefault(); key("left", false); }}
               onPointerLeave={() => key("left", false)}
               onPointerCancel={() => key("left", false)}
+              onContextMenu={(e) => e.preventDefault()}
             >
               &larr;
             </button>
             <button
-              className={`touch-btn bg-[#1d4258] text-cream text-[22px] w-16 h-14 ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
+              className={`touch-btn bg-[#1d4258] text-cream text-[22px] w-16 h-14 select-none touch-none ${activeKeys.right ? "active bg-[#27556f]" : ""}`}
               aria-label="Move right"
               onPointerDown={(e) => { e.preventDefault(); key("right", true); }}
-              onPointerUp={() => key("right", false)}
+              onPointerUp={(e) => { e.preventDefault(); key("right", false); }}
               onPointerLeave={() => key("right", false)}
               onPointerCancel={() => key("right", false)}
+              onContextMenu={(e) => e.preventDefault()}
             >
               &rarr;
             </button>
           </div>
 
-          <div className="px-font text-[7px] text-cream/40 text-center leading-relaxed hidden sm:block">
+          <div className="px-font text-[7px] text-cream/40 text-center leading-relaxed hidden sm:block select-none pointer-events-none">
             ROTATE FOR<br />WIDE VIEW
           </div>
 
-          <div className="flex gap-2 sm:gap-3">
+          <div className="flex gap-2 sm:gap-3 touch-none select-none">
             <button
-              className={`touch-btn bg-[#e04f4f] text-cream text-[10px] px-4 sm:px-5 h-14 ${activeKeys.run ? "active bg-[#ef6161]" : ""}`}
+              className={`touch-btn bg-[#e04f4f] text-cream text-[10px] px-4 sm:px-5 h-14 select-none touch-none ${activeKeys.run ? "active bg-[#ef6161]" : ""}`}
               aria-label="Run"
               onPointerDown={(e) => { e.preventDefault(); key("run", true); }}
-              onPointerUp={() => key("run", false)}
+              onPointerUp={(e) => { e.preventDefault(); key("run", false); }}
               onPointerLeave={() => key("run", false)}
               onPointerCancel={() => key("run", false)}
+              onContextMenu={(e) => e.preventDefault()}
             >
               RUN
             </button>
             <button
-              className={`touch-btn bg-[#e8a92f] text-[#241505] text-[11px] px-6 sm:px-7 h-14 ${activeKeys.jump ? "active bg-[#f7bd4a]" : ""}`}
+              className={`touch-btn bg-[#e8a92f] text-[#241505] text-[11px] px-6 sm:px-7 h-14 select-none touch-none ${activeKeys.jump ? "active bg-[#f7bd4a]" : ""}`}
               aria-label="Jump"
               onPointerDown={(e) => { e.preventDefault(); key("jump", true); }}
-              onPointerUp={() => key("jump", false)}
+              onPointerUp={(e) => { e.preventDefault(); key("jump", false); }}
               onPointerLeave={() => key("jump", false)}
               onPointerCancel={() => key("jump", false)}
+              onContextMenu={(e) => e.preventDefault()}
             >
               JUMP
             </button>
