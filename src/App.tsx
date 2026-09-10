@@ -551,16 +551,19 @@ function MenuScreen(props: {
           }} />
         ))}
 
-        {/* moon with pixel crater shading in upper right sky */}
-        <div className="absolute rounded-full pointer-events-none transition-transform duration-500 ease-out" style={{
-          right: "4%", top: "3.5%", width: 68, height: 68, background: "#ffc94d",
-          boxShadow: "0 0 35px 8px rgba(255,201,77,0.22), inset -12px -8px 0 rgba(224,152,38,0.6)",
-          transform: `translate(${tilt.x * 8}px, ${tilt.y * 5}px)`,
-        }}>
+        {/* moon with pixel crater shading in open upper right sky */}
+        <div
+          className="absolute rounded-full pointer-events-none transition-transform duration-500 ease-out z-0 top-[52px] sm:top-14 md:top-8 right-3 sm:right-6 md:right-14 w-[54px] h-[54px] sm:w-[68px] sm:h-[68px] md:w-[78px] md:h-[78px]"
+          style={{
+            background: "#ffc94d",
+            boxShadow: "0 0 32px 8px rgba(255,201,77,0.25), inset -10px -7px 0 rgba(224,152,38,0.6)",
+            transform: `translate(${tilt.x * 8}px, ${tilt.y * 5}px)`,
+          }}
+        >
           {/* subtle pixel craters */}
-          <div className="absolute top-3 left-4 w-2 h-2 rounded-full bg-[#e09826]/40" />
-          <div className="absolute top-7 left-8 w-3 h-3 rounded-full bg-[#e09826]/35" />
-          <div className="absolute bottom-4 left-4 w-1.5 h-1.5 rounded-full bg-[#e09826]/45" />
+          <div className="absolute top-2.5 left-3 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#e09826]/40" />
+          <div className="absolute top-5 left-6 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[#e09826]/35" />
+          <div className="absolute bottom-3 left-3 w-1.5 h-1.5 rounded-full bg-[#e09826]/45" />
         </div>
 
         {/* high drifting clouds (soft, elevated above title and mascot) */}
