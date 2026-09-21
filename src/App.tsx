@@ -6,48 +6,18 @@ import { CHARACTERS, getCharacter, type CharacterDef } from "./game/characters";
 const GameCanvas = lazy(() => import("./components/GameCanvas"));
 const FeedbackModal = lazy(() => import("./components/FeedbackModal"));
 
-/* ---------------- save data ---------------- */
-interface SaveData {
-  high: number;
-  unlocked: number;
-  cleared: boolean[];
-  sfx: boolean;
-  music: boolean;
-  char: string;
-  scanlines: boolean;
-  touchMode: "auto" | "on" | "off";
-}
+import { validateSaveData, DEFAULT_SAVE, type SaveData } from "./lib/scoring";
 
+/* ---------------- save data ---------------- */
 const SAVE_KEY = "emberfox_save_v2";
-const defaultSave: SaveData = {
-  high: 0,
-  unlocked: 1,
-  cleared: [false, false, false, false, false],
-  sfx: true,
-  music: true,
-  char: "ember",
-  scanlines: true,
-  touchMode: "auto",
-};
 
 function loadSave(): SaveData {
   try {
     const raw = localStorage.getItem(SAVE_KEY) ?? localStorage.getItem("emberfox_save_v1");
-    if (!raw) return defaultSave;
-    const p = JSON.parse(raw);
-    if (!p || typeof p !== "object" || Array.isArray(p)) return defaultSave;
-    return {
-      high: typeof p.high === "number" && Number.isFinite(p.high) && p.high >= 0 ? Math.floor(p.high) : 0,
-      unlocked: typeof p.unlocked === "number" && Number.isFinite(p.unlocked) ? Math.min(5, Math.max(1, Math.floor(p.unlocked))) : 1,
-      cleared: Array.isArray(p.cleared) && p.cleared.length === 5 ? p.cleared.map(Boolean) : defaultSave.cleared,
-      sfx: p.sfx !== false,
-      music: p.music !== false,
-      char: typeof p.char === "string" && CHARACTERS.some((c) => c.id === p.char) ? p.char : "ember",
-      scanlines: p.scanlines !== false,
-      touchMode: p.touchMode === "on" || p.touchMode === "off" ? p.touchMode : "auto",
-    };
+    if (!raw) return DEFAULT_SAVE;
+    return validateSaveData(JSON.parse(raw));
   } catch {
-    return defaultSave;
+    return DEFAULT_SAVE;
   }
 }
 

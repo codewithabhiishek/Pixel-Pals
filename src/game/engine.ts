@@ -3,6 +3,7 @@
 import { TILE, ROWS, THEMES, type LevelDef, type Theme, type MoverDef } from "./levels";
 import type { CharacterDef } from "./characters";
 import type { AudioEngine } from "./audio";
+import { calculateTimeBonus, calculateClearBonus } from "../lib/scoring";
 
 export interface HudData {
   score: number; coins: number; lives: number; time: number;
@@ -384,8 +385,8 @@ export class Engine {
     } else if (this.state === "clear" || this.state === "won") {
       if (this.stateTimer > 1.15 && !this.clearSent) {
         this.clearSent = true;
-        const timeBonus = Math.ceil(this.timeLeft) * 10;
-        const clearBonus = 1000 * (this.opts.levelIdx + 1);
+        const timeBonus = calculateTimeBonus(this.timeLeft);
+        const clearBonus = calculateClearBonus(this.opts.levelIdx);
         this.score += timeBonus + clearBonus;
         if (this.state === "clear") this.opts.onEvent({ type: "clear", score: this.score, coins: this.coins, lives: this.lives, timeBonus, clearBonus });
         else this.opts.onEvent({ type: "victory", score: this.score, coins: this.coins });

@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import confetti from "canvas-confetti";
+import {
+  sanitizeText,
+  sanitizeName,
+  sanitizeEmail,
+  isValidEmail,
+  isHoneypotTriggered,
+  isSpeedTrapTriggered,
+} from "../lib/security";
 
 interface FeedbackModalProps {
   open: boolean;
@@ -173,15 +181,14 @@ export default function FeedbackModal({ open, onClose, context }: FeedbackModalP
       e.preventDefault();
 
       // 1. Strix Honeypot Defense
-      if (botcheck || decoyGotcha.trim().length > 0) {
+      if (isHoneypotTriggered(botcheck, decoyGotcha)) {
         // Silently drop bot submission
         setStatus("success");
         return;
       }
 
       // 2. Strix Speed-Trap Defense (< 1.8 seconds)
-      const elapsedMs = Date.now() - formOpenedAtRef.current;
-      if (elapsedMs < 1800) {
+      if (isSpeedTrapTriggered(formOpenedAtRef.current, 1800)) {
         setErrorMessage("Submission too fast! Please take a moment to write your suggestion.");
         setStatus("error");
         return;
@@ -202,27 +209,18 @@ export default function FeedbackModal({ open, onClose, context }: FeedbackModalP
         return;
       }
 
-      // 5. Input Validation & Sanitization (Strip HTML tags and CRLF injection)
-      const cleanMessage = message.replace(/<[^>]*>?/gm, "").trim().slice(0, 500);
+      // 5. Input Validation & Sanitization
+      const cleanMessage = sanitizeText(message, 500);
       if (!cleanMessage) {
         setErrorMessage("Please enter your suggestion or feedback.");
         setStatus("error");
         return;
       }
 
-      const cleanName = name
-        .replace(/<[^>]*>?/gm, "")
-        .replace(/[\r\n\t]/g, " ")
-        .trim()
-        .slice(0, 60);
+      const cleanName = sanitizeName(name, 60);
+      const cleanEmail = sanitizeEmail(email, 80);
 
-      const cleanEmail = email
-        .replace(/<[^>]*>?/gm, "")
-        .replace(/[\r\n\t]/g, "")
-        .trim()
-        .slice(0, 80);
-
-      if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      if (cleanEmail && !isValidEmail(cleanEmail)) {
         setErrorMessage("Please enter a valid email address or leave it blank.");
         setStatus("error");
         return;
