@@ -83,7 +83,7 @@ const CATEGORIES: Category[] = [
 const COOLDOWN_SECONDS = 60;
 const MAX_HOURLY_DISPATCHES = 5;
 const WEB3FORMS_KEY: string =
-  (import.meta as any).env?.VITE_WEB3FORMS_KEY || "";
+  (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_WEB3FORMS_KEY || "";
 
 function getRecentDispatchesCount(): number {
   try {
