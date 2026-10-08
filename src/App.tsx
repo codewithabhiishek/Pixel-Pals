@@ -66,7 +66,7 @@ const FullscreenIcon = ({ isFull }: { isFull: boolean }) => (
   </svg>
 );
 
-const FoxMascot = () => {
+const FoxMascot = ({ isHappy }: { isHappy?: boolean }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const pupilRef = useRef<SVGGElement | null>(null);
 
@@ -82,7 +82,6 @@ const FoxMascot = () => {
       const rect = svgRef.current.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
 
-      // Approximate eye midpoint in screen pixels (center of eyes is ~123/210 X, ~72/190 Y)
       const eyeScreenX = rect.left + (123 / 210) * rect.width;
       const eyeScreenY = rect.top + (72 / 190) * rect.height;
 
@@ -103,7 +102,6 @@ const FoxMascot = () => {
       const dist = Math.hypot(dx, dy);
 
       if (dist > 0.001) {
-        // In SVG viewBox units, eye white is 9px radius, pupil is 4.6px -> max shift is ~3.6
         const maxShift = 3.6;
         const factor = Math.min(dist / 140, 1) * maxShift;
         targetX = (dx / dist) * factor;
@@ -117,7 +115,6 @@ const FoxMascot = () => {
     };
 
     const update = () => {
-      // Smooth lerp for silky organic eye movement
       currentX += (targetX - currentX) * 0.24;
       currentY += (targetY - currentY) * 0.24;
 
@@ -158,7 +155,7 @@ const FoxMascot = () => {
       className="drop-shadow-[0_12px_0_rgba(0,0,0,0.3)] select-none pointer-events-none"
     >
       {/* tail with flame flicker */}
-      <g className="origin-[40px_148px] animate-[flameFlicker_3.2s_ease-in-out_infinite]">
+      <g className={`origin-[40px_148px] ${isHappy ? "animate-pulse" : "animate-[flameFlicker_3.2s_ease-in-out_infinite]"}`}>
         <path d="M30 150 Q4 138 10 112 Q26 122 40 118 Q34 138 44 148 Z" fill="#e0702a" />
         <circle cx="13" cy="117" r="9" fill="#fdf3e3" />
         <path d="M14 112 Q6 100 14 90 Q16 102 24 104 Q18 108 14 112 Z" fill="#ff7a2f" />
@@ -179,23 +176,32 @@ const FoxMascot = () => {
       <ellipse cx="138" cy="92" rx="20" ry="14" fill="#fdf3e3" />
       <circle cx="150" cy="87" r="5" fill="#3c1c0c" />
 
-      {/* eyes with natural periodic blinking */}
-      <g className="anim-mascot-blink">
-        {/* eye whites */}
-        <circle cx="106" cy="72" r="9" fill="#fdf3e3" />
-        <circle cx="140" cy="72" r="9" fill="#fdf3e3" />
-
-        {/* tracking pupils group (follows cursor and touch) */}
-        <g ref={pupilRef}>
-          {/* left pupil & specular shine */}
-          <circle cx="107.5" cy="72.5" r="4.6" fill="#12262e" />
-          <circle cx="109.2" cy="70.6" r="1.6" fill="#ffffff" />
-
-          {/* right pupil & specular shine */}
-          <circle cx="141.5" cy="72.5" r="4.6" fill="#12262e" />
-          <circle cx="143.2" cy="70.6" r="1.6" fill="#ffffff" />
+      {/* Cheerful rosy blush cheeks when happy */}
+      {isHappy && (
+        <g>
+          <ellipse cx="106" cy="86" rx="6" ry="4" fill="#ff5a5f" opacity="0.65" />
+          <ellipse cx="146" cy="86" rx="6" ry="4" fill="#ff5a5f" opacity="0.65" />
         </g>
-      </g>
+      )}
+
+      {/* eyes: smiling crescents when happy, animated blinking pupils otherwise */}
+      {isHappy ? (
+        <g>
+          <path d="M100 75 Q106 67 112 75" stroke="#12262e" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M134 75 Q140 67 146 75" stroke="#12262e" strokeWidth="3" fill="none" strokeLinecap="round" />
+        </g>
+      ) : (
+        <g className="anim-mascot-blink">
+          <circle cx="106" cy="72" r="9" fill="#fdf3e3" />
+          <circle cx="140" cy="72" r="9" fill="#fdf3e3" />
+          <g ref={pupilRef}>
+            <circle cx="107.5" cy="72.5" r="4.6" fill="#12262e" />
+            <circle cx="109.2" cy="70.6" r="1.6" fill="#ffffff" />
+            <circle cx="141.5" cy="72.5" r="4.6" fill="#12262e" />
+            <circle cx="143.2" cy="70.6" r="1.6" fill="#ffffff" />
+          </g>
+        </g>
+      )}
 
       {/* scarf */}
       <path d="M88 108 Q120 122 152 108 L152 120 Q120 134 88 120 Z" fill="#ff5a5f" />
@@ -207,41 +213,72 @@ const FoxMascot = () => {
   );
 };
 
-const FloatingIsland = () => (
-  <div className="relative flex flex-col items-center select-none pointer-events-none">
-    {/* Mascot with gentle breathing */}
-    <div className="anim-breathe relative z-10">
-      <FoxMascot />
-    </div>
+const FloatingIsland = ({ onPet }: { onPet?: () => void }) => {
+  const [petting, setPetting] = useState(false);
+  const [hearts, setHearts] = useState<{ id: number; x: number }[]>([]);
 
-    {/* Floating Pixel Island Stage */}
-    <div className="relative -mt-6 w-[230px] flex flex-col items-center">
-      {/* Ground contact shadow */}
-      <div className="w-28 h-3 rounded-full bg-[#071620]/60 -mb-2 z-10 blur-[1px]" />
+  const handlePet = () => {
+    setPetting(true);
+    const newId = Date.now();
+    setHearts((prev) => [...prev.slice(-3), { id: newId, x: Math.random() * 60 - 30 }]);
+    onPet?.();
+    setTimeout(() => setPetting(false), 700);
+  };
 
-      {/* Grass Top Layer with jagged pixel overhangs */}
-      <div className="w-full h-5 bg-[#5cc257] border-2 border-[#0b1f2c] rounded-t-md relative z-10 shadow-[inset_0_2px_0_rgba(255,255,255,0.4)]">
-        <div className="absolute -bottom-2 left-3 w-3.5 h-2 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
-        <div className="absolute -bottom-3 left-12 w-4 h-3 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
-        <div className="absolute -bottom-2.5 left-24 w-3.5 h-2.5 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
-        <div className="absolute -bottom-3 right-10 w-4 h-3 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
-        <div className="absolute -bottom-2 right-22 w-3 h-2 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+  return (
+    <div
+      onClick={handlePet}
+      className="relative flex flex-col items-center select-none cursor-pointer group transition-transform duration-200 active:scale-95"
+      title="Click or tap Ember to pet!"
+    >
+      {/* Floating Heart / Sparkle Reactions */}
+      {hearts.map((h) => (
+        <div
+          key={h.id}
+          className="absolute -top-4 z-30 pointer-events-none anim-heart-float text-xl font-bold select-none"
+          style={{ transform: `translateX(${h.x}px)` }}
+        >
+          ❤️
+        </div>
+      ))}
+
+      {/* Mascot with gentle breathing & hop on pet */}
+      <div className={`relative z-10 transition-transform ${petting ? "anim-mascot-hop" : "anim-breathe"}`}>
+        <FoxMascot isHappy={petting} />
       </div>
 
-      {/* Earth Dirt Block with rock flecks & dangling vine */}
-      <div className="w-[92%] h-12 bg-[#a5683f] border-x-2 border-b-2 border-[#0b1f2c] rounded-b-lg relative overflow-hidden shadow-[0_8px_0_#071620,0_16px_24px_rgba(0,0,0,0.5)]">
-        <div className="absolute inset-x-0 top-0 h-2.5 bg-[#86512f]" />
-        {/* Pixel rock details */}
-        <div className="absolute top-4 left-5 w-2.5 h-2 bg-[#86512f] rounded-[1px]" />
-        <div className="absolute top-6 left-16 w-3 h-2.5 bg-[#5a341d] rounded-[1px]" />
-        <div className="absolute top-4 right-8 w-3 h-2 bg-[#86512f] rounded-[1px]" />
-        <div className="absolute bottom-1 right-20 w-2 h-1.5 bg-[#5a341d] rounded-[1px]" />
-        {/* Hanging pixel vine */}
-        <div className="absolute top-1 left-14 w-2 h-7 bg-[#3fae8c] border-x border-b border-[#0b1f2c] rounded-b-sm" />
+      {/* Floating Pixel Island Stage */}
+      <div className="relative -mt-6 w-[230px] flex flex-col items-center">
+        {/* Ground contact shadow */}
+        <div className="w-28 h-3 rounded-full bg-[#071620]/60 -mb-2 z-10 blur-[1px]" />
+
+        {/* Grass Top Layer with jagged pixel overhangs */}
+        <div className="w-full h-5 bg-[#5cc257] border-2 border-[#0b1f2c] rounded-t-md relative z-10 shadow-[inset_0_2px_0_rgba(255,255,255,0.4)]">
+          <div className="absolute -bottom-2 left-3 w-3.5 h-2 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+          <div className="absolute -bottom-3 left-12 w-4 h-3 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+          <div className="absolute -bottom-2.5 left-24 w-3.5 h-2.5 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+          <div className="absolute -bottom-3 right-10 w-4 h-3 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+          <div className="absolute -bottom-2 right-22 w-3 h-2 bg-[#5cc257] border-b-2 border-x-2 border-[#0b1f2c]" />
+        </div>
+
+        {/* Earth Dirt Block with rock flecks & dangling vine */}
+        <div className="w-[92%] h-12 bg-[#a5683f] border-x-2 border-b-2 border-[#0b1f2c] rounded-b-lg relative overflow-hidden shadow-[0_8px_0_#071620,0_16px_24px_rgba(0,0,0,0.5)]">
+          <div className="absolute inset-x-0 top-0 h-2.5 bg-[#86512f]" />
+          <div className="absolute top-4 left-5 w-2.5 h-2 bg-[#86512f] rounded-[1px]" />
+          <div className="absolute top-6 left-16 w-3 h-2.5 bg-[#5a341d] rounded-[1px]" />
+          <div className="absolute top-4 right-8 w-3 h-2 bg-[#86512f] rounded-[1px]" />
+          <div className="absolute bottom-1 right-20 w-2 h-1.5 bg-[#5a341d] rounded-[1px]" />
+          <div className="absolute top-1 left-14 w-2 h-7 bg-[#3fae8c] border-x border-b border-[#0b1f2c] rounded-b-sm" />
+        </div>
       </div>
+
+      {/* Gentle hint on hover */}
+      <span className="mt-2 text-[8px] px-font text-cream/40 opacity-0 group-hover:opacity-100 transition-opacity">
+        TAP TO PET EMBER
+      </span>
     </div>
-  </div>
-);
+  );
+};
 
 /* ---------------- screens ---------------- */
 type Screen = "menu" | "select" | "levels" | "game";
@@ -652,7 +689,7 @@ function MenuScreen(props: {
 
             {/* Mobile Mascot Island (centered on smaller phones only, md+ uses right column) */}
             <div className="block md:hidden my-0 sm:my-2 scale-[0.62] sm:scale-75 -my-4 sm:-my-1 origin-center">
-              <FloatingIsland />
+              <FloatingIsland onPet={() => { props.audio.unlock(); props.audio.coin(); }} />
             </div>
 
             {/* Tactile Real-Game Action Buttons */}
@@ -685,7 +722,7 @@ function MenuScreen(props: {
             className="hidden md:block shrink-0 transition-transform duration-500 ease-out scale-90 lg:scale-100"
             style={{ transform: `translate(${tilt.x * 14}px, ${tilt.y * 10}px)` }}
           >
-            <FloatingIsland />
+            <FloatingIsland onPet={() => { props.audio.unlock(); props.audio.coin(); }} />
           </div>
         </div>
 
@@ -800,19 +837,75 @@ function MenuScreen(props: {
 }
 
 /* ---------------- hero select ---------------- */
-function StatBar({ label, value, color }: { label: string; value: number; color: string }) {
+const HERO_THEMES: Record<string, {
+  archetype: string;
+  badgeBg: string;
+  badgeText: string;
+  glowColor: string;
+  accent: string;
+  icon: string;
+  sound: (a: AudioEngine) => void;
+}> = {
+  ember: {
+    archetype: "VANGUARD",
+    badgeBg: "rgba(255, 140, 59, 0.18)",
+    badgeText: "#ff8c3b",
+    glowColor: "rgba(255, 140, 59, 0.45)",
+    accent: "#ff8c3b",
+    icon: "🔥",
+    sound: (a) => a.jump(),
+  },
+  bramble: {
+    archetype: "JUGGERNAUT",
+    badgeBg: "rgba(224, 152, 38, 0.18)",
+    badgeText: "#e09826",
+    glowColor: "rgba(224, 152, 38, 0.45)",
+    accent: "#e09826",
+    icon: "🛡️",
+    sound: (a) => a.stomp(),
+  },
+  pip: {
+    archetype: "ACROBAT",
+    badgeBg: "rgba(92, 194, 87, 0.18)",
+    badgeText: "#7be0c3",
+    glowColor: "rgba(123, 224, 195, 0.45)",
+    accent: "#7be0c3",
+    icon: "🍃",
+    sound: (a) => a.spring(),
+  },
+  zip: {
+    archetype: "SPEEDSTER",
+    badgeBg: "rgba(79, 176, 232, 0.18)",
+    badgeText: "#9fe8ff",
+    glowColor: "rgba(159, 232, 255, 0.45)",
+    accent: "#9fe8ff",
+    icon: "⚡",
+    sound: (a) => a.coin(),
+  },
+};
+
+function StatBar({ label, value, color, maxHighlight }: { label: string; value: number; color: string; maxHighlight?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex items-center justify-between gap-1.5">
       <span className="px-font text-[7px] text-cream/70 w-8">{label}</span>
-      <span className="flex gap-1">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <span
-            key={i}
-            className="w-3.5 h-2.5 rounded-[2px] border border-[#0b1f2c]"
-            style={{ background: i < value ? color : "#0e2a3a" }}
-          />
-        ))}
-      </span>
+      <div className="flex gap-1 items-center">
+        {Array.from({ length: 5 }).map((_, i) => {
+          const filled = i < value;
+          const isMax = filled && value === 5 && i === 4;
+          return (
+            <span
+              key={i}
+              className={`w-3.5 h-2.5 rounded-[2px] border border-[#0b1f2c] transition-all duration-200 ${
+                isMax && maxHighlight ? "animate-pulse" : ""
+              }`}
+              style={{
+                background: filled ? color : "#0e2a3a",
+                boxShadow: filled ? `0 0 5px ${color}77` : "none",
+              }}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -855,26 +948,56 @@ function HeroSelect(props: {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 w-full max-w-5xl">
           {CHARACTERS.map((c) => {
             const active = c.id === props.charId;
+            const theme = HERO_THEMES[c.id] || HERO_THEMES.ember;
             return (
               <button
                 key={c.id}
-                onClick={() => { props.audio.unlock(); props.audio.coin(); props.onPick(c.id); }}
-                className={`panel8 relative text-left p-4 cursor-pointer transition-all duration-150 hover:-translate-y-1.5 group ${
-                  active ? "border-gold shadow-[0_0_24px_rgba(255,201,77,0.35)] -translate-y-1" : ""
+                onClick={() => {
+                  props.audio.unlock();
+                  theme.sound(props.audio);
+                  props.onPick(c.id);
+                }}
+                className={`panel8 relative text-left p-4 cursor-pointer transition-all duration-200 hover:-translate-y-2 group ${
+                  active
+                    ? "-translate-y-1.5"
+                    : "hover:border-cream/40"
                 }`}
-                style={active ? { borderWidth: 4 } : undefined}
+                style={{
+                  borderWidth: active ? 4 : 3,
+                  borderColor: active ? theme.accent : undefined,
+                  boxShadow: active
+                    ? `0 0 26px ${theme.glowColor}, 0 6px 0 #071620`
+                    : "0 4px 0 #071620",
+                }}
               >
-                {active && (
-                  <span className="anim-pop absolute -top-3 right-3 px-font text-[7px] text-[#241505] bg-gold border-2 border-[#0b1f2c] rounded px-2 py-0.5 shadow-[0_2px_0_#071620]">
-                    READY
+                {/* Active Indicator Badge */}
+                {active ? (
+                  <span
+                    className="anim-pop absolute -top-3 right-3 px-font text-[7px] text-[#241505] rounded px-2 py-0.5 border-2 border-[#0b1f2c] shadow-[0_2px_0_#071620]"
+                    style={{ background: theme.accent }}
+                  >
+                    SELECTED
+                  </span>
+                ) : (
+                  <span
+                    className="absolute -top-2.5 right-3 px-font text-[6.5px] rounded px-1.5 py-0.5 border border-[#1d4258]"
+                    style={{
+                      background: theme.badgeBg,
+                      color: theme.badgeText,
+                    }}
+                  >
+                    {theme.icon} {theme.archetype}
                   </span>
                 )}
+
                 <div className="flex justify-center mb-3">
                   <div
                     className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-[#0b1f2c] shadow-[0_4px_0_#071620] overflow-hidden transition-transform duration-200 group-hover:scale-105 ${
                       active ? "anim-float" : ""
                     }`}
-                    style={{ background: `linear-gradient(160deg, ${c.bodyDark}55, #1d4258)` }}
+                    style={{
+                      background: `linear-gradient(160deg, ${c.bodyDark}55, #1d4258)`,
+                    }}
                   >
                     <CharPortrait char={c} />
                   </div>
@@ -883,10 +1006,13 @@ function HeroSelect(props: {
                 <div className="text-center mb-3">
                   <div className="px-font text-[12px] sm:text-[14px] text-cream">{c.name.toUpperCase()}</div>
                   <div
-                    className="px-font text-[7px] tracking-widest mt-1"
-                    style={{ color: c.body === "#cfd8dc" ? "#9fe8ff" : c.body }}
+                    className="px-font text-[7px] tracking-widest mt-1 flex items-center justify-center gap-1"
+                    style={{ color: theme.badgeText }}
                   >
-                    {c.species.toUpperCase()}
+                    <span>{theme.icon}</span>
+                    <span>{c.species.toUpperCase()}</span>
+                    <span>•</span>
+                    <span>{theme.archetype}</span>
                   </div>
                   <p className="font-body text-[12px] text-cream/70 leading-snug mt-1.5 min-h-[38px]">
                     {c.tagline}
@@ -894,15 +1020,24 @@ function HeroSelect(props: {
                 </div>
 
                 {/* Passive Badge */}
-                <div className="mb-3 p-2 bg-[#071620]/70 rounded border border-[#1d4258]">
-                  <div className="px-font text-[7px] text-gold mb-0.5">★ {c.passive.name}</div>
+                <div
+                  className="mb-3 p-2 rounded border"
+                  style={{
+                    background: active ? `${theme.badgeBg}` : "#071620b3",
+                    borderColor: active ? `${theme.accent}66` : "#1d4258",
+                  }}
+                >
+                  <div className="px-font text-[7px] mb-0.5 flex items-center gap-1" style={{ color: theme.accent }}>
+                    <span>★</span>
+                    <span>{c.passive.name}</span>
+                  </div>
                   <div className="font-body text-[11px] text-cream/80 leading-snug">{c.passive.desc}</div>
                 </div>
 
                 <div className="space-y-1.5 mb-3">
-                  <StatBar label="SPD" value={c.stats.speed} color="#7be0c3" />
-                  <StatBar label="JMP" value={c.stats.jump} color="#ffc94d" />
-                  <StatBar label="PWR" value={c.stats.power} color="#ff8c3b" />
+                  <StatBar label="SPD" value={c.stats.speed} color="#7be0c3" maxHighlight={c.stats.speed === 5} />
+                  <StatBar label="JMP" value={c.stats.jump} color="#ffc94d" maxHighlight={c.stats.jump === 5} />
+                  <StatBar label="PWR" value={c.stats.power} color="#ff8c3b" maxHighlight={c.stats.power === 5} />
                 </div>
 
                 <div className="flex items-center justify-between border-t-2 border-[#0b1f2c] pt-2.5">
@@ -922,7 +1057,14 @@ function HeroSelect(props: {
       </div>
 
       <div className="relative z-10 pb-6 pt-3 flex justify-center">
-        <button className="btn8 gold !text-[12px] !px-8" onClick={props.onContinue}>
+        <button
+          className="btn8 gold !text-[12px] !px-8 hover:scale-105 transition-transform"
+          onClick={() => {
+            props.audio.unlock();
+            props.audio.select();
+            props.onContinue();
+          }}
+        >
           <PlayIcon /> Confirm &amp; View World Map
         </button>
       </div>
@@ -931,6 +1073,18 @@ function HeroSelect(props: {
 }
 
 /* ---------------- world map / level select ---------------- */
+const WORLD_METADATA: Record<number, {
+  biome: string;
+  icon: string;
+  hazards: string[];
+}> = {
+  0: { biome: "MEADOW BIOME", icon: "🌿", hazards: ["Pitfalls", "Walkers"] },
+  1: { biome: "CRYSTAL CAVERN", icon: "💎", hazards: ["Spikes", "Flyers"] },
+  2: { biome: "SUNBAKED DUNES", icon: "🏜️", hazards: ["Quicksand", "Spikers"] },
+  3: { biome: "FROST PEAKS", icon: "❄️", hazards: ["Slippery Ice", "Bouncers"] },
+  4: { biome: "MAGMA FORGE", icon: "🌋", hazards: ["Lava", "Titan Boss"] },
+};
+
 function LevelSelect(props: {
   save: SaveData;
   hero: CharacterDef;
@@ -982,6 +1136,7 @@ function LevelSelect(props: {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-full max-w-6xl">
           {LEVELS.map((lv, i) => {
             const th = THEMES[lv.theme];
+            const meta = WORLD_METADATA[i] || WORLD_METADATA[0];
             const unlocked = i < props.save.unlocked;
             const cleared = props.save.cleared[i];
             const isDenied = props.denied === i;
@@ -989,38 +1144,66 @@ function LevelSelect(props: {
             return (
               <div
                 key={i}
-                className={`panel8 relative p-4 flex flex-col items-center justify-between text-center transition-all duration-150 ${
+                className={`panel8 relative p-4 flex flex-col items-center justify-between text-center transition-all duration-200 ${
                   isDenied ? "anim-denied" : ""
-                } ${unlocked ? "hover:-translate-y-1.5 hover:border-gold" : "opacity-75"}`}
+                } ${unlocked ? "hover:-translate-y-2 hover:border-gold" : "opacity-75"}`}
                 style={cleared ? { borderColor: "#ffc94d" } : undefined}
               >
-                {/* World Portal Orb */}
-                <button
-                  onClick={() => props.onPick(i)}
-                  className={`relative w-24 h-24 rounded-full border-4 border-[#071620] shadow-[0_6px_0_#071620] cursor-pointer transition-transform duration-150 flex items-center justify-center ${
-                    unlocked ? "hover:scale-105 active:scale-95" : ""
-                  }`}
-                  style={{ background: `linear-gradient(160deg, ${th.sky[0]}, ${th.sky[1]} 55%, ${th.farAlt})` }}
-                  aria-label={`World ${i + 1}: ${lv.name}`}
-                >
-                  {unlocked ? (
-                    <span className="px-font text-[28px] text-[#0b1f2c]/85 drop-shadow">{i + 1}</span>
-                  ) : (
-                    <span className="bg-[#071620]/75 rounded-full p-2.5">
-                      <LockIconSvg />
-                    </span>
+                {/* World Portal Orb with rotating halo ring */}
+                <div className="relative flex items-center justify-center my-1">
+                  {unlocked && (
+                    <div
+                      className="absolute -inset-1.5 rounded-full anim-halo-spin pointer-events-none opacity-40"
+                      style={{
+                        border: "2px dashed #ffc94d",
+                      }}
+                    />
                   )}
-                  {cleared && (
-                    <span className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-gold border-2 border-[#071620] flex items-center justify-center shadow-[0_2px_0_#071620] anim-pop">
-                      <CheckIcon />
-                    </span>
-                  )}
-                </button>
+
+                  <button
+                    onClick={() => props.onPick(i)}
+                    className={`relative w-24 h-24 rounded-full border-4 border-[#071620] shadow-[0_6px_0_#071620] cursor-pointer transition-transform duration-150 flex items-center justify-center ${
+                      unlocked ? "hover:scale-105 active:scale-95" : ""
+                    }`}
+                    style={{ background: `linear-gradient(160deg, ${th.sky[0]}, ${th.sky[1]} 55%, ${th.farAlt})` }}
+                    aria-label={`World ${i + 1}: ${lv.name}`}
+                  >
+                    {/* Gloss reflection overlay */}
+                    <div className="absolute inset-x-2 top-1.5 h-6 rounded-t-full bg-white/20 pointer-events-none" />
+
+                    {unlocked ? (
+                      <span className="px-font text-[28px] text-[#0b1f2c]/85 drop-shadow">{i + 1}</span>
+                    ) : (
+                      <span className="bg-[#071620]/75 rounded-full p-2.5">
+                        <LockIconSvg />
+                      </span>
+                    )}
+
+                    {cleared && (
+                      <span className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-gold border-2 border-[#071620] flex items-center justify-center shadow-[0_2px_0_#071620] anim-pop">
+                        <CheckIcon />
+                      </span>
+                    )}
+                  </button>
+                </div>
 
                 {/* Info & Badges */}
                 <div className="mt-3 w-full">
+                  <div className="flex items-center justify-center gap-1 text-mint px-font text-[7px] tracking-wider mb-0.5">
+                    <span>{meta.icon}</span>
+                    <span>{meta.biome}</span>
+                  </div>
                   <div className="px-font text-[9px] text-cream leading-tight">{lv.name.toUpperCase()}</div>
                   <div className="font-body text-[12px] text-cream/60 mt-1 italic leading-snug">{lv.sub}</div>
+
+                  {/* 3-Star Rating Indicator for Cleared Worlds */}
+                  {cleared && (
+                    <div className="mt-1.5 flex items-center justify-center gap-1">
+                      <span className="text-gold text-[11px] drop-shadow">★</span>
+                      <span className="text-gold text-[11px] drop-shadow">★</span>
+                      <span className="text-gold text-[11px] drop-shadow">★</span>
+                    </div>
+                  )}
 
                   <div className="mt-2 flex items-center justify-center gap-1.5 flex-wrap">
                     {lv.hasBoss && (

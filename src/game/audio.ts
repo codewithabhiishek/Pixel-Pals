@@ -137,21 +137,27 @@ export class AudioEngine {
     src.stop(t0 + o.dur + 0.05);
   }
 
+  private vibrate(pattern: number | number[]) {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try { navigator.vibrate(pattern); } catch { /* ignore */ }
+    }
+  }
+
   /* ------- SFX ------- */
-  jump() { this.tone({ type: "square", f0: 300, f1: 640, dur: 0.14, vol: 0.16 }); }
-  coin() { this.tone({ type: "sine", f0: 1046, dur: 0.07, vol: 0.16 }); this.tone({ type: "sine", f0: 1568, dur: 0.14, vol: 0.16, at: 0.055 }); }
-  stomp() { this.noise({ dur: 0.12, f: 700, vol: 0.25 }); this.tone({ type: "triangle", f0: 220, f1: 60, dur: 0.16, vol: 0.25 }); }
+  jump() { this.vibrate(8); this.tone({ type: "square", f0: 300, f1: 640, dur: 0.14, vol: 0.16 }); }
+  coin() { this.vibrate(12); this.tone({ type: "sine", f0: 1046, dur: 0.07, vol: 0.16 }); this.tone({ type: "sine", f0: 1568, dur: 0.14, vol: 0.16, at: 0.055 }); }
+  stomp() { this.vibrate([18, 12, 18]); this.noise({ dur: 0.12, f: 700, vol: 0.25 }); this.tone({ type: "triangle", f0: 220, f1: 60, dur: 0.16, vol: 0.25 }); }
   bump() { this.tone({ type: "triangle", f0: 140, f1: 70, dur: 0.09, vol: 0.22 }); }
-  hurt() { this.tone({ type: "sawtooth", f0: 380, f1: 90, dur: 0.34, vol: 0.2 }); }
-  powerup() { [523, 659, 784, 1047].forEach((f, i) => this.tone({ type: "square", f0: f, dur: 0.1, vol: 0.14, at: i * 0.07 })); }
-  oneUp() { [660, 880, 990, 1320, 1760].forEach((f, i) => this.tone({ type: "square", f0: f, dur: 0.12, vol: 0.13, at: i * 0.08 })); }
-  checkpoint() { this.tone({ type: "sine", f0: 880, f1: 1760, dur: 0.35, vol: 0.18 }); this.tone({ type: "sine", f0: 1318, f1: 2637, dur: 0.4, vol: 0.1, at: 0.08 }); }
+  hurt() { this.vibrate([40, 25, 40]); this.tone({ type: "sawtooth", f0: 380, f1: 90, dur: 0.34, vol: 0.2 }); }
+  powerup() { this.vibrate([15, 20, 15, 20]); [523, 659, 784, 1047].forEach((f, i) => this.tone({ type: "square", f0: f, dur: 0.1, vol: 0.14, at: i * 0.07 })); }
+  oneUp() { this.vibrate([15, 20, 15, 20]); [660, 880, 990, 1320, 1760].forEach((f, i) => this.tone({ type: "square", f0: f, dur: 0.12, vol: 0.13, at: i * 0.08 })); }
+  checkpoint() { this.vibrate([20, 15, 20]); this.tone({ type: "sine", f0: 880, f1: 1760, dur: 0.35, vol: 0.18 }); this.tone({ type: "sine", f0: 1318, f1: 2637, dur: 0.4, vol: 0.1, at: 0.08 }); }
   fire() { this.noise({ dur: 0.22, f: 400, slide: 1800, vol: 0.16 }); }
-  bossHit() { this.tone({ type: "square", f0: 210, f1: 50, dur: 0.22, vol: 0.22 }); this.noise({ dur: 0.18, f: 1200, slide: 300, vol: 0.2 }); }
+  bossHit() { this.vibrate([30, 20, 30]); this.tone({ type: "square", f0: 210, f1: 50, dur: 0.22, vol: 0.22 }); this.noise({ dur: 0.18, f: 1200, slide: 300, vol: 0.2 }); }
   roar() { this.tone({ type: "sawtooth", f0: 90, f1: 38, dur: 0.6, vol: 0.26 }); this.noise({ dur: 0.5, f: 200, slide: 90, vol: 0.18 }); }
-  spring() { this.tone({ type: "square", f0: 200, f1: 900, dur: 0.18, vol: 0.15 }); }
-  win() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone({ type: "square", f0: f, dur: i === 6 ? 0.5 : 0.12, vol: 0.14, at: i * 0.11 })); }
-  lose() { [392, 330, 262, 196].forEach((f, i) => this.tone({ type: "sawtooth", f0: f, f1: f * 0.94, dur: 0.24, vol: 0.14, at: i * 0.17 })); this.tone({ type: "sawtooth", f0: 131, f1: 65, dur: 0.7, vol: 0.16, at: 0.7 }); }
+  spring() { this.vibrate([10, 15]); this.tone({ type: "square", f0: 200, f1: 900, dur: 0.18, vol: 0.15 }); }
+  win() { this.vibrate([25, 20, 25, 20, 40]); [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone({ type: "square", f0: f, dur: i === 6 ? 0.5 : 0.12, vol: 0.14, at: i * 0.11 })); }
+  lose() { this.vibrate([50, 40, 60]); [392, 330, 262, 196].forEach((f, i) => this.tone({ type: "sawtooth", f0: f, f1: f * 0.94, dur: 0.24, vol: 0.14, at: i * 0.17 })); this.tone({ type: "sawtooth", f0: 131, f1: 65, dur: 0.7, vol: 0.16, at: 0.7 }); }
   select() { this.tone({ type: "square", f0: 740, dur: 0.06, vol: 0.1 }); }
   pauseBlip() { this.tone({ type: "square", f0: 500, f1: 320, dur: 0.09, vol: 0.1 }); }
 

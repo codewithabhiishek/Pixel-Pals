@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import confetti from "canvas-confetti";
 import { Engine, type GameEvent, type HudData } from "../game/engine";
 import type { LevelDef } from "../game/levels";
 import type { CharacterDef } from "../game/characters";
@@ -277,6 +278,62 @@ export default function GameCanvas(props: Props) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, levelIdx, toggleFullscreen]);
+
+  // Trigger celebratory confetti burst on World Clear and Victory
+  useEffect(() => {
+    if (overlay === "clear") {
+      audio.win();
+      try {
+        confetti({
+          particleCount: 55,
+          spread: 70,
+          origin: { y: 0.65 },
+          colors: ["#ffc94d", "#7be0c3", "#ff8c3b", "#ffffff"],
+        });
+      } catch {
+        /* ignore */
+      }
+    } else if (overlay === "victory") {
+      audio.win();
+      const end = Date.now() + 3200;
+      let frameId: number;
+      const frame = () => {
+        try {
+          confetti({
+            particleCount: 4,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.7 },
+            colors: ["#ff8c3b", "#ffc94d", "#7be0c3", "#ff5a5f"],
+          });
+          confetti({
+            particleCount: 4,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.7 },
+            colors: ["#ff8c3b", "#ffc94d", "#7be0c3", "#ff5a5f"],
+          });
+        } catch {
+          /* ignore */
+        }
+        if (Date.now() < end) {
+          frameId = requestAnimationFrame(frame);
+        }
+      };
+      frame();
+      return () => {
+        if (frameId) cancelAnimationFrame(frameId);
+      };
+    }
+  }, [overlay, audio]);
+
+  const LEVEL_TIPS: Record<number, string> = {
+    0: "Tip: Look for hidden '?' blocks and jump over rolling walkers for extra score!",
+    1: "Tip: Mind the ceiling stalactites and bats in Crystal Cavern — keep your momentum steady.",
+    2: "Tip: Quicksand slows you down — hold Shift or RUN to stay on top of the dunes.",
+    3: "Tip: Ice reduces traction — tap the opposite direction briefly to brake faster.",
+    4: "Tip: When Magmor jumps into the air, time your sprint underneath and stomp his crown when he lands!",
+  };
 
   const key = (k: "left" | "right" | "jump" | "run" | "down", v: boolean) => {
     audio.unlock();
@@ -608,7 +665,26 @@ export default function GameCanvas(props: Props) {
         <div className="fixed inset-0 bg-[#071620]/85 backdrop-blur-[3px] flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
           <div className="panel8 anim-pop px-5 sm:px-8 py-5 sm:py-7 w-[min(420px,94vw)] max-h-[88vh] overflow-y-auto no-scrollbar text-center border-ember my-auto shadow-2xl" style={{ borderWidth: 4 }}>
             <div className="px-font text-[17px] sm:text-[22px] text-gold title-shadow">WORLD CLEAR!</div>
-            <div className="font-body text-xs sm:text-sm text-cream/60 mt-1 mb-4">World {levelIdx + 1} — {level.name}</div>
+            <div className="font-body text-xs sm:text-sm text-cream/60 mt-1 mb-2">World {levelIdx + 1} — {level.name}</div>
+
+            {/* 3-Star Rating with staggered pop-in */}
+            <div className="flex justify-center items-center gap-3 my-2.5">
+              {[0, 1, 2].map((sIdx) => {
+                const earned = sIdx === 0 || (sIdx === 1 && stats.score >= 1000) || (sIdx === 2 && stats.timeBonus >= 300);
+                return (
+                  <span
+                    key={sIdx}
+                    className={`text-2xl drop-shadow ${
+                      earned ? "text-gold anim-star-pop" : "text-cream/25"
+                    }`}
+                    style={earned ? { animationDelay: `${0.18 + sIdx * 0.18}s` } : undefined}
+                  >
+                    ★
+                  </span>
+                );
+              })}
+            </div>
+
             <div className="space-y-2 font-body text-[14px] sm:text-[15px] text-cream/90 mb-5">
               <div className="flex justify-between anim-slide-up" style={{ animationDelay: "0.15s" }}>
                 <span>Time bonus</span><span className="px-font text-[11px] text-mint pt-0.5">+{stats.timeBonus}</span>
@@ -621,7 +697,14 @@ export default function GameCanvas(props: Props) {
               </div>
             </div>
             {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
-            <button className="btn8 gold w-full !py-2.5 text-xs sm:text-sm" onClick={() => props.onNext(stats.score, engineRef.current?.lives ?? 1, stats.coins)}>
+            <button
+              className="btn8 gold w-full !py-2.5 text-xs sm:text-sm hover:scale-[1.02] transition-transform"
+              onClick={() => {
+                audio.unlock();
+                audio.select();
+                props.onNext(stats.score, engineRef.current?.lives ?? 1, stats.coins);
+              }}
+            >
               Next World →
             </button>
             <div className="mt-3.5 pt-2.5 border-t border-[#123043] flex items-center justify-center">
@@ -652,7 +735,14 @@ export default function GameCanvas(props: Props) {
         <div className="fixed inset-0 bg-[#23080d]/90 backdrop-blur-[3px] flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
           <div className="panel8 anim-pop px-5 sm:px-8 py-5 sm:py-7 w-[min(400px,94vw)] max-h-[88vh] overflow-y-auto no-scrollbar text-center my-auto shadow-2xl" style={{ borderColor: "#ff5a5f", borderWidth: 4 }}>
             <div className="px-font text-[18px] sm:text-[24px] text-coral title-shadow mb-2">GAME OVER</div>
-            <div className="font-body text-xs sm:text-sm text-cream/60 mb-4">Paws down, but heroes always rise again.</div>
+            <div className="font-body text-xs sm:text-sm text-cream/60 mb-3">Paws down, but heroes always rise again.</div>
+
+            {/* Pro-Tip Box */}
+            <div className="mb-4 p-2.5 rounded bg-[#071620]/80 border border-[#4a1a0a] text-cream/75 text-[11px] font-body leading-snug text-left">
+              <span className="text-gold font-semibold mr-1">💡</span>
+              {LEVEL_TIPS[levelIdx] || "Tip: Stomp enemies from above and watch out for hazards!"}
+            </div>
+
             <div className="flex justify-center gap-8 mb-5 font-body">
               <div>
                 <div className="px-font text-[8px] text-mint mb-1">SCORE</div>
@@ -665,7 +755,7 @@ export default function GameCanvas(props: Props) {
             </div>
             {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
             <div className="flex flex-col gap-2.5">
-              <button className="btn8 gold !py-2.5 text-xs sm:text-sm" onClick={retryLevel}>Retry World {levelIdx + 1}</button>
+              <button className="btn8 gold !py-2.5 text-xs sm:text-sm hover:scale-[1.02] transition-transform" onClick={retryLevel}>Retry World {levelIdx + 1}</button>
               <button className="btn8 dark !py-2 text-xs" onClick={props.onExit}>Back to Map</button>
             </div>
           </div>
