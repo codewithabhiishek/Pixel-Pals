@@ -299,8 +299,9 @@ export default function FeedbackModal({ open, onClose, context }: FeedbackModalP
         } else {
           throw new Error(data.message || "Failed to dispatch feedback.");
         }
-      } catch (err: any) {
-        setErrorMessage(err.message || "Could not send. Please check your internet connection.");
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Could not send. Please check your internet connection.";
+        setErrorMessage(msg);
         setStatus("error");
       }
     },

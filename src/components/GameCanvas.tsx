@@ -63,6 +63,16 @@ const FullscreenIcon = ({ isFull }: { isFull: boolean }) => (
   </svg>
 );
 
+// True ONLY for mobile, iPads, iPhones, and Android touch devices
+// On laptops and desktops, this returns false so touch d-pad is NOT shown
+function isMobileOrTabletDevice(): boolean {
+  if (typeof window === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  const isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isCoarseOnly = window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(pointer: fine)").matches;
+  return isMobileUA || isCoarseOnly;
+}
+
 export default function GameCanvas(props: Props) {
   const { level, levelIdx, audio, scanlines = true, touchMode = "auto" } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -123,16 +133,6 @@ export default function GameCanvas(props: Props) {
       window.visualViewport?.removeEventListener("resize", updateEnvironment);
     };
   }, []);
-
-  // True ONLY for mobile, iPads, iPhones, and Android touch devices
-  // On laptops and desktops, this returns false so touch d-pad is NOT shown
-  const isMobileOrTabletDevice = () => {
-    if (typeof window === "undefined") return false;
-    const ua = navigator.userAgent || "";
-    const isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const isCoarseOnly = window.matchMedia("(pointer: coarse)").matches && !window.matchMedia("(pointer: fine)").matches;
-    return isMobileUA || isCoarseOnly;
-  };
 
   const showTouchControls = touchMode === "on" || (touchMode === "auto" && isMobileOrTabletDevice());
 

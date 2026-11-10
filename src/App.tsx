@@ -337,7 +337,7 @@ export default function App() {
     audio.playMusic(null);
   };
 
-  const handleNext = (score: number, lives: number) => {
+  const handleNext = (score: number, lives: number, _coins?: number) => {
     setSave((s) => {
       const cleared = [...s.cleared];
       cleared[levelIdx] = true;
