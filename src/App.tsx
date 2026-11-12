@@ -6,20 +6,19 @@ import { CHARACTERS, getCharacter, type CharacterDef } from "./game/characters";
 const GameCanvas = lazy(() => import("./components/GameCanvas"));
 const FeedbackModal = lazy(() => import("./components/FeedbackModal"));
 
-import { validateSaveData, DEFAULT_SAVE, type SaveData } from "./lib/scoring";
-
-/* ---------------- save data ---------------- */
-const SAVE_KEY = "emberfox_save_v2";
-
-function loadSave(): SaveData {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY) ?? localStorage.getItem("emberfox_save_v1");
-    if (!raw) return DEFAULT_SAVE;
-    return validateSaveData(JSON.parse(raw));
-  } catch {
-    return DEFAULT_SAVE;
-  }
-}
+import { type SaveData } from "./lib/scoring";
+import { haptics } from "./lib/hapticsService";
+import {
+  DEFAULT_PROFILE_ID,
+  getActiveProfileId,
+  setActiveProfileId,
+  loadProfileSave,
+  saveProfileData,
+  getAvailableProfiles,
+  getProfileSummary,
+  deleteProfileData,
+  sanitizeProfileId,
+} from "./lib/storageService";
 
 /* ---------------- SVG icons ---------------- */
 const PlayIcon = () => (
@@ -284,7 +283,8 @@ const FloatingIsland = ({ onPet }: { onPet?: () => void }) => {
 type Screen = "menu" | "select" | "levels" | "game";
 
 export default function App() {
-  const [save, setSave] = useState<SaveData>(loadSave);
+  const [activeProfileId, setActiveProfile] = useState<string>(getActiveProfileId);
+  const [save, setSave] = useState<SaveData>(() => loadProfileSave(getActiveProfileId()));
   const [screen, setScreen] = useState<Screen>("menu");
   const [selectReturn, setSelectReturn] = useState<"menu" | "levels">("menu");
   const [levelIdx, setLevelIdx] = useState(0);
@@ -304,8 +304,32 @@ export default function App() {
   const hero = getCharacter(save.char);
 
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* storage unavailable */ }
-  }, [save]);
+    saveProfileData(save, activeProfileId);
+  }, [save, activeProfileId]);
+
+  const switchProfile = useCallback((profileId: string) => {
+    const safeId = sanitizeProfileId(profileId);
+    // Persist current save before switching
+    saveProfileData(save, activeProfileId);
+    setActiveProfileId(safeId);
+    setActiveProfile(safeId);
+    setSave(loadProfileSave(safeId));
+    audio.unlock();
+    audio.select();
+    haptics.select();
+  }, [save, activeProfileId, audio]);
+
+  const deleteProfile = useCallback((profileId: string) => {
+    const safeId = sanitizeProfileId(profileId);
+    if (safeId === DEFAULT_PROFILE_ID) return;
+    deleteProfileData(safeId);
+    haptics.delete();
+    if (activeProfileId === safeId) {
+      setActiveProfileId(DEFAULT_PROFILE_ID);
+      setActiveProfile(DEFAULT_PROFILE_ID);
+      setSave(loadProfileSave(DEFAULT_PROFILE_ID));
+    }
+  }, [activeProfileId]);
 
   useEffect(() => { audio.setSfx(save.sfx); audio.setMusic(save.music); }, [save.sfx, save.music, audio]);
   useEffect(() => () => audio.destroy(), [audio]);
@@ -465,6 +489,9 @@ export default function App() {
           clearedCount={clearedCount}
           audio={audio}
           isFullscreen={isFullscreen}
+          activeProfileId={activeProfileId}
+          onSwitchProfile={switchProfile}
+          onDeleteProfile={deleteProfile}
           onStart={gotoLevels}
           onHeroes={() => gotoSelect("menu")}
           onHelp={() => setShowHelp(true)}
@@ -518,6 +545,9 @@ export default function App() {
 function MenuScreen(props: {
   save: SaveData; hero: CharacterDef; clearedCount: number; audio: AudioEngine;
   isFullscreen: boolean;
+  activeProfileId: string;
+  onSwitchProfile: (id: string) => void;
+  onDeleteProfile: (id: string) => void;
   onStart: () => void; onHeroes: () => void; onHelp: () => void;
   onOpenFeedback: () => void;
   onToggleSfx: () => void; onToggleMusic: () => void;
@@ -525,6 +555,9 @@ function MenuScreen(props: {
   onToggleFullscreen: () => void;
 }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [customProfileInput, setCustomProfileInput] = useState("");
+  const availableProfiles = getAvailableProfiles();
 
   return (
     <div
@@ -592,10 +625,25 @@ function MenuScreen(props: {
 
       {/* Quick Settings Bar at Top */}
       <div className="relative z-20 w-full max-w-6xl mx-auto px-3 sm:px-6 pt-2 sm:pt-4 flex items-center justify-between gap-2 shrink-0">
-        <div className="flex items-center gap-1.5 sm:gap-2.5 bg-[#071620]/90 border-2 border-[#123043] rounded-md px-2 sm:px-3.5 py-1 sm:py-1.5 backdrop-blur-[2px] shadow-[0_3px_0_#071620] shrink-0">
-          <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-[1px] bg-gold animate-pulse" />
-          <span className="px-font text-[6.5px] sm:text-[8px] text-mint tracking-wider">HI-SCORE</span>
-          <span className="px-font text-[9.5px] sm:text-[13px] text-gold tracking-widest">{String(props.save.high).padStart(6, "0")}</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 bg-[#071620]/90 border-2 border-[#123043] rounded-md px-2 sm:px-3.5 py-1 sm:py-1.5 backdrop-blur-[2px] shadow-[0_3px_0_#071620] shrink-0">
+            <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-[1px] bg-gold animate-pulse" />
+            <span className="px-font text-[6.5px] sm:text-[8px] text-mint tracking-wider">HI-SCORE</span>
+            <span className="px-font text-[9.5px] sm:text-[13px] text-gold tracking-widest">{String(props.save.high).padStart(6, "0")}</span>
+          </div>
+
+          {/* Isolated Player Profile Switcher */}
+          <button
+            type="button"
+            onClick={() => { haptics.tap(); setProfileMenuOpen(true); }}
+            className="panel8 !px-2 sm:!px-3 !py-1 sm:!py-1.5 flex items-center gap-1.5 text-xs text-cream/90 hover:text-gold cursor-pointer transition-colors focus-arcade active:translate-y-0.5"
+            title="Switch isolated player save slot (multi-user data isolation)"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-mint shrink-0" />
+            <span className="px-font text-[6.5px] sm:text-[7.5px] uppercase tracking-wider truncate max-w-[84px] sm:max-w-[120px]">
+              {props.activeProfileId.replace(/-/g, " ")}
+            </span>
+          </button>
         </div>
 
         {/* Toolbar Toggles - single sleek line on mobile, full labels on larger screens */}
@@ -832,6 +880,113 @@ function MenuScreen(props: {
           <span>Speedrun • Retro 2D Canvas</span>
         </div>
       </div>
+
+      {/* Multi-User Isolated Profile Slot Modal */}
+      {profileMenuOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-[#050f17]/80 backdrop-blur-[2px] flex items-center justify-center p-4"
+          onClick={() => setProfileMenuOpen(false)}
+        >
+          <div
+            className="panel8 w-full max-w-md bg-[#0b1f2c] border-2 border-[#1d4258] p-4 sm:p-5 shadow-[0_8px_0_#071620] space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[#123043] pb-3">
+              <div>
+                <h2 className="px-font text-[10px] sm:text-[11px] text-gold tracking-wider">PLAYER SAVE SLOTS</h2>
+                <p className="font-body text-xs text-cream/65 mt-1">
+                  Isolated storage per player — switch without overwriting progress.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { haptics.tap(); setProfileMenuOpen(false); }}
+                className="panel8 !px-2 !py-1 text-xs text-cream/70 hover:text-gold cursor-pointer"
+                aria-label="Close save slot modal"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              {availableProfiles.map((pid) => {
+                const summary = getProfileSummary(pid);
+                const isActive = pid === props.activeProfileId;
+                return (
+                  <div
+                    key={pid}
+                    className={`flex items-center justify-between gap-2 p-2.5 rounded border-2 transition-all ${
+                      isActive
+                        ? "bg-[#123043] border-gold/80 shadow-[0_2px_0_#071620]"
+                        : "bg-[#071620]/80 border-[#123043] hover:border-mint/50"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        props.onSwitchProfile(pid);
+                        setProfileMenuOpen(false);
+                      }}
+                      className="flex-1 text-left flex items-center justify-between gap-2 cursor-pointer"
+                    >
+                      <div>
+                        <div className="px-font text-[8px] sm:text-[9px] text-cream uppercase flex items-center gap-1.5">
+                          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-mint inline-block" />}
+                          <span>{pid.replace(/-/g, " ")}</span>
+                        </div>
+                        <div className="font-body text-[11px] text-cream/60 mt-0.5">
+                          Worlds: {summary.clearedCount}/5 • Best: {String(summary.high).padStart(6, "0")}
+                        </div>
+                      </div>
+                      {isActive && (
+                        <span className="px-font text-[7px] text-[#0b1f2c] bg-gold px-1.5 py-0.5 rounded">ACTIVE</span>
+                      )}
+                    </button>
+
+                    {pid !== DEFAULT_PROFILE_ID && (
+                      <button
+                        type="button"
+                        onClick={() => props.onDeleteProfile(pid)}
+                        className="px-2 py-1 rounded bg-[#183a4f] hover:bg-red-500/30 text-cream/60 hover:text-red-300 text-xs cursor-pointer transition-colors"
+                        title={`Delete save slot ${pid}`}
+                      >
+                        🗑
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <form
+              className="flex items-center gap-2 pt-2 border-t border-[#123043]"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (customProfileInput.trim()) {
+                  props.onSwitchProfile(customProfileInput.trim());
+                  setCustomProfileInput("");
+                  setProfileMenuOpen(false);
+                }
+              }}
+            >
+              <input
+                type="text"
+                value={customProfileInput}
+                onChange={(e) => setCustomProfileInput(e.target.value)}
+                maxLength={24}
+                placeholder="New player name (e.g. alex)..."
+                className="flex-1 bg-[#071620] border-2 border-[#123043] focus:border-mint/70 rounded px-2.5 py-1.5 font-body text-xs text-cream placeholder:text-cream/35 outline-none"
+              />
+              <button
+                type="submit"
+                className="btn8 btn8-mint !py-1.5 !px-3 px-font text-[8px] cursor-pointer shrink-0"
+              >
+                + SLOT
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

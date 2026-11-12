@@ -7,7 +7,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Vitest](https://img.shields.io/badge/Vitest-23_Passed-729B1B?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-32_Passed-729B1B?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Vulnerabilities](https://img.shields.io/badge/Vulnerabilities-0_Passed-10b981?style=for-the-badge&logo=shield&logoColor=white)](https://github.com/codewithabhiishek/Pixel-Pals)
+[![Portfolio](https://img.shields.io/badge/Portfolio-abhiishek.is--a.dev-0284c7?style=for-the-badge&logo=safari&logoColor=white)](https://abhiishek.is-a.dev/)
 [![License](https://img.shields.io/badge/License-MIT-ffd23f?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -37,7 +39,9 @@
 | **Roster** | 4 Distinct Animal Champions | Fox (Balanced), Bear (Fortitude), Frog (High Jump), Hare (Sonic Speed) |
 | **World Progression** | 5 Handcrafted Realms + Boss Finale | Dynamic parallax layers, falling snow/ash particles, and hazard tiles |
 | **Boss Battle** | Magmor the Ember King (3 Phases) | Skid-brakes, shockwaves, fire waves, stalactites, and berserk aura |
-| **Testing & Security** | Vitest + Strix Defensive Standard | 23 unit tests, dual honeypots, rate limiting, and speed-trap defense |
+| **Save Slot Isolation** | Scoped Multi-Profile Storage | Isolated save slots (`player-1`, `player-2`, `guest`, custom) with lossless legacy migration |
+| **Tactile Haptics** | SSR-Safe Vibration Engine | Hardware haptic pulses (`jump`, `coin`, `stomp`, `hurt`, `win`, `select`) |
+| **Testing & Security** | Vitest + Strix Defensive Standard | 32 unit tests (100% pass), 0 npm vulnerabilities, dual honeypots, and rate limiting |
 
 <br/>
 
