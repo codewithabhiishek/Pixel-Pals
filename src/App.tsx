@@ -736,8 +736,8 @@ function MenuScreen(props: {
 
             {/* 4. Short Nostalgic Description */}
             <p className="font-body text-cream/80 text-[11px] sm:text-sm mt-1.5 sm:mt-3 max-w-sm sm:max-w-md leading-relaxed">
-              Run, leap, and stomp through 5 handcrafted retro worlds to defeat{" "}
-              <span className="text-gold font-semibold">Magmor, the Ember King</span>.
+              Run, leap, and stomp through {LEVELS.length} handcrafted retro worlds to defeat{" "}
+              <span className="text-gold font-semibold">Magmor, the Ember King</span> and conquer the cosmic realms.
             </p>
 
             {/* Mobile Mascot Island (centered on smaller phones only, md+ uses right column) */}
@@ -840,7 +840,7 @@ function MenuScreen(props: {
         <div className="hidden lg:flex items-center gap-2 font-body text-[10.5px] sm:text-[11px] text-cream/40 flex-1 justify-start">
           <span>Pixel Pals: Adventure Run</span>
           <span className="text-cream/20">•</span>
-          <span className="text-gold/70 font-mono text-[9px] tracking-wide">5 WORLDS</span>
+          <span className="text-gold/70 font-mono text-[9px] tracking-wide">{LEVELS.length} WORLDS</span>
         </div>
 
         {/* Center: BUILT BY ABHISHEK + SUGGESTIONS + Tagline */}

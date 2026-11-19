@@ -21,7 +21,7 @@
 
 **Zero external engines. Zero static audio files. 100% custom-crafted Canvas 2D delta physics and procedural Web Audio chiptune synthesis.**
 
-[🕹️ Launch Game](https://pixelpals-game.vercel.app/) • [🦊 Hero Roster](#-playable-heroes) • [🗺️ 5 Worlds](#️-the-5-handcrafted-worlds) • [🔥 Boss Showdown](#-the-magmor-boss-showdown) • [🎵 Audio Synthesizer](#-procedural-chiptune-synthesizer) • [🕹️ Controls](#️-controls--input-ergonomics) • [🛡️ Strix Security](#️-defensive-engineering--strix-security) • [🛠️ Setup](#️-getting-started-locally)
+[🕹️ Launch Game](https://pixelpals-game.vercel.app/) • [🦊 Hero Roster](#-playable-heroes) • [🗺️ 7 Worlds](#️-the-7-handcrafted-worlds) • [🔥 Boss Showdown](#-the-magmor-boss-showdown) • [🎵 Audio Synthesizer](#-procedural-chiptune-synthesizer) • [🕹️ Controls](#️-controls--input-ergonomics) • [🛡️ Strix Security](#️-defensive-engineering--strix-security) • [🛠️ Setup](#️-getting-started-locally)
 
 ---
 
@@ -37,7 +37,7 @@
 | **Gaze Tracking** | Dynamic 360° Vector Tracking | Ember tracks cursor & touch drags; enemies track player position in real-time |
 | **Audio Architecture** | 100% Procedural Web Audio API | Zero `.mp3`/`.wav` downloads; procedural oscillators (Square, Saw, Triangle, Noise) |
 | **Roster** | 4 Distinct Animal Champions | Fox (Balanced), Bear (Fortitude), Frog (High Jump), Hare (Sonic Speed) |
-| **World Progression** | 5 Handcrafted Realms + Boss Finale | Dynamic parallax layers, falling snow/ash particles, and hazard tiles |
+| **World Progression** | 7 Handcrafted Realms + Boss Finale | Dynamic parallax layers, falling snow/ash particles, and hazard tiles |
 | **Boss Battle** | Magmor the Ember King (3 Phases) | Skid-brakes, shockwaves, fire waves, stalactites, and berserk aura |
 | **Save Slot Isolation** | Scoped Multi-Profile Storage | Isolated save slots (`player-1`, `player-2`, `guest`, custom) with lossless legacy migration |
 | **Tactile Haptics** | SSR-Safe Vibration Engine | Hardware haptic pulses (`jump`, `coin`, `stomp`, `hurt`, `win`, `select`) |
@@ -120,11 +120,11 @@ Every hero features custom physics constants, distinct gravity multipliers, besp
 
 ---
 
-## 🗺️ The 5 Handcrafted Worlds
+## 🗺️ The 7 Handcrafted Worlds
 
 ```text
-[WORLD 1: Jade Grove] ──> [WORLD 2: Sunken Grotto] ──> [WORLD 3: Ember Dunes] ──> [WORLD 4: Frost Peak] ──> [WORLD 5: Magmor's Forge]
-     🌿 Canopy Grass           💎 Cavern Crystals           🏜️ Molten Dunes             ❄️ Slippery Ice            🌋 The Ember King
+[W1: Jade Grove] ──> [W2: Sunken Grotto] ──> [W3: Ember Dunes] ──> [W4: Frost Peak] ──> [W5: Magmor's Forge] ──> [W6: Aether Skyway] ──> [W7: Starfall Void]
+  🌿 Canopy Grass         💎 Crystals             🏜️ Molten Dunes        ❄️ Slippery Ice         🌋 The Ember King        ☁️ Cloud Citadel         ✨ Cosmic Shrine
 ```
 
 <br/>
@@ -153,6 +153,16 @@ Every hero features custom physics constants, distinct gravity multipliers, besp
 * **Atmosphere**: Bubbling magma lakes, falling ember embers, screen-shaking volcanic tremors.
 * **Hazards**: Sinking molten bridges, fire columns, anti-camping eruptions, and **Magmor**.
 * **Chiptune Key**: C# Minor, 155 BPM, frantic boss percussion and intense harmonic minor riffs.
+
+### ☁️ World 6: Aether Skyway (*Cloudbound Citadel*)
+* **Atmosphere**: High-altitude pastel skies, glowing cyan stone rims, breezy cloud parallax.
+* **Hazards**: Flying dive minions, wind lifts, wide aerial gaps, and precision cloud movers.
+* **Chiptune Key**: G Major, 138 BPM, soaring melodic arpeggios and bright wind vibes.
+
+### ✨ World 7: Starfall Void (*Cosmic Apex*)
+* **Atmosphere**: Deep space void, neon magenta rims, starlight dust motes, and plasma seams.
+* **Hazards**: Sinking void pits, orbital asteroid movers, laser spikes, and tight gauntlets.
+* **Chiptune Key**: B Minor, 120 BPM, ethereal crystalline echoes and cosmic bass pulses.
 
 <br/>
 
