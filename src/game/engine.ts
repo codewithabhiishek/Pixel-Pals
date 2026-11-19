@@ -218,7 +218,7 @@ export class Engine {
     this.popups = []; this.coinFx = []; this.movers = []; this.coinsOnMap = [];
     this.hearts = []; this.checkpoints = []; this.goal = null; this.boss = null;
     this.combo = 0; this.camX = 0; this.camY = 0; this.camLookX = 0; this.shake = 0; this.flash = 0;
-    this.state = "play"; this.stateTimer = 0;
+    this.state = "play"; this.stateTimer = 0; this.clearSent = false; this.bossTriggerX = Infinity;
     this.timeLeft = this.level.time;
     this.weather = [];
     this.rings = [];
@@ -389,7 +389,7 @@ export class Engine {
         const clearBonus = calculateClearBonus(this.opts.levelIdx);
         this.score += timeBonus + clearBonus;
         if (this.state === "clear") this.opts.onEvent({ type: "clear", score: this.score, coins: this.coins, lives: this.lives, timeBonus, clearBonus });
-        else this.opts.onEvent({ type: "victory", score: this.score, coins: this.coins });
+        else this.opts.onEvent({ type: "victory", score: this.score, coins: this.coins, lives: this.lives, timeBonus, clearBonus });
       }
     }
 
@@ -592,7 +592,10 @@ export class Engine {
 
       let hit: { c: number; cell: Cell } | null = null;
       for (let c = c0; c <= c1; c++) {
-        if (this.solid(c, r)) { const cell = this.cell(c, r)!; if (!hit || cell.t === 3 || cell.t === 4) hit = { c, cell }; }
+        if (this.solid(c, r)) {
+          const cell = this.cell(c, r);
+          if (cell && (!hit || cell.t === 3 || cell.t === 4)) hit = { c, cell };
+        }
       }
       if (hit) {
         p.y = (r + 1) * TILE + 0.01;
@@ -692,6 +695,8 @@ export class Engine {
     p.x = this.respawn.x;
     p.y = this.respawn.y;
     p.vx = 0; p.vy = 0;
+    p.onMover = -1;
+    p.grounded = false;
     if (p.power) { p.power = 0; p.h = 38; }
     p.invuln = 2.2;
     this.state = "play";
@@ -699,12 +704,16 @@ export class Engine {
     this.shots = [];
     this.timeLeft = this.level.time;
     this.camX = clamp(p.x - VIEW_W * 0.4, 0, this.levelWidth() - VIEW_W);
-    this.camY = 0;
+    this.camY = clamp(p.y - VIEW_H * 0.56, 0, Math.max(0, ROWS * TILE - VIEW_H));
     if (this.boss && this.boss.mode !== "sleep") this.audio.playMusic("boss");
   }
 
   private reachGoal() {
     if (this.state !== "play") return;
+    if (this.opts.levelIdx >= 6) {
+      this.winGame();
+      return;
+    }
     this.state = "clear";
     this.stateTimer = 0;
     this.clearSent = false;
@@ -776,8 +785,11 @@ export class Engine {
           // floor check
           const footC = Math.floor((e.vx > 0 ? e.x + e.w - 4 : e.x + 4) / T);
           const footR = Math.floor((e.y + e.h + 4) / T);
-          if (!this.solid(footC, footR) && e.vy === 0) e.vx = -e.vx;
-          if (this.solid(Math.floor((e.x + e.w / 2) / T), Math.floor((e.y + e.h + 2) / T))) {
+          if (!this.solid(footC, footR) && !this.oneWay(footC, footR) && e.vy === 0) e.vx = -e.vx;
+          if (
+            this.solid(Math.floor((e.x + e.w / 2) / T), Math.floor((e.y + e.h + 2) / T)) ||
+            this.oneWay(Math.floor((e.x + e.w / 2) / T), Math.floor((e.y + e.h + 2) / T))
+          ) {
             e.y = Math.floor((e.y + e.h) / T) * T - e.h - 0.01;
             e.vy = 0;
           }
@@ -785,7 +797,7 @@ export class Engine {
         }
       } else if (e.kind === "flyer") {
         if (this.opts.levelIdx >= 3) {
-          // Frost Peak & Forge dive-bombers: swoop down when player enters cone
+          // Frost Peak, Forge, Skyway & Void dive-bombers: swoop down when player enters cone
           const dx = p.x + p.w / 2 - e.x;
           if (Math.abs(dx) < 150 && p.y > e.ay && (e.diveTimer ?? 0) <= 0 && (e.diveState ?? 0) === 0) {
             e.diveTimer = 2.8;
@@ -799,6 +811,8 @@ export class Engine {
             if (e.y >= e.ay + 80 || e.y >= p.y - 10) e.diveState = 2;
           } else if (e.diveState === 2) {
             e.y -= 130 * dt;
+            const targetX = e.ax + Math.sin(e.t * e.speed) * 92 - e.w / 2;
+            e.x = lerp(e.x, targetX, 1 - Math.exp(-dt * 4));
             if (e.y <= e.ay) { e.y = e.ay; e.diveState = 0; }
           } else {
             e.x = e.ax + Math.sin(e.t * e.speed) * 92 - e.w / 2;
@@ -817,7 +831,7 @@ export class Engine {
         e.y += e.vy * dt;
         const footR = Math.floor((e.y + e.h + 2) / T);
         const cc = Math.floor((e.x + e.w / 2) / T);
-        if (this.solid(cc, footR) && e.vy >= 0) {
+        if ((this.solid(cc, footR) || this.oneWay(cc, footR)) && e.vy >= 0) {
           e.y = footR * T - e.h - 0.01;
           e.vy = 0;
           e.timer -= dt;
@@ -852,7 +866,7 @@ export class Engine {
       // contact with player
       if (this.state === "play" && this.overlapsPlayer(e)) this.resolveEnemyTouch(e);
     }
-    this.enemies = this.enemies.filter((e) => e.alive || e.squish > 0);
+    this.enemies = this.enemies.filter((e) => (e.alive || e.squish > 0) && e.y < (ROWS + 2) * T);
   }
 
   private updateBoss(b: Enemy, dt: number) {
@@ -1152,6 +1166,7 @@ export class Engine {
     if (p.invuln > 0 || this.state !== "play") return;
     if (p.power > 0) {
       p.power = 0;
+      p.y += 20;
       p.h = 38;
       p.invuln = 1.7;
       this.flash = 0.35;
@@ -1177,7 +1192,7 @@ export class Engine {
       }
       const cr = Math.floor((f.y + f.h) / T);
       const cc = Math.floor((f.x + f.w / 2) / T);
-      if (this.solid(cc, cr) && f.vy > 0) {
+      if ((this.solid(cc, cr) || this.oneWay(cc, cr)) && f.vy > 0) {
         f.y = cr * T - f.h - 0.01;
         f.vy = 0;
         f.walking = true;

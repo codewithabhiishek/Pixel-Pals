@@ -21,6 +21,7 @@ interface Props {
   onToggleScanlines?: () => void;
   onCycleTouchMode?: () => void;
   onNext: (score: number, lives: number, coins: number) => void;
+  onLevelCleared?: (levelIdx: number, score: number) => void;
   onExit: () => void;
   onRestartRun: () => void;
   onScore: (score: number) => void;
@@ -212,6 +213,7 @@ export default function GameCanvas(props: Props) {
           const newHigh = (e.score ?? 0) > props.highScore;
           setIsNewHigh(newHigh);
           props.onScore(e.score ?? 0);
+          props.onLevelCleared?.(levelIdx, e.score ?? 0);
           if (e.type === "victory") props.onVictory();
           setOv(e.type === "clear" ? "clear" : "victory");
         } else if (e.type === "gameover") {
@@ -243,9 +245,21 @@ export default function GameCanvas(props: Props) {
         return;
       }
       if (code === "Enter") {
-        if (overlayRef.current === "clear") props.onNext(engine.score, engine.lives, 0);
-        else if (overlayRef.current === "gameover") { engine.retry(); setOv("none"); }
-        else if (overlayRef.current === "pause") { engine.paused = false; setOv("none"); }
+        if (overlayRef.current === "clear") {
+          props.onNext(engine.score, engine.lives, 0);
+        } else if (overlayRef.current === "victory") {
+          if (props.levelIdx + 1 < (props.totalLevels ?? 7)) {
+            props.onNext(engine.score, engine.lives, 0);
+          } else {
+            props.onRestartRun();
+          }
+        } else if (overlayRef.current === "gameover") {
+          engine.retry();
+          setOv("none");
+        } else if (overlayRef.current === "pause") {
+          engine.paused = false;
+          setOv("none");
+        }
         return;
       }
       if (overlayRef.current !== "none") return;

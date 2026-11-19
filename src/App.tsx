@@ -381,6 +381,19 @@ export default function App() {
     setSave((s) => ({ ...s, high: Math.max(s.high, score) }));
   };
 
+  const handleLevelCleared = useCallback((idx: number, score: number) => {
+    setSave((s) => {
+      const cleared = [...s.cleared];
+      cleared[idx] = true;
+      return {
+        ...s,
+        cleared,
+        unlocked: Math.max(s.unlocked, Math.min(LEVELS.length, idx + 2)),
+        high: Math.max(s.high, score),
+      };
+    });
+  }, []);
+
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = useCallback(() => {
@@ -475,6 +488,7 @@ export default function App() {
             onExit={gotoLevels}
             onRestartRun={() => startLevel(0)}
             onScore={handleScore}
+            onLevelCleared={handleLevelCleared}
             onOpenFeedback={(ctx) => setFeedbackModal({ open: true, context: ctx })}
             onVictory={() =>
               setSave((s) => {
