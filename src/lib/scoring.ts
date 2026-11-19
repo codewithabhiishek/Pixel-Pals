@@ -15,10 +15,12 @@ export interface SaveData {
   touchMode: 'auto' | 'on' | 'off';
 }
 
+export const TOTAL_LEVELS = 7;
+
 export const DEFAULT_SAVE: SaveData = {
   high: 0,
   unlocked: 1,
-  cleared: [false, false, false, false, false],
+  cleared: Array(TOTAL_LEVELS).fill(false),
   sfx: true,
   music: true,
   char: 'ember',
@@ -86,11 +88,12 @@ export function validateSaveData(raw: unknown): SaveData {
     : 0;
 
   const unlocked = typeof p.unlocked === 'number' && Number.isFinite(p.unlocked)
-    ? Math.min(5, Math.max(1, Math.floor(p.unlocked)))
+    ? Math.min(TOTAL_LEVELS, Math.max(1, Math.floor(p.unlocked)))
     : 1;
 
-  const cleared = Array.isArray(p.cleared) && p.cleared.length === 5
-    ? (p.cleared.map(Boolean) as boolean[])
+  // Seamlessly migrate legacy save arrays (e.g. 5 worlds) up to TOTAL_LEVELS
+  const cleared = Array.isArray(p.cleared)
+    ? Array.from({ length: TOTAL_LEVELS }, (_, i) => (typeof p.cleared[i] === 'boolean' ? p.cleared[i] : false))
     : [...DEFAULT_SAVE.cleared];
 
   const char = typeof p.char === 'string' && CHARACTERS.some((c) => c.id === p.char)

@@ -85,7 +85,7 @@ describe('Multi-Profile Save Data Isolation', () => {
     const loaded = loadProfileSave(DEFAULT_PROFILE_ID);
     expect(loaded.high).toBe(4200);
     expect(loaded.unlocked).toBe(3);
-    expect(loaded.cleared).toEqual([true, true, false, false, false]);
+    expect(loaded.cleared).toEqual([true, true, false, false, false, false, false]);
   });
 
   it('protects default player-1 slot from deletion while allowing custom/guest slot deletion', () => {

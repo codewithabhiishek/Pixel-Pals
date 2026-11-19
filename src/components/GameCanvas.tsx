@@ -10,6 +10,7 @@ type Overlay = "none" | "pause" | "clear" | "gameover" | "victory";
 interface Props {
   level: LevelDef;
   levelIdx: number;
+  totalLevels?: number;
   initialScore: number;
   initialLives: number;
   char: CharacterDef;
@@ -333,6 +334,8 @@ export default function GameCanvas(props: Props) {
     2: "Tip: Quicksand slows you down — hold Shift or RUN to stay on top of the dunes.",
     3: "Tip: Ice reduces traction — tap the opposite direction briefly to brake faster.",
     4: "Tip: When Magmor jumps into the air, time your sprint underneath and stomp his crown when he lands!",
+    5: "Tip: Time your jumps carefully on moving cloud platforms — don't rush, watch the flyer patrols!",
+    6: "Tip: In the Starfall Void, look before you leap — some cosmic platforms require a running dash!",
   };
 
   const key = (k: "left" | "right" | "jump" | "run" | "down", v: boolean) => {
@@ -697,16 +700,25 @@ export default function GameCanvas(props: Props) {
               </div>
             </div>
             {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
-            <button
-              className="btn8 gold w-full !py-2.5 text-xs sm:text-sm hover:scale-[1.02] transition-transform"
-              onClick={() => {
-                audio.unlock();
-                audio.select();
-                props.onNext(stats.score, engineRef.current?.lives ?? 1, stats.coins);
-              }}
-            >
-              Next World →
-            </button>
+            {levelIdx + 1 < (props.totalLevels ?? 7) ? (
+              <button
+                className="btn8 gold w-full !py-2.5 text-xs sm:text-sm hover:scale-[1.02] transition-transform"
+                onClick={() => {
+                  audio.unlock();
+                  audio.select();
+                  props.onNext(stats.score, engineRef.current?.lives ?? 1, stats.coins);
+                }}
+              >
+                Next World →
+              </button>
+            ) : (
+              <button
+                className="btn8 gold w-full !py-2.5 text-xs sm:text-sm hover:scale-[1.02] transition-transform"
+                onClick={props.onRestartRun}
+              >
+                Complete Adventure! Play Again ★
+              </button>
+            )}
             <div className="mt-3.5 pt-2.5 border-t border-[#123043] flex items-center justify-center">
               <button
                 type="button"
@@ -777,10 +789,14 @@ export default function GameCanvas(props: Props) {
             />
           ))}
           <div className="panel8 anim-pop px-5 sm:px-8 py-5 sm:py-7 w-[min(460px,94vw)] max-h-[88vh] overflow-y-auto no-scrollbar text-center relative my-auto shadow-2xl" style={{ borderColor: "#ffc94d", borderWidth: 4 }}>
-            <div className="px-font text-[9px] sm:text-[11px] text-mint mb-2 tracking-widest">THE FORGE FALLS SILENT</div>
+            <div className="px-font text-[9px] sm:text-[11px] text-mint mb-2 tracking-widest">
+              {levelIdx === 4 ? "THE FORGE FALLS SILENT" : "COSMIC MASTERY ACHIEVED"}
+            </div>
             <div className="px-font text-[18px] sm:text-[26px] text-gold title-shadow mb-2">VICTORY!</div>
             <div className="font-body text-xs sm:text-sm text-cream/80 mb-5 leading-relaxed">
-              Magmor crumbles to cold stone. The Pixel Pals' journey blazes into legend — all five worlds are freed!
+              {levelIdx + 1 < (props.totalLevels ?? 7)
+                ? "Magmor crumbles to cold stone. A mysterious celestial rift opens above, revealing secret worlds beyond!"
+                : "The Pixel Pals' journey blazes into legend — all worlds across the cosmos are freed!"}
             </div>
             <div className="flex justify-center gap-8 mb-5 font-body">
               <div>
@@ -794,14 +810,29 @@ export default function GameCanvas(props: Props) {
             </div>
             {isNewHigh && <div className="px-font text-[10px] text-ember mb-4 anim-shimmer">NEW HIGH SCORE!</div>}
             <div className="flex flex-col gap-2.5">
-              <button className="btn8 gold !py-2.5 text-xs sm:text-sm" onClick={props.onRestartRun}>Play Adventure Again</button>
+              {levelIdx + 1 < (props.totalLevels ?? 7) ? (
+                <button
+                  className="btn8 gold !py-2.5 text-xs sm:text-sm hover:scale-[1.02] transition-transform"
+                  onClick={() => {
+                    audio.unlock();
+                    audio.select();
+                    props.onNext(stats.score, engineRef.current?.lives ?? 1, stats.coins);
+                  }}
+                >
+                  Enter World {levelIdx + 2} →
+                </button>
+              ) : (
+                <button className="btn8 gold !py-2.5 text-xs sm:text-sm" onClick={props.onRestartRun}>
+                  Play Adventure Again
+                </button>
+              )}
               <button
                 className="btn8 mint !py-2.5 text-xs sm:text-sm flex items-center justify-center gap-2"
                 onClick={() =>
                   props.onOpenFeedback?.({
-                    world: "All 5 Worlds Cleared",
+                    world: levelIdx + 1 >= (props.totalLevels ?? 7) ? "All Worlds Cleared" : `World ${levelIdx + 1} Cleared`,
                     score: stats.score,
-                    levelIdx: 4,
+                    levelIdx,
                     heroName: props.char.name,
                     note: "Game Victory!",
                   })

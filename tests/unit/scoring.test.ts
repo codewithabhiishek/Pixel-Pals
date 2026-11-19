@@ -6,6 +6,7 @@ import {
   calculateRank,
   validateSaveData,
   DEFAULT_SAVE,
+  TOTAL_LEVELS,
 } from '../../src/lib/scoring';
 
 describe('Game Scoring, Progression & Save Validation', () => {
@@ -26,6 +27,8 @@ describe('Game Scoring, Progression & Save Validation', () => {
       expect(calculateClearBonus(0)).toBe(1000); // World 1
       expect(calculateClearBonus(1)).toBe(2000); // World 2
       expect(calculateClearBonus(4)).toBe(5000); // World 5
+      expect(calculateClearBonus(5)).toBe(6000); // World 6
+      expect(calculateClearBonus(6)).toBe(7000); // World 7
     });
 
     it('safely handles negative or NaN indices', () => {
@@ -70,16 +73,28 @@ describe('Game Scoring, Progression & Save Validation', () => {
       expect(validateSaveData('corrupted string')).toEqual(DEFAULT_SAVE);
     });
 
-    it('validates and clamps unlocked level to [1, 5]', () => {
+    it(`validates and clamps unlocked level to [1, ${TOTAL_LEVELS}]`, () => {
       const valid = validateSaveData({ unlocked: 3, high: 5200 });
       expect(valid.unlocked).toBe(3);
       expect(valid.high).toBe(5200);
 
       const clampedHigh = validateSaveData({ unlocked: 99 });
-      expect(clampedHigh.unlocked).toBe(5);
+      expect(clampedHigh.unlocked).toBe(TOTAL_LEVELS);
 
       const clampedLow = validateSaveData({ unlocked: -10 });
       expect(clampedLow.unlocked).toBe(1);
+    });
+
+    it('migrates legacy 5-world save data gracefully up to TOTAL_LEVELS', () => {
+      const legacySave = {
+        unlocked: 5,
+        cleared: [true, true, true, true, true],
+      };
+      const migrated = validateSaveData(legacySave);
+      expect(migrated.cleared.length).toBe(TOTAL_LEVELS);
+      expect(migrated.cleared.slice(0, 5)).toEqual([true, true, true, true, true]);
+      expect(migrated.cleared[5]).toBe(false);
+      expect(migrated.cleared[6]).toBe(false);
     });
 
     it('preserves valid characters and defaults invalid character IDs', () => {

@@ -68,6 +68,20 @@ export const THEMES: Record<string, Theme> = {
     pipe: "#7a3b30", pipeDark: "#57291f", glow: "#ff8c3b",
     ambient: "ember", skyline: "forge", sun: null, icy: false, music: "forge",
   },
+  sky: {
+    sky: ["#3b5998", "#8b9dc3"], far: "#4a69bd", farAlt: "#6a89cc",
+    tile: "#57606f", tileDark: "#2f3542", rim: "#70a1ff",
+    brick: "#747d8c", brickDark: "#57606f", accent: "#eccc68", plat: "#7bed9f",
+    pipe: "#2ed573", pipeDark: "#1e90ff", glow: "#70a1ff",
+    ambient: "cloud", skyline: "peaks", sun: { color: "#ffffff", y: 70, size: 55 }, icy: false, music: "meadow",
+  },
+  cosmic: {
+    sky: ["#0b0c10", "#1f2833"], far: "#1f1d36", farAlt: "#3f3351",
+    tile: "#453c67", tileDark: "#2b2347", rim: "#e83a78",
+    brick: "#584b7a", brickDark: "#372b53", accent: "#00fff5", plat: "#7e62a3",
+    pipe: "#9b5de5", pipeDark: "#5c2b99", glow: "#00fff5",
+    ambient: "dust", skyline: "cave", sun: { color: "#e83a78", y: 90, size: 70 }, icy: false, music: "cave",
+  },
 };
 
 export interface MoverDef { c: number; r: number; axis: "x" | "y"; dist: number; speed: number; w: number }
@@ -361,4 +375,194 @@ function world5(): LevelDef {
   };
 }
 
-export const LEVELS: LevelDef[] = [world1(), world2(), world3(), world4(), world5()];
+/* ------------------------------------------------ World 6 ------------------------------------------------ */
+function world6(): LevelDef {
+  const g = new Grid(180);
+  // Floating sky islands high above the clouds
+  g.ground(0, 18);
+  g.ground(24, 38);
+  g.ground(44, 62);
+  g.ground(68, 86);
+  g.ground(92, 108);
+  g.ground(114, 134);
+  g.ground(142, 158);
+  g.ground(164, 179);
+
+  // Player start
+  g.put(3, 10, "P");
+  g.row(6, 9, 9, "o");
+  g.put(10, 8, "?"); g.put(11, 8, "Q"); g.put(12, 8, "?");
+  g.put(15, 10, "w");
+
+  // Sky leap 1
+  g.row(19, 21, 9, "="); g.row(19, 21, 7, "o");
+  g.put(26, 10, "w"); g.put(29, 8, "c");
+  g.put(32, 10, "b");
+  g.row(34, 36, 8, "B"); g.put(35, 8, "?");
+
+  // Checkpoint 1
+  g.put(45, 10, "C");
+  // Moving platform gap at cols 39-43 bridged by mover
+  g.put(50, 10, "s");
+  g.put(53, 7, "o"); g.put(54, 6, "o"); g.put(55, 7, "o");
+  g.put(54, 4, "f");
+  g.put(58, 10, "w"); g.put(60, 10, "^"); g.put(61, 10, "^");
+
+  // High Aether Cloud Steps
+  g.row(63, 65, 8, "="); g.row(63, 65, 6, "o");
+  g.put(70, 10, "s");
+  g.put(73, 8, "B"); g.put(74, 8, "Q"); g.put(75, 8, "B");
+  g.put(78, 10, "b");
+
+  // Secret High Roost with Heart
+  g.row(80, 84, 5, "="); g.put(82, 4, "H"); g.put(81, 4, "o"); g.put(83, 4, "o");
+  g.put(85, 3, "f");
+
+  // Aerial chasm with vertical mover
+  g.put(94, 10, "w"); g.put(98, 10, "s");
+  g.row(101, 104, 8, "="); g.row(101, 104, 7, "o");
+
+  // Checkpoint 2
+  g.put(115, 10, "C");
+  g.put(118, 10, "b");
+  g.put(121, 8, "?"); g.put(122, 8, "?");
+  g.put(125, 4, "f");
+  g.put(128, 10, "^"); g.put(129, 10, "^");
+  g.put(132, 10, "w");
+
+  // Sky bridges & movers
+  g.row(136, 139, 9, "="); g.row(136, 139, 7, "o");
+  g.put(144, 10, "s");
+  g.put(147, 8, "B"); g.put(148, 8, "?"); g.put(149, 8, "Q"); g.put(150, 8, "B");
+  g.put(153, 10, "b");
+  g.put(156, 4, "f");
+
+  // Stepping stones to the goal citadel
+  g.row(159, 161, 8, "="); g.row(160, 161, 6, "o");
+  g.put(165, 10, "#"); g.fill(167, 167, 9, 10, "#"); g.fill(169, 169, 8, 10, "#");
+  g.fill(171, 178, 7, 10, "#");
+  g.put(165, 9, "o"); g.put(167, 8, "o"); g.put(169, 7, "o");
+  g.put(172, 6, "o"); g.put(173, 6, "o");
+  g.put(175, 6, "G");
+
+  return {
+    name: "Aether Skyway", sub: "Cloudbound ruins above the storm", theme: "sky",
+    time: 320, speed: 1.28, cols: 180, rows: g.done(),
+    movers: [
+      { c: 39, r: 9, axis: "x", dist: 4, speed: 1.2, w: 3 },
+      { c: 87, r: 8, axis: "y", dist: 2, speed: 1.1, w: 3 },
+      { c: 137, r: 9, axis: "x", dist: 4, speed: 1.35, w: 3 },
+      { c: 160, r: 8, axis: "y", dist: 1.5, speed: 1.25, w: 3 },
+    ],
+  };
+}
+
+/* ------------------------------------------------ World 7 ------------------------------------------------ */
+function world7(): LevelDef {
+  const g = new Grid(200);
+  // Cosmic void platforms with plasma seams
+  g.ground(0, 16);
+  g.ground(20, 36);
+  g.ground(42, 60);
+  g.ground(66, 84);
+  g.ground(90, 110);
+  g.ground(116, 136);
+  g.ground(142, 162);
+  g.ground(168, 199);
+
+  // Plasma/void seams
+  g.lava(17, 19);
+  g.lava(37, 41);
+  g.lava(61, 65);
+  g.lava(85, 89);
+  g.lava(111, 115);
+  g.lava(137, 141);
+  g.lava(163, 167);
+
+  // Player start
+  g.put(3, 10, "P");
+  g.row(6, 8, 9, "o");
+  g.put(10, 8, "?"); g.put(11, 8, "Q"); g.put(12, 8, "?");
+  g.put(14, 10, "w");
+
+  // Asteroid jump 1
+  g.put(22, 10, "s");
+  g.row(25, 27, 9, "="); g.row(25, 27, 7, "o");
+  g.put(30, 8, "c");
+  g.put(33, 10, "b");
+  g.put(35, 8, "B"); g.put(36, 8, "?");
+
+  // Checkpoint 1
+  g.put(44, 10, "C");
+  g.put(47, 10, "^"); g.put(48, 10, "^");
+  g.put(51, 10, "s");
+  g.put(54, 4, "f");
+  g.put(57, 8, "Q");
+
+  // Orbital step bridges & Secret Heart 1
+  g.row(68, 70, 9, "="); g.row(69, 70, 7, "o");
+  g.put(72, 10, "w"); g.put(74, 10, "b");
+  g.row(76, 79, 6, "="); g.put(77, 5, "o"); g.put(78, 5, "H");
+  g.put(81, 10, "s");
+  g.put(83, 10, "^"); g.put(84, 10, "^");
+
+  // Deep void navigation
+  g.put(92, 10, "b");
+  g.put(95, 8, "B"); g.put(96, 8, "?"); g.put(97, 8, "B");
+  g.put(100, 4, "f");
+  g.put(103, 10, "w"); g.put(105, 10, "s");
+  g.row(107, 109, 9, "="); g.row(107, 109, 7, "o");
+
+  // Checkpoint 2
+  g.put(118, 10, "C");
+  g.put(121, 10, "b");
+  g.put(124, 8, "Q");
+  g.put(127, 10, "^"); g.put(128, 10, "^");
+  g.put(130, 4, "f");
+  g.put(134, 10, "s");
+
+  // Cosmic gauntlet with dual flyers and tight hops
+  g.row(144, 146, 9, "="); g.row(144, 146, 7, "o");
+  g.put(148, 10, "b");
+  g.put(151, 8, "B"); g.put(152, 8, "?"); g.put(153, 8, "Q"); g.put(154, 8, "B");
+  g.put(154, 6, "H"); // Secret cache
+  g.put(157, 3, "f");
+  g.put(159, 10, "^"); g.put(160, 10, "^");
+  g.put(161, 10, "s");
+
+  // Ascending Celestial Pillars to the Grand Finale
+  g.row(170, 172, 9, "="); g.row(170, 172, 7, "o");
+  g.put(174, 10, "b");
+  g.put(178, 10, "#");
+  g.fill(180, 181, 9, 10, "#"); g.put(180, 8, "o"); g.put(181, 8, "o");
+  g.fill(183, 184, 8, 10, "#"); g.put(183, 7, "o"); g.put(184, 7, "o");
+  g.fill(186, 187, 7, 10, "#"); g.put(186, 6, "o"); g.put(187, 6, "o");
+  g.fill(189, 198, 6, 10, "#");
+
+  // Grand Cosmic Goal Shrine
+  g.put(190, 5, "o"); g.put(191, 5, "o"); g.put(192, 5, "o");
+  g.put(194, 5, "G");
+
+  return {
+    name: "Starfall Void", sub: "Cosmic gauntlet at the edge of space", theme: "cosmic",
+    time: 360, speed: 1.4, cols: 200, rows: g.done(),
+    movers: [
+      { c: 38, r: 9, axis: "x", dist: 3, speed: 1.3, w: 3 },
+      { c: 62, r: 9, axis: "x", dist: 3, speed: 1.35, w: 3 },
+      { c: 86, r: 8, axis: "y", dist: 2, speed: 1.2, w: 3 },
+      { c: 112, r: 9, axis: "x", dist: 3, speed: 1.4, w: 3 },
+      { c: 138, r: 8, axis: "y", dist: 2, speed: 1.3, w: 3 },
+      { c: 164, r: 9, axis: "x", dist: 3, speed: 1.5, w: 3 },
+    ],
+  };
+}
+
+export const LEVELS: LevelDef[] = [
+  world1(),
+  world2(),
+  world3(),
+  world4(),
+  world5(),
+  world6(),
+  world7(),
+];

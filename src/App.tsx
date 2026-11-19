@@ -365,7 +365,7 @@ export default function App() {
     setSave((s) => {
       const cleared = [...s.cleared];
       cleared[levelIdx] = true;
-      return { ...s, cleared, unlocked: Math.max(s.unlocked, Math.min(5, levelIdx + 2)) };
+      return { ...s, cleared, unlocked: Math.max(s.unlocked, Math.min(LEVELS.length, levelIdx + 2)) };
     });
     setRunScore(score);
     setRunLives(Math.max(1, lives));
@@ -457,6 +457,7 @@ export default function App() {
             key={runKey}
             level={LEVELS[levelIdx]}
             levelIdx={levelIdx}
+            totalLevels={LEVELS.length}
             initialScore={runScore}
             initialLives={runLives}
             char={hero}
@@ -472,11 +473,15 @@ export default function App() {
             onScore={handleScore}
             onOpenFeedback={(ctx) => setFeedbackModal({ open: true, context: ctx })}
             onVictory={() =>
-              setSave((s) => ({
-                ...s,
-                unlocked: 5,
-                cleared: s.cleared.map((c, i) => (i === 4 ? true : c)),
-              }))
+              setSave((s) => {
+                const cleared = [...s.cleared];
+                cleared[levelIdx] = true;
+                return {
+                  ...s,
+                  cleared,
+                  unlocked: Math.max(s.unlocked, Math.min(LEVELS.length, levelIdx + 2)),
+                };
+              })
             }
           />
         </Suspense>
@@ -801,7 +806,7 @@ function MenuScreen(props: {
           {/* Worlds Cleared Arcade Tally */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <span className="px-font text-[6px] sm:text-[7px] text-mint tracking-wider">
-              WORLDS ({props.clearedCount}/5)
+              WORLDS ({props.clearedCount}/{LEVELS.length})
             </span>
             <div className="flex items-center gap-1 sm:gap-1.5">
               {LEVELS.map((lvl, i) => {
@@ -935,7 +940,7 @@ function MenuScreen(props: {
                           <span>{pid.replace(/-/g, " ")}</span>
                         </div>
                         <div className="font-body text-[11px] text-cream/60 mt-0.5">
-                          Worlds: {summary.clearedCount}/5 • Best: {String(summary.high).padStart(6, "0")}
+                          Worlds: {summary.clearedCount}/{LEVELS.length} • Best: {String(summary.high).padStart(6, "0")}
                         </div>
                       </div>
                       {isActive && (
@@ -1238,6 +1243,8 @@ const WORLD_METADATA: Record<number, {
   2: { biome: "SUNBAKED DUNES", icon: "🏜️", hazards: ["Quicksand", "Spikers"] },
   3: { biome: "FROST PEAKS", icon: "❄️", hazards: ["Slippery Ice", "Bouncers"] },
   4: { biome: "MAGMA FORGE", icon: "🌋", hazards: ["Lava", "Titan Boss"] },
+  5: { biome: "AETHER SKYWAY", icon: "☁️", hazards: ["Cloud Chasms", "Wind Lifts", "Flyers"] },
+  6: { biome: "STARFALL VOID", icon: "✨", hazards: ["Plasma Seams", "Asteroids", "Orbital Spikes"] },
 };
 
 function LevelSelect(props: {
@@ -1288,7 +1295,7 @@ function LevelSelect(props: {
 
       {/* World Cards */}
       <div className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-8 py-6 my-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-full max-w-6xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 w-full max-w-7xl">
           {LEVELS.map((lv, i) => {
             const th = THEMES[lv.theme];
             const meta = WORLD_METADATA[i] || WORLD_METADATA[0];

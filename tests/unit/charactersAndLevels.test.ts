@@ -26,8 +26,8 @@ describe('Characters & Levels Configuration', () => {
   });
 
   describe('World Levels', () => {
-    it('contains all 5 handcrafted worlds with valid theme mappings', () => {
-      expect(LEVELS.length).toBe(5);
+    it('contains all 7 handcrafted worlds with valid theme mappings', () => {
+      expect(LEVELS.length).toBe(7);
 
       for (const level of LEVELS) {
         expect(level.name).toBeTruthy();
@@ -38,10 +38,22 @@ describe('Characters & Levels Configuration', () => {
       }
     });
 
-    it('verifies World 5 contains the final boss fight', () => {
+    it('verifies World 5 contains the Magmor titan boss fight', () => {
       const world5 = LEVELS[4];
       expect(world5.hasBoss).toBe(true);
       expect(world5.rows.some((row) => row.includes('z'))).toBe(true);
+    });
+
+    it('verifies World 6 (Aether Skyway) and World 7 (Starfall Void) layouts', () => {
+      const world6 = LEVELS[5];
+      expect(world6.name).toBe('Aether Skyway');
+      expect(world6.theme).toBe('sky');
+      expect(world6.rows.some((row) => row.includes('G'))).toBe(true);
+
+      const world7 = LEVELS[6];
+      expect(world7.name).toBe('Starfall Void');
+      expect(world7.theme).toBe('cosmic');
+      expect(world7.rows.some((row) => row.includes('G'))).toBe(true);
     });
   });
 });
