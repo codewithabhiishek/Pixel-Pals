@@ -6,7 +6,7 @@ import { CHARACTERS, getCharacter, type CharacterDef } from "./game/characters";
 const GameCanvas = lazy(() => import("./components/GameCanvas"));
 const FeedbackModal = lazy(() => import("./components/FeedbackModal"));
 
-import { type SaveData } from "./lib/scoring";
+import { isWorldUnlocked, type SaveData } from "./lib/scoring";
 import { haptics } from "./lib/hapticsService";
 import {
   DEFAULT_PROFILE_ID,
@@ -359,6 +359,10 @@ export default function App() {
     setRunKey((k) => k + 1);
     setScreen("game");
     audio.playMusic(null);
+    setSave((s) => ({
+      ...s,
+      unlocked: Math.max(s.unlocked, Math.min(LEVELS.length, i + 1)),
+    }));
   };
 
   const handleNext = (score: number, lives: number, _coins?: number) => {
@@ -528,7 +532,7 @@ export default function App() {
           onHeroes={() => gotoSelect("levels")}
           onPick={(i) => {
             audio.unlock();
-            if (i < save.unlocked) startLevel(i);
+            if (isWorldUnlocked(i, save)) startLevel(i);
             else { audio.bump(); setDenied(i); window.setTimeout(() => setDenied(-1), 350); }
           }}
         />
@@ -1299,7 +1303,7 @@ function LevelSelect(props: {
           {LEVELS.map((lv, i) => {
             const th = THEMES[lv.theme];
             const meta = WORLD_METADATA[i] || WORLD_METADATA[0];
-            const unlocked = i < props.save.unlocked;
+            const unlocked = isWorldUnlocked(i, props.save);
             const cleared = props.save.cleared[i];
             const isDenied = props.denied === i;
 

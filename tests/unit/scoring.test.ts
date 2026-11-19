@@ -7,6 +7,7 @@ import {
   validateSaveData,
   DEFAULT_SAVE,
   TOTAL_LEVELS,
+  isWorldUnlocked,
 } from '../../src/lib/scoring';
 
 describe('Game Scoring, Progression & Save Validation', () => {
@@ -95,12 +96,35 @@ describe('Game Scoring, Progression & Save Validation', () => {
       expect(migrated.cleared.slice(0, 5)).toEqual([true, true, true, true, true]);
       expect(migrated.cleared[5]).toBe(false);
       expect(migrated.cleared[6]).toBe(false);
+      expect(migrated.unlocked).toBe(6);
     });
 
     it('preserves valid characters and defaults invalid character IDs', () => {
       expect(validateSaveData({ char: 'bramble' }).char).toBe('bramble');
       expect(validateSaveData({ char: 'zip' }).char).toBe('zip');
       expect(validateSaveData({ char: 'hacked_char' }).char).toBe('ember');
+    });
+  });
+
+  describe('isWorldUnlocked', () => {
+    it('always unlocks World 1 (index 0)', () => {
+      expect(isWorldUnlocked(0, DEFAULT_SAVE)).toBe(true);
+    });
+
+    it('unlocks World 6 when World 5 is cleared even if unlocked is lower', () => {
+      const state = {
+        ...DEFAULT_SAVE,
+        unlocked: 5,
+        cleared: [true, true, true, true, true, false, false],
+      };
+      expect(isWorldUnlocked(5, state)).toBe(true);
+      expect(isWorldUnlocked(6, state)).toBe(false);
+    });
+
+    it('rejects indices beyond TOTAL_LEVELS', () => {
+      const state = { ...DEFAULT_SAVE, unlocked: 7, cleared: Array(7).fill(true) };
+      expect(isWorldUnlocked(7, state)).toBe(false);
+      expect(isWorldUnlocked(99, state)).toBe(false);
     });
   });
 });

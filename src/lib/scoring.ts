@@ -87,14 +87,21 @@ export function validateSaveData(raw: unknown): SaveData {
     ? Math.min(10_000_000, Math.floor(p.high))
     : 0;
 
-  const unlocked = typeof p.unlocked === 'number' && Number.isFinite(p.unlocked)
-    ? Math.min(TOTAL_LEVELS, Math.max(1, Math.floor(p.unlocked)))
-    : 1;
-
   // Seamlessly migrate legacy save arrays (e.g. 5 worlds) up to TOTAL_LEVELS
   const cleared = Array.isArray(p.cleared)
     ? Array.from({ length: TOTAL_LEVELS }, (_, i) => (typeof p.cleared[i] === 'boolean' ? p.cleared[i] : false))
     : [...DEFAULT_SAVE.cleared];
+
+  // Derive unlocked level: ensure any cleared world automatically unlocks the next world
+  let unlocked = typeof p.unlocked === 'number' && Number.isFinite(p.unlocked)
+    ? Math.min(TOTAL_LEVELS, Math.max(1, Math.floor(p.unlocked)))
+    : 1;
+
+  for (let i = 0; i < cleared.length; i++) {
+    if (cleared[i]) {
+      unlocked = Math.max(unlocked, Math.min(TOTAL_LEVELS, i + 2));
+    }
+  }
 
   const char = typeof p.char === 'string' && CHARACTERS.some((c) => c.id === p.char)
     ? p.char
@@ -112,4 +119,17 @@ export function validateSaveData(raw: unknown): SaveData {
     scanlines: p.scanlines !== false,
     touchMode,
   };
+}
+
+/**
+ * Determines whether a world is unlocked for play.
+ * World 1 is always unlocked. World N is unlocked if either:
+ * - The player's unlocked level is >= N, OR
+ * - The player has cleared the preceding world (World N-1)
+ */
+export function isWorldUnlocked(idx: number, save: SaveData): boolean {
+  if (idx <= 0) return true;
+  if (idx >= TOTAL_LEVELS) return false;
+  if (idx < save.unlocked) return true;
+  return Boolean(save.cleared && save.cleared[idx - 1]);
 }
