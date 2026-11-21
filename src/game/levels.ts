@@ -235,14 +235,16 @@ function world3(): LevelDef {
   g.ground(41, 44, 10);
   g.lava(45, 48); // Quicksand trench 2
   g.put(44, 9, "S"); // Launch to Mesa 2
+  g.row(45, 48, 6, "o"); // Arc of guide coins
 
-  // Mesa 2: elevated desert ridge with Checkpoint 1
-  g.ground(49, 68, 7);
+  // Mesa 2: elevated desert ridge with Checkpoint 1 (ends at 66 to leave clean gap for mover)
+  g.ground(49, 66, 7);
 
   // Sandstone canyon with moving ferry
   g.ground(74, 86, 9);
   g.lava(87, 92); // Great Quicksand Chasm
   g.put(86, 8, "S"); // Launch to High Ridge
+  g.row(87, 91, 5, "o"); // Arc of guide coins
 
   // Mesa 3: High canyon ridge with Checkpoint 2
   g.ground(93, 116, 7);
@@ -251,11 +253,13 @@ function world3(): LevelDef {
   g.ground(122, 138, 8);
   g.lava(139, 143);
   g.put(138, 7, "S"); // Launch to final victory terrace
+  g.row(139, 142, 5, "o"); // Arc of guide coins
   g.ground(144, 163, 7);
 
   // Player start & items
   g.put(3, 10, "P");
   g.row(6, 9, 9, "o");
+  g.row(21, 24, 6, "o"); // Guide coins over quicksand 1
   g.put(11, 7, "?"); g.put(12, 7, "Q"); g.put(13, 7, "?");
   g.put(15, 7, "b");
   g.put(27, 6, "w");
@@ -297,8 +301,8 @@ function world3(): LevelDef {
     name: "Ember Dunes", sub: "Sunset sands over molten seams", theme: "dunes",
     time: 260, speed: 1.18, cols: 164, rows: g.done(),
     movers: [
-      { c: 68, r: 8, axis: "x", dist: 3, speed: 1.2, w: 3 },
-      { c: 117, r: 8, axis: "y", dist: 1.5, speed: 1.1, w: 3 },
+      { c: 69, r: 8, axis: "x", dist: 2, speed: 1.2, w: 3 },
+      { c: 118, r: 8, axis: "y", dist: 1.5, speed: 1.1, w: 3 },
     ],
   };
 }
@@ -376,11 +380,11 @@ function world4(): LevelDef {
     name: "Frostbite Peaks", sub: "Every step is a slide", theme: "frost",
     time: 270, speed: 1.28, cols: 176, rows: g.done(),
     movers: [
-      { c: 15, r: 10, axis: "x", dist: 3, speed: 1.2, w: 3 },
-      { c: 33, r: 8, axis: "x", dist: 3, speed: 1.25, w: 3 },
-      { c: 75, r: 6, axis: "x", dist: 3, speed: 1.3, w: 3 },
-      { c: 117, r: 8, axis: "y", dist: 1.5, speed: 1.2, w: 3 },
-      { c: 141, r: 9, axis: "x", dist: 3, speed: 1.35, w: 3 },
+      { c: 16, r: 10, axis: "x", dist: 1.5, speed: 1.2, w: 3 },
+      { c: 34, r: 8, axis: "x", dist: 1.5, speed: 1.25, w: 3 },
+      { c: 76, r: 6, axis: "x", dist: 1.5, speed: 1.3, w: 3 },
+      { c: 118, r: 8, axis: "y", dist: 1.5, speed: 1.2, w: 3 },
+      { c: 142, r: 9, axis: "x", dist: 1.5, speed: 1.35, w: 3 },
     ],
   };
 }
@@ -457,11 +461,12 @@ function world6(): LevelDef {
   g.put(16, 8, "w");
 
   // Sky leap 1 over open sky to Cloud Tower 1 (elevated at row 7-8)
-  g.row(19, 21, 8, "="); g.row(19, 21, 6, "o");
+  g.row(19, 22, 6, "o"); // Aerial coin arc guiding the moving cloud ferry
   g.fill(24, 34, 7, 8, "#");
-  g.put(27, 5, "c");
-  g.put(31, 6, "b");
+  g.put(27, 6, "b"); // Cloud Bouncer
+  g.put(31, 6, "w");
   g.put(34, 6, "S"); // Cloud Spring Pad launching up to High Citadel!
+  g.row(35, 38, 3, "o"); // Spring arc guide coins
 
   // High Cloud Citadel at row 4-5!
   g.fill(39, 56, 4, 5, "#");
@@ -472,6 +477,7 @@ function world6(): LevelDef {
   g.put(54, 1, "f");
 
   // Aerial descent via elevator mover down to Mid-Air Cloud Stepping Stones
+  g.row(62, 64, 7, "="); g.put(63, 6, "o"); // Stepping cloud between elevator and Island 4
   g.fill(66, 76, 8, 9, "#");
   g.put(70, 7, "s");
   g.put(74, 7, "w");
@@ -486,9 +492,11 @@ function world6(): LevelDef {
   g.put(101, 5, "^"); g.put(102, 5, "^");
   g.put(105, 5, "w");
   g.put(108, 5, "S"); // Cloud Spring Pad launching across the Grand Aerial Rift!
+  g.row(109, 113, 3, "o"); // Spring arc guide coins
 
   // Grand Sky Sanctum (rising cloud steps)
   g.row(114, 117, 6, "="); g.row(114, 117, 4, "o");
+  g.row(124, 126, 6, "="); g.put(125, 5, "o"); // Stepping cloud between elevator and Sanctum
   g.fill(128, 142, 6, 7, "#");
   g.put(131, 5, "s");
   g.put(134, 3, "f");
@@ -507,9 +515,9 @@ function world6(): LevelDef {
     name: "Aether Skyway", sub: "Cloudbound ruins above the storm", theme: "sky",
     time: 280, speed: 1.48, cols: 180, rows: g.done(),
     movers: [
-      { c: 20, r: 8, axis: "x", dist: 3, speed: 1.25, w: 3 },
-      { c: 58, r: 5, axis: "y", dist: 2.5, speed: 1.2, w: 3 },
-      { c: 80, r: 7, axis: "x", dist: 5, speed: 1.35, w: 3 },
+      { c: 20, r: 8, axis: "x", dist: 2.5, speed: 1.25, w: 3 },
+      { c: 58, r: 5, axis: "y", dist: 2.0, speed: 1.2, w: 3 },
+      { c: 82, r: 7, axis: "x", dist: 4.5, speed: 1.35, w: 3 },
       { c: 120, r: 6, axis: "y", dist: 2.0, speed: 1.3, w: 3 },
     ],
   };
@@ -537,9 +545,9 @@ function world7(): LevelDef {
 
   // Asteroid Beta (floats at row 6)
   g.fill(21, 33, 6, 7, "#");
-  g.put(24, 5, "c");
+  g.put(24, 5, "b"); // Cosmic Bouncer
   g.put(28, 5, "s");
-  g.put(31, 5, "b");
+  g.put(31, 5, "w");
 
   // Asteroid Gamma (High Space Orbit at row 4)
   g.fill(39, 53, 4, 5, "#");
@@ -580,10 +588,14 @@ function world7(): LevelDef {
   g.put(139, 4, "w");
   g.put(142, 4, "Q");
 
+  // Cosmic Stepping Bridge connecting Asteroid Eta to Spring Launcher
+  g.row(145, 147, 6, "="); g.put(146, 5, "o");
+
   // Cosmic Spring Launcher Asteroid (row 7)
   g.fill(149, 159, 7, 8, "#");
   g.put(152, 6, "s");
   g.put(158, 6, "S"); // Cosmic Spring Launch Pad!
+  g.row(160, 163, 4, "o"); // Soaring cosmic coin arc
 
   // Celestial Steps leading up to the Grand Space Apex
   g.fill(165, 171, 8, 9, "#"); g.put(167, 7, "o"); g.put(168, 7, "o");
@@ -597,11 +609,11 @@ function world7(): LevelDef {
     name: "Starfall Void", sub: "Cosmic gauntlet at the edge of space", theme: "cosmic",
     time: 260, speed: 1.58, cols: 200, rows: g.done(),
     movers: [
-      { c: 16, r: 7, axis: "x", dist: 3, speed: 1.35, w: 3 },
+      { c: 17, r: 7, axis: "x", dist: 2.5, speed: 1.35, w: 3 },
       { c: 35, r: 5, axis: "y", dist: 2.0, speed: 1.25, w: 3 },
-      { c: 54, r: 6, axis: "x", dist: 3, speed: 1.4, w: 3 },
+      { c: 55, r: 6, axis: "x", dist: 2.5, speed: 1.4, w: 3 },
       { c: 77, r: 5, axis: "y", dist: 2.0, speed: 1.3, w: 3 },
-      { c: 99, r: 7, axis: "x", dist: 3, speed: 1.45, w: 3 },
+      { c: 99, r: 7, axis: "x", dist: 2.5, speed: 1.45, w: 3 },
       { c: 121, r: 5, axis: "y", dist: 2.0, speed: 1.35, w: 3 },
     ],
   };

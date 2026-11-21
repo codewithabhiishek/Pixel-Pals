@@ -2387,10 +2387,11 @@ export class Engine {
       ctx.fillStyle = "#12262e";
       ctx.beginPath(); ctx.arc(cx - 6, e.y + 10, 2.6, 0, Math.PI * 2); ctx.arc(cx + 6, e.y + 10, 2.6, 0, Math.PI * 2); ctx.fill();
       // pipe
+      const bottomY = Math.min(ROWS * TILE, pipeY + 120);
       ctx.fillStyle = th.pipe;
-      ctx.fillRect(cx - 22, pipeY, 44, ROWS * TILE - pipeY);
+      ctx.fillRect(cx - 22, pipeY, 44, bottomY - pipeY);
       ctx.fillStyle = th.pipeDark;
-      ctx.fillRect(cx + 12, pipeY, 10, ROWS * TILE - pipeY);
+      ctx.fillRect(cx + 12, pipeY, 10, bottomY - pipeY);
       ctx.fillStyle = th.pipe;
       rr(ctx, cx - 26, pipeY - 4, 52, 16, 4);
       ctx.fill();

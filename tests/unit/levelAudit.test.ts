@@ -98,6 +98,26 @@ describe('Comprehensive Level Geometry & Gameplay Audit', () => {
           }
         }
       });
+
+      it('verifies all spring launch pads are placed on solid ground', () => {
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < level.cols; c++) {
+            if (level.rows[r][c] === 'S') {
+              const belowTile = level.rows[r + 1]?.[c];
+              expect(['#', '=']).toContain(belowTile);
+            }
+          }
+        }
+      });
+
+      it('verifies movers do not directly overlap static platform tiles', () => {
+        for (const mover of level.movers) {
+          for (let dc = 0; dc < mover.w; dc++) {
+            const c = mover.c + dc;
+            expect(level.rows[mover.r]?.[c]).not.toBe('=');
+          }
+        }
+      });
     });
   });
 });
