@@ -1709,6 +1709,80 @@ export class Engine {
         }
         ctx.fillStyle = th.farAlt;
       }
+    } else if (th.skyline === "clouds") {
+      // Aether Skyway: billowing high-altitude cloud summits and floating sky pillars
+      ctx.fillStyle = th.far;
+      for (let i = -1; i < 9; i++) {
+        const x = i * 260 - (f1 % 260);
+        const cy = base - 20 - oy * 0.08;
+        ctx.beginPath();
+        ctx.arc(x + 70, cy, 55, 0, Math.PI * 2);
+        ctx.arc(x + 130, cy - 25, 70, 0, Math.PI * 2);
+        ctx.arc(x + 190, cy, 60, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = th.farAlt;
+      for (let i = -1; i < 10; i++) {
+        const x = i * 200 - (f2 % 200);
+        const cy = base + 10 - oy * 0.16;
+        ctx.beginPath();
+        ctx.arc(x + 50, cy, 45, 0, Math.PI * 2);
+        ctx.arc(x + 100, cy - 20, 55, 0, Math.PI * 2);
+        ctx.arc(x + 150, cy, 40, 0, Math.PI * 2);
+        ctx.fill();
+        // floating sky temple pillars
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.fillRect(x + 90, cy - 90, 20, 70);
+        ctx.fillRect(x + 85, cy - 96, 30, 8);
+        ctx.fillStyle = th.farAlt;
+      }
+    } else if (th.skyline === "cosmos") {
+      // Starfall Void: deep space nebula rings, distant ringed planet, and asteroid belts
+      ctx.fillStyle = "rgba(100, 40, 160, 0.25)";
+      ctx.beginPath();
+      ctx.ellipse(VIEW_W * 0.5, VIEW_H * 0.45, 260, 140, Math.PI * 0.2, 0, Math.PI * 2);
+      ctx.fill();
+      // distant giant ringed cosmic planet
+      const px = ((VIEW_W * 0.75 - f1 * 0.1) % (VIEW_W + 300)) - 100;
+      const py = 90 - oy * 0.05;
+      ctx.fillStyle = "#e83a78";
+      ctx.beginPath();
+      ctx.arc(px, py, 42, 0, Math.PI * 2);
+      ctx.fill();
+      // planet ring
+      ctx.strokeStyle = "rgba(0, 255, 245, 0.65)";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.ellipse(px, py, 75, 18, Math.PI * -0.25, 0, Math.PI * 2);
+      ctx.stroke();
+      // parallax floating asteroid fragments
+      ctx.fillStyle = th.far;
+      for (let i = -1; i < 10; i++) {
+        const x = i * 220 - (f1 % 220);
+        const y = 80 + rnd(i * 17 + 3) * 160 - oy * 0.08;
+        const s = 14 + rnd(i + 5) * 22;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + s, y - s * 0.4);
+        ctx.lineTo(x + s * 1.3, y + s * 0.6);
+        ctx.lineTo(x + s * 0.3, y + s * 1.1);
+        ctx.lineTo(x - s * 0.4, y + s * 0.5);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.fillStyle = th.farAlt;
+      for (let i = -1; i < 12; i++) {
+        const x = i * 160 - (f2 % 160);
+        const y = 60 + rnd(i * 23 + 1) * 180 - oy * 0.14;
+        const s = 10 + rnd(i * 7) * 16;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + s, y - s * 0.5);
+        ctx.lineTo(x + s * 1.2, y + s * 0.7);
+        ctx.lineTo(x - s * 0.2, y + s * 0.8);
+        ctx.closePath();
+        ctx.fill();
+      }
     } else {
       // forge
       const glowG = ctx.createLinearGradient(0, VIEW_H - 130, 0, VIEW_H);

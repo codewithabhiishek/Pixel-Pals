@@ -10,7 +10,7 @@
 export const TILE = 40;
 export const ROWS = 14;
 
-export type MusicTheme = "menu" | "meadow" | "cave" | "dunes" | "frost" | "forge" | "boss" | null;
+export type MusicTheme = "menu" | "meadow" | "cave" | "dunes" | "frost" | "forge" | "sky" | "cosmic" | "boss" | null;
 
 export interface Theme {
   sky: [string, string];
@@ -27,7 +27,7 @@ export interface Theme {
   pipeDark: string;
   glow: string;
   ambient: "cloud" | "dust" | "sand" | "snow" | "ember";
-  skyline: "hills" | "cave" | "dunes" | "peaks" | "forge";
+  skyline: "hills" | "cave" | "dunes" | "peaks" | "forge" | "clouds" | "cosmos";
   sun: { color: string; y: number; size: number } | null;
   icy?: boolean;
   windUpdraft?: boolean;
@@ -73,18 +73,20 @@ export const THEMES: Record<string, Theme> = {
     ambient: "ember", skyline: "forge", sun: null, icy: false, hasEruptions: true, music: "forge",
   },
   sky: {
-    sky: ["#3b5998", "#8b9dc3"], far: "#4a69bd", farAlt: "#6a89cc",
+    sky: ["#254b77", "#6b9bd1"], far: "#356499", farAlt: "#4c7eb8",
     tile: "#57606f", tileDark: "#2f3542", rim: "#70a1ff",
     brick: "#747d8c", brickDark: "#57606f", accent: "#eccc68", plat: "#7bed9f",
     pipe: "#2ed573", pipeDark: "#1e90ff", glow: "#70a1ff",
-    ambient: "cloud", skyline: "peaks", sun: { color: "#ffffff", y: 70, size: 55 }, icy: false, windUpdraft: true, music: "meadow",
+    ambient: "cloud", skyline: "clouds", sun: { color: "#ffffff", y: 65, size: 55 },
+    icy: false, windUpdraft: true, music: "sky",
   },
   cosmic: {
-    sky: ["#0b0c10", "#1f2833"], far: "#1f1d36", farAlt: "#3f3351",
+    sky: ["#070814", "#161938"], far: "#1a1c3d", farAlt: "#2e2354",
     tile: "#453c67", tileDark: "#2b2347", rim: "#e83a78",
     brick: "#584b7a", brickDark: "#372b53", accent: "#00fff5", plat: "#7e62a3",
     pipe: "#9b5de5", pipeDark: "#5c2b99", glow: "#00fff5",
-    ambient: "dust", skyline: "cave", sun: { color: "#e83a78", y: 90, size: 70 }, icy: false, lowGravity: true, music: "cave",
+    ambient: "dust", skyline: "cosmos", sun: { color: "#e83a78", y: 85, size: 70 },
+    icy: false, lowGravity: true, music: "cosmic",
   },
 };
 
@@ -218,54 +220,85 @@ function world2(): LevelDef {
 /* ------------------------------------------------ World 3 ------------------------------------------------ */
 function world3(): LevelDef {
   const g = new Grid(164);
-  g.ground(0, 18); g.ground(22, 40); g.ground(45, 66); g.ground(71, 92); g.ground(97, 118); g.ground(123, 140); g.ground(146, 163);
-  g.lava(19, 21); g.lava(41, 44); g.lava(93, 96); g.lava(141, 145);
-  // Desert Spring Launch Pads over quicksand gaps
-  g.put(17, 10, "S");
-  g.put(40, 10, "S");
-  g.put(92, 10, "S");
-  g.put(140, 10, "S");
+  // Undulating sand dunes rising and falling into quicksand valleys
+  // Dune 1: rolling sand crest
+  g.ground(0, 7, 11);
+  g.ground(8, 13, 9);
+  g.ground(14, 17, 8);
+  g.ground(18, 20, 10);
+  g.lava(21, 24); // Quicksand trench 1
+  g.put(20, 9, "S"); // Launch over quicksand onto high Mesa 1
 
+  // Mesa 1: elevated sandstone plateau (row 7)
+  g.ground(25, 36, 7);
+  g.ground(37, 40, 9);
+  g.ground(41, 44, 10);
+  g.lava(45, 48); // Quicksand trench 2
+  g.put(44, 9, "S"); // Launch to Mesa 2
+
+  // Mesa 2: elevated desert ridge with Checkpoint 1
+  g.ground(49, 68, 7);
+
+  // Sandstone canyon with moving ferry
+  g.ground(74, 86, 9);
+  g.lava(87, 92); // Great Quicksand Chasm
+  g.put(86, 8, "S"); // Launch to High Ridge
+
+  // Mesa 3: High canyon ridge with Checkpoint 2
+  g.ground(93, 116, 7);
+
+  // Stepped dunes to final oasis
+  g.ground(122, 138, 8);
+  g.lava(139, 143);
+  g.put(138, 7, "S"); // Launch to final victory terrace
+  g.ground(144, 163, 7);
+
+  // Player start & items
   g.put(3, 10, "P");
   g.row(6, 9, 9, "o");
-  g.put(11, 8, "?"); g.put(12, 8, "Q"); g.put(13, 8, "?");
-  g.put(16, 10, "b");
-  g.put(24, 10, "^"); g.put(25, 10, "^");
-  g.put(28, 10, "w");
-  g.row(31, 32, 10, "="); g.row(31, 32, 7, "o");
-  g.put(36, 8, "c");
-  g.row(42, 43, 10, "="); g.row(42, 43, 7, "o");
-  g.put(46, 10, "C");
-  g.put(50, 10, "s"); g.row(52, 54, 9, "o");
-  g.put(57, 10, "b");
-  g.put(60, 7, "?"); g.put(61, 7, "Q");
-  g.put(63, 8, "B"); g.put(64, 8, "?"); g.put(65, 8, "B");
-  g.put(68, 4, "f");
-  g.put(74, 10, "w"); g.put(76, 10, "w");
-  g.put(80, 10, "^"); g.put(81, 10, "^");
-  g.put(83, 10, "="); g.row(84, 85, 8, "="); g.row(84, 85, 7, "o"); g.put(85, 6, "H");
-  g.put(90, 8, "c");
-  g.fill(94, 94, 9, 11, "#"); g.put(94, 8, "o");
-  g.put(98, 10, "C");
-  g.put(103, 10, "s"); g.put(106, 10, "b");
-  g.put(109, 8, "B"); g.put(110, 8, "?"); g.put(111, 8, "Q"); g.put(112, 8, "B");
-  g.put(115, 10, "w");
-  g.put(120, 7, "o");
-  g.put(126, 10, "^"); g.put(127, 10, "^");
-  g.put(130, 10, "w");
-  g.put(133, 8, "?"); g.put(136, 4, "f");
-  g.put(142, 7, "o"); g.put(144, 7, "o");
-  g.put(150, 10, "b");
-  g.fill(156, 163, 10, 10, "#");
-  g.put(157, 9, "o"); g.put(158, 9, "o");
-  g.put(159, 9, "G");
+  g.put(11, 7, "?"); g.put(12, 7, "Q"); g.put(13, 7, "?");
+  g.put(15, 7, "b");
+  g.put(27, 6, "w");
+  g.put(31, 6, "b");
+  g.put(34, 5, "c");
+  g.put(38, 8, "^");
+
+  // Checkpoint 1
+  g.put(50, 6, "C");
+  g.put(54, 6, "s");
+  g.row(56, 58, 5, "o");
+  g.put(61, 4, "f");
+  g.put(64, 6, "b");
+
+  // Canyon stepping & secret heart
+  g.put(77, 8, "w");
+  g.row(79, 82, 5, "="); g.put(80, 4, "o"); g.put(81, 4, "H");
+
+  // Checkpoint 2
+  g.put(95, 6, "C");
+  g.put(99, 6, "s");
+  g.put(102, 4, "?"); g.put(103, 4, "Q");
+  g.put(106, 6, "b");
+  g.put(109, 6, "^"); g.put(110, 6, "^");
+  g.put(113, 6, "w");
+
+  // Pre-oasis dunes
+  g.put(126, 7, "w");
+  g.put(130, 7, "s");
+  g.put(133, 4, "f");
+  g.put(135, 7, "b");
+
+  // Goal plateau
+  g.row(148, 152, 6, "o");
+  g.put(155, 6, "w");
+  g.put(159, 6, "G");
+
   return {
     name: "Ember Dunes", sub: "Sunset sands over molten seams", theme: "dunes",
     time: 260, speed: 1.18, cols: 164, rows: g.done(),
     movers: [
-      { c: 67, r: 9, axis: "x", dist: 3, speed: 1.15, w: 3 },
-      { c: 119, r: 9, axis: "y", dist: 1.5, speed: 1.0, w: 3 },
-      { c: 141, r: 9, axis: "x", dist: 4, speed: 1.3, w: 3 },
+      { c: 68, r: 8, axis: "x", dist: 3, speed: 1.2, w: 3 },
+      { c: 117, r: 8, axis: "y", dist: 1.5, speed: 1.1, w: 3 },
     ],
   };
 }
@@ -273,55 +306,81 @@ function world3(): LevelDef {
 /* ------------------------------------------------ World 4 ------------------------------------------------ */
 function world4(): LevelDef {
   const g = new Grid(176);
-  g.ground(0, 14); g.ground(18, 30); g.ground(35, 50); g.ground(57, 72); g.ground(77, 88);
-  g.ground(93, 110); g.ground(115, 126); g.ground(131, 146); g.ground(151, 175);
+  // Mountain Ascent & Glacier Slide
+  // Foot of mountain
+  g.ground(0, 15, 11);
+
+  // Ascent Terrace 1
+  g.ground(19, 32, 9);
+
+  // Ascent Terrace 2
+  g.ground(37, 50, 7);
+
+  // Mountain Summit Peak (High glacier at row 5!)
+  g.ground(55, 74, 5);
+
+  // The Glacier Slide (Sinuous stepped descent down the summit)
+  g.ground(80, 95, 7);
+  g.ground(99, 116, 8);
+  g.ground(122, 140, 9);
+  g.ground(146, 175, 10);
+
+  // Player start at mountain base
   g.put(3, 10, "P");
   g.row(6, 8, 9, "o");
   g.put(10, 8, "?"); g.put(11, 8, "Q"); g.put(12, 8, "?");
   g.put(13, 10, "w");
-  g.put(16, 9, "="); g.put(16, 8, "o");
-  g.put(20, 5, "f"); g.put(23, 10, "^"); g.put(24, 10, "^");
-  g.put(27, 10, "w");
-  g.put(32, 9, "="); g.put(33, 7, "="); g.put(32, 8, "o"); g.put(33, 6, "o");
-  g.put(37, 10, "s");
-  g.put(40, 8, "B"); g.put(41, 8, "Q"); g.put(42, 8, "B");
-  g.put(45, 10, "b"); g.row(47, 49, 9, "o");
-  g.put(52, 7, "o"); g.put(54, 7, "o"); g.put(53, 3, "f");
-  g.put(58, 10, "C");
-  g.put(62, 10, "s");
-  // wooden traction grip platform so players can brake safely on ice
-  g.row(63, 64, 9, "="); g.row(64, 65, 7, "="); g.row(64, 65, 6, "o");
-  g.put(68, 10, "w");
-  g.fill(71, 72, 9, 10, "#"); g.put(70, 7, "o"); g.put(72, 7, "o");
-  g.put(80, 10, "s"); g.put(83, 10, "b"); g.row(85, 87, 9, "o");
-  g.put(90, 9, "="); g.put(91, 7, "="); g.put(90, 8, "o"); g.put(91, 6, "o");
-  g.put(94, 10, "C");
-  // balanced spikes on ice bridge
-  g.row(97, 102, 9, "="); g.put(98, 8, "o"); g.put(100, 10, "^"); g.put(101, 10, "^");
-  g.put(99, 7, "o"); g.put(100, 7, "o");
-  g.put(105, 10, "w"); g.put(107, 4, "f");
-  g.put(108, 8, "?");
-  g.put(118, 10, "s"); g.put(121, 10, "s");
-  g.put(121, 9, "="); g.row(122, 124, 7, "="); g.put(122, 6, "o"); g.put(124, 6, "o"); g.put(123, 6, "H");
-  g.put(128, 3, "f");
-  g.put(134, 10, "^"); g.put(135, 10, "^");
-  g.put(138, 10, "b");
-  g.put(141, 8, "B"); g.put(142, 8, "?"); g.put(143, 8, "B");
-  g.put(145, 10, "w");
-  g.put(148, 9, "="); g.put(149, 7, "="); g.put(148, 8, "o"); g.put(149, 6, "o");
-  g.put(155, 5, "f"); g.put(158, 10, "s"); g.put(160, 4, "f"); g.put(163, 10, "w");
-  g.row(166, 168, 9, "o");
-  g.put(170, 8, "?");
-  g.fill(171, 175, 10, 10, "#");
-  g.put(173, 9, "G");
+
+  // Ascent step 1
+  g.put(22, 8, "w");
+  g.put(25, 6, "f");
+  g.put(28, 8, "^");
+
+  // Ascent step 2
+  g.put(39, 6, "s");
+  g.put(42, 4, "?"); g.put(43, 4, "Q");
+  g.put(46, 6, "b");
+
+  // Mountain Summit Peak with Checkpoint 1
+  g.put(57, 4, "C");
+  g.put(60, 4, "s");
+  g.put(63, 2, "f");
+  g.put(66, 4, "b");
+  g.put(69, 4, "^"); g.put(70, 4, "^");
+  g.put(72, 4, "w");
+
+  // Downhill Glacier Slide with braking platforms
+  g.row(82, 85, 6, "="); g.put(83, 5, "o"); g.put(84, 5, "o");
+  g.put(88, 6, "w");
+  g.put(91, 6, "^");
+
+  // Checkpoint 2 on mid-slide terrace
+  g.put(101, 7, "C");
+  g.put(104, 7, "b");
+  g.row(107, 110, 5, "="); g.put(108, 4, "H"); // Secret Heart at high braking plank
+  g.put(113, 7, "s");
+
+  // Lower slide shelf
+  g.put(125, 8, "w");
+  g.put(129, 5, "f");
+  g.put(133, 8, "s");
+  g.put(137, 8, "^");
+
+  // Goal valley terrace
+  g.put(150, 9, "b");
+  g.row(155, 158, 8, "o");
+  g.put(162, 9, "w");
+  g.put(172, 9, "G");
+
   return {
     name: "Frostbite Peaks", sub: "Every step is a slide", theme: "frost",
     time: 270, speed: 1.28, cols: 176, rows: g.done(),
     movers: [
-      { c: 51, r: 9, axis: "x", dist: 4, speed: 1.2, w: 3 },
-      { c: 73, r: 9, axis: "y", dist: 1.5, speed: 1.1, w: 3 },
-      { c: 111, r: 9, axis: "x", dist: 3, speed: 1.35, w: 3 },
-      { c: 127, r: 9, axis: "y", dist: 1.5, speed: 1.2, w: 3 },
+      { c: 15, r: 10, axis: "x", dist: 3, speed: 1.2, w: 3 },
+      { c: 33, r: 8, axis: "x", dist: 3, speed: 1.25, w: 3 },
+      { c: 75, r: 6, axis: "x", dist: 3, speed: 1.3, w: 3 },
+      { c: 117, r: 8, axis: "y", dist: 1.5, speed: 1.2, w: 3 },
+      { c: 141, r: 9, axis: "x", dist: 3, speed: 1.35, w: 3 },
     ],
   };
 }
@@ -389,86 +448,69 @@ function world5(): LevelDef {
 /* ------------------------------------------------ World 6 ------------------------------------------------ */
 function world6(): LevelDef {
   const g = new Grid(180);
-  // Floating sky islands high above the clouds with bottomless abyss
-  g.ground(0, 18);
-  g.ground(24, 38);
-  g.ground(44, 62);
-  g.ground(68, 86);
-  g.ground(92, 108);
-  g.ground(114, 134);
-  g.ground(142, 158);
-  g.ground(164, 179);
+  // Pure aerial cloud islands - no ground floor at 11-13 (fall into open sky!)
+  // Island 1: entrance cloud (row 9-10)
+  g.fill(0, 18, 9, 10, "#");
+  g.put(3, 8, "P");
+  g.row(6, 9, 7, "o");
+  g.put(11, 6, "?"); g.put(12, 6, "Q"); g.put(13, 6, "?");
+  g.put(16, 8, "w");
 
-  // Cloud Spring Pads for leaping across vast aerial gaps
-  g.put(34, 10, "S");
-  g.put(80, 10, "S");
-  g.put(152, 10, "S");
+  // Sky leap 1 over open sky to Cloud Tower 1 (elevated at row 7-8)
+  g.row(19, 21, 8, "="); g.row(19, 21, 6, "o");
+  g.fill(24, 34, 7, 8, "#");
+  g.put(27, 5, "c");
+  g.put(31, 6, "b");
+  g.put(34, 6, "S"); // Cloud Spring Pad launching up to High Citadel!
 
-  // Player start
-  g.put(3, 10, "P");
-  g.row(6, 9, 9, "o");
-  g.put(10, 8, "?"); g.put(11, 8, "Q"); g.put(12, 8, "?");
-  g.put(15, 10, "w");
+  // High Cloud Citadel at row 4-5!
+  g.fill(39, 56, 4, 5, "#");
+  g.put(41, 3, "C"); // Checkpoint 1
+  g.put(45, 3, "s");
+  g.row(48, 50, 2, "?"); g.put(49, 2, "Q");
+  g.put(53, 3, "w");
+  g.put(54, 1, "f");
 
-  // Sky leap 1
-  g.row(19, 21, 9, "="); g.row(19, 21, 7, "o");
-  g.put(26, 10, "w"); g.put(29, 8, "c");
-  g.put(32, 10, "b");
-  g.row(34, 36, 8, "B"); g.put(35, 8, "?");
+  // Aerial descent via elevator mover down to Mid-Air Cloud Stepping Stones
+  g.fill(66, 76, 8, 9, "#");
+  g.put(70, 7, "s");
+  g.put(74, 7, "w");
+  // Secret High Roost at row 3 with extra Heart!
+  g.row(68, 72, 3, "="); g.put(70, 2, "H"); g.put(69, 2, "o"); g.put(71, 2, "o");
 
-  // Checkpoint 1
-  g.put(45, 10, "C");
-  // Moving platform gap at cols 39-43 bridged by mover
-  g.put(50, 10, "s");
-  g.put(53, 7, "o"); g.put(54, 6, "o"); g.put(55, 7, "o");
-  g.put(54, 4, "f");
-  g.put(58, 10, "w"); g.put(60, 10, "^"); g.put(61, 10, "^");
+  // Floating Sky Sanctuary at row 6-7
+  g.fill(90, 108, 6, 7, "#");
+  g.put(93, 5, "C"); // Checkpoint 2
+  g.put(96, 5, "b");
+  g.put(99, 3, "f");
+  g.put(101, 5, "^"); g.put(102, 5, "^");
+  g.put(105, 5, "w");
+  g.put(108, 5, "S"); // Cloud Spring Pad launching across the Grand Aerial Rift!
 
-  // High Aether Cloud Steps
-  g.row(63, 65, 8, "="); g.row(63, 65, 6, "o");
-  g.put(70, 10, "s");
-  g.put(73, 8, "B"); g.put(74, 8, "Q"); g.put(75, 8, "B");
-  g.put(78, 10, "b");
+  // Grand Sky Sanctum (rising cloud steps)
+  g.row(114, 117, 6, "="); g.row(114, 117, 4, "o");
+  g.fill(128, 142, 6, 7, "#");
+  g.put(131, 5, "s");
+  g.put(134, 3, "f");
+  g.put(136, 5, "b");
+  g.put(139, 5, "w");
 
-  // Secret High Roost with Heart
-  g.row(80, 84, 5, "="); g.put(82, 4, "H"); g.put(81, 4, "o"); g.put(83, 4, "o");
-  g.put(85, 3, "f");
-
-  // Aerial chasm with vertical mover
-  g.put(94, 10, "w"); g.put(98, 10, "s");
-  g.row(101, 104, 8, "="); g.row(101, 104, 7, "o");
-
-  // Checkpoint 2
-  g.put(115, 10, "C");
-  g.put(118, 10, "b");
-  g.put(121, 8, "?"); g.put(122, 8, "?");
-  g.put(125, 4, "f");
-  g.put(128, 10, "^"); g.put(129, 10, "^");
-  g.put(132, 10, "w");
-
-  // Sky bridges & movers
-  g.row(136, 139, 9, "="); g.row(136, 139, 7, "o");
-  g.put(144, 10, "s");
-  g.put(147, 8, "B"); g.put(148, 8, "?"); g.put(149, 8, "Q"); g.put(150, 8, "B");
-  g.put(153, 10, "b");
-  g.put(156, 4, "f");
-
-  // Stepping stones to the goal citadel
-  g.row(159, 161, 8, "="); g.row(160, 161, 6, "o");
-  g.put(165, 10, "#"); g.fill(167, 167, 9, 10, "#"); g.fill(169, 169, 8, 10, "#");
-  g.fill(171, 178, 7, 10, "#");
-  g.put(165, 9, "o"); g.put(167, 8, "o"); g.put(169, 7, "o");
-  g.put(172, 6, "o"); g.put(173, 6, "o");
-  g.put(175, 6, "G");
+  // Ascending Celestial Cloud Stairs to the Grand Sky Portal
+  g.fill(146, 152, 7, 8, "#"); g.put(148, 6, "o"); g.put(149, 6, "o");
+  g.fill(154, 160, 6, 7, "#"); g.put(156, 5, "o"); g.put(157, 5, "o");
+  g.fill(162, 168, 5, 6, "#"); g.put(164, 4, "o"); g.put(165, 4, "o");
+  g.fill(170, 179, 4, 5, "#");
+  g.put(172, 3, "o"); g.put(173, 3, "o");
+  g.put(175, 3, "G");
 
   return {
     name: "Aether Skyway", sub: "Cloudbound ruins above the storm", theme: "sky",
     time: 280, speed: 1.48, cols: 180, rows: g.done(),
     movers: [
-      { c: 39, r: 9, axis: "x", dist: 4, speed: 1.2, w: 3 },
-      { c: 87, r: 8, axis: "y", dist: 2, speed: 1.1, w: 3 },
-      { c: 137, r: 9, axis: "x", dist: 4, speed: 1.35, w: 3 },
-      { c: 160, r: 8, axis: "y", dist: 1.5, speed: 1.25, w: 3 },
+      { c: 20, r: 8, axis: "x", dist: 3, speed: 1.25, w: 3 },
+      { c: 58, r: 5, axis: "y", dist: 2.5, speed: 1.2, w: 3 },
+      { c: 80, r: 7, axis: "x", dist: 5, speed: 1.35, w: 3 },
+      { c: 120, r: 6, axis: "y", dist: 2.0, speed: 1.3, w: 3 },
     ],
   };
 }
@@ -476,102 +518,91 @@ function world6(): LevelDef {
 /* ------------------------------------------------ World 7 ------------------------------------------------ */
 function world7(): LevelDef {
   const g = new Grid(200);
-  // Cosmic void platforms with plasma seams
-  g.ground(0, 16);
-  g.ground(20, 36);
-  g.ground(42, 60);
-  g.ground(66, 84);
-  g.ground(90, 110);
-  g.ground(116, 136);
-  g.ground(142, 162);
-  g.ground(168, 199);
+  // Zero-G Cosmic Asteroid Belt - shattered space platforms over plasma seams (rows 12-13)
+  g.lava(16, 20);
+  g.lava(34, 38);
+  g.lava(54, 58);
+  g.lava(76, 80);
+  g.lava(98, 102);
+  g.lava(120, 124);
+  g.lava(144, 148);
+  g.lava(160, 164);
 
-  // Plasma/void seams
-  g.lava(17, 19);
-  g.lava(37, 41);
-  g.lava(61, 65);
-  g.lava(85, 89);
-  g.lava(111, 115);
-  g.lava(137, 141);
-  g.lava(163, 167);
+  // Asteroid Alpha (row 9)
+  g.fill(0, 15, 9, 10, "#");
+  g.put(3, 8, "P");
+  g.row(6, 8, 7, "o");
+  g.put(10, 6, "?"); g.put(11, 6, "Q"); g.put(12, 6, "?");
+  g.put(14, 8, "w");
 
-  // Cosmic Spring Launch Pad to Celestial Steps
-  g.put(162, 10, "S");
+  // Asteroid Beta (floats at row 6)
+  g.fill(21, 33, 6, 7, "#");
+  g.put(24, 5, "c");
+  g.put(28, 5, "s");
+  g.put(31, 5, "b");
 
-  // Player start
-  g.put(3, 10, "P");
-  g.row(6, 8, 9, "o");
-  g.put(10, 8, "?"); g.put(11, 8, "Q"); g.put(12, 8, "?");
-  g.put(14, 10, "w");
+  // Asteroid Gamma (High Space Orbit at row 4)
+  g.fill(39, 53, 4, 5, "#");
+  g.put(41, 3, "C"); // Checkpoint 1
+  g.put(45, 3, "^"); g.put(46, 3, "^");
+  g.put(49, 3, "s");
+  g.put(51, 1, "f");
+  g.put(52, 2, "Q");
 
-  // Asteroid jump 1
-  g.put(22, 10, "s");
-  g.row(25, 27, 9, "="); g.row(25, 27, 7, "o");
-  g.put(30, 8, "c");
-  g.put(33, 10, "b");
-  g.put(35, 8, "B"); g.put(36, 8, "?");
+  // Asteroid Delta (floating at row 7)
+  g.fill(59, 75, 7, 8, "#");
+  g.put(62, 6, "w");
+  g.put(66, 6, "b");
+  g.put(70, 6, "s");
+  g.put(73, 6, "^"); g.put(74, 6, "^");
+  // Hovering space beam with secret Heart
+  g.row(65, 69, 3, "="); g.put(67, 2, "H");
 
-  // Checkpoint 1
-  g.put(44, 10, "C");
-  g.put(47, 10, "^"); g.put(48, 10, "^");
-  g.put(51, 10, "s");
-  g.put(54, 4, "f");
-  g.put(57, 8, "Q");
+  // Asteroid Epsilon (floating at row 5)
+  g.fill(81, 97, 5, 6, "#");
+  g.put(84, 4, "s");
+  g.put(88, 4, "b");
+  g.put(91, 2, "f");
+  g.put(94, 4, "w");
 
-  // Orbital step bridges & Secret Heart 1
-  g.row(68, 70, 9, "="); g.row(69, 70, 7, "o");
-  g.put(72, 10, "w"); g.put(74, 10, "b");
-  g.row(76, 79, 6, "="); g.put(77, 5, "o"); g.put(78, 5, "H");
-  g.put(81, 10, "s");
-  g.put(83, 10, "^"); g.put(84, 10, "^");
+  // Asteroid Zeta (floating at row 8)
+  g.fill(103, 119, 8, 9, "#");
+  g.put(105, 7, "C"); // Checkpoint 2
+  g.put(109, 7, "b");
+  g.put(112, 7, "^"); g.put(113, 7, "^");
+  g.put(116, 7, "s");
 
-  // Deep void navigation
-  g.put(92, 10, "b");
-  g.put(95, 8, "B"); g.put(96, 8, "?"); g.put(97, 8, "B");
-  g.put(100, 4, "f");
-  g.put(103, 10, "w"); g.put(105, 10, "s");
-  g.row(107, 109, 9, "="); g.row(107, 109, 7, "o");
+  // Asteroid Eta (floating at row 5)
+  g.fill(125, 143, 5, 6, "#");
+  g.put(128, 3, "f");
+  g.put(131, 4, "s");
+  g.put(135, 4, "b");
+  g.put(139, 4, "w");
+  g.put(142, 4, "Q");
 
-  // Checkpoint 2
-  g.put(118, 10, "C");
-  g.put(121, 10, "b");
-  g.put(124, 8, "Q");
-  g.put(127, 10, "^"); g.put(128, 10, "^");
-  g.put(130, 4, "f");
-  g.put(134, 10, "s");
+  // Cosmic Spring Launcher Asteroid (row 7)
+  g.fill(149, 159, 7, 8, "#");
+  g.put(152, 6, "s");
+  g.put(158, 6, "S"); // Cosmic Spring Launch Pad!
 
-  // Cosmic gauntlet with dual flyers and tight hops
-  g.row(144, 146, 9, "="); g.row(144, 146, 7, "o");
-  g.put(148, 10, "b");
-  g.put(151, 8, "B"); g.put(152, 8, "?"); g.put(153, 8, "Q"); g.put(154, 8, "B");
-  g.put(154, 6, "H"); // Secret cache
-  g.put(157, 3, "f");
-  g.put(159, 10, "^"); g.put(160, 10, "^");
-  g.put(161, 10, "s");
-
-  // Ascending Celestial Pillars to the Grand Finale
-  g.row(170, 172, 9, "="); g.row(170, 172, 7, "o");
-  g.put(174, 10, "b");
-  g.put(178, 10, "#");
-  g.fill(180, 181, 9, 10, "#"); g.put(180, 8, "o"); g.put(181, 8, "o");
-  g.fill(183, 184, 8, 10, "#"); g.put(183, 7, "o"); g.put(184, 7, "o");
-  g.fill(186, 187, 7, 10, "#"); g.put(186, 6, "o"); g.put(187, 6, "o");
-  g.fill(189, 198, 6, 10, "#");
-
-  // Grand Cosmic Goal Shrine
-  g.put(190, 5, "o"); g.put(191, 5, "o"); g.put(192, 5, "o");
-  g.put(194, 5, "G");
+  // Celestial Steps leading up to the Grand Space Apex
+  g.fill(165, 171, 8, 9, "#"); g.put(167, 7, "o"); g.put(168, 7, "o");
+  g.fill(173, 179, 7, 8, "#"); g.put(175, 6, "o"); g.put(176, 6, "o");
+  g.fill(181, 187, 6, 7, "#"); g.put(183, 5, "o"); g.put(184, 5, "o");
+  g.fill(189, 199, 5, 6, "#");
+  g.put(191, 4, "o"); g.put(192, 4, "o");
+  g.put(195, 4, "G"); // Grand Cosmic Goal Shrine
 
   return {
     name: "Starfall Void", sub: "Cosmic gauntlet at the edge of space", theme: "cosmic",
     time: 260, speed: 1.58, cols: 200, rows: g.done(),
     movers: [
-      { c: 38, r: 9, axis: "x", dist: 3, speed: 1.3, w: 3 },
-      { c: 62, r: 9, axis: "x", dist: 3, speed: 1.35, w: 3 },
-      { c: 86, r: 8, axis: "y", dist: 2, speed: 1.2, w: 3 },
-      { c: 112, r: 9, axis: "x", dist: 3, speed: 1.4, w: 3 },
-      { c: 138, r: 8, axis: "y", dist: 2, speed: 1.3, w: 3 },
-      { c: 164, r: 9, axis: "x", dist: 3, speed: 1.5, w: 3 },
+      { c: 16, r: 7, axis: "x", dist: 3, speed: 1.35, w: 3 },
+      { c: 35, r: 5, axis: "y", dist: 2.0, speed: 1.25, w: 3 },
+      { c: 54, r: 6, axis: "x", dist: 3, speed: 1.4, w: 3 },
+      { c: 77, r: 5, axis: "y", dist: 2.0, speed: 1.3, w: 3 },
+      { c: 99, r: 7, axis: "x", dist: 3, speed: 1.45, w: 3 },
+      { c: 121, r: 5, axis: "y", dist: 2.0, speed: 1.35, w: 3 },
     ],
   };
 }

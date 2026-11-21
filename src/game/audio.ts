@@ -1,7 +1,7 @@
 /* Emberfox audio — everything synthesized with WebAudio. No external assets. */
 import { haptics } from "../lib/hapticsService";
 
-export type MusicTheme = "menu" | "meadow" | "cave" | "dunes" | "frost" | "forge" | "boss" | null;
+export type MusicTheme = "menu" | "meadow" | "cave" | "dunes" | "frost" | "forge" | "sky" | "cosmic" | "boss" | null;
 
 interface ThemeDef {
   tempo: number;
@@ -51,6 +51,18 @@ const THEMES: Record<string, ThemeDef> = {
     bass: [40,N,40,40, N,40,N,43, 45,N,45,N, 43,N,40,N, 40,N,40,40, N,40,N,43, 47,N,45,N, 43,N,40,N],
     lead: [64,N,N,67, N,N,71,N, N,67,N,N, 72,N,71,N, 64,N,N,67, N,N,71,N, 74,N,72,N, 71,N,67,N],
     hat: [1,N,1,N, 1,N,1,N, 1,N,1,N, 1,N,1,1, 1,N,1,N, 1,N,1,N, 1,N,1,N, 1,1,1,1],
+  },
+  sky: {
+    tempo: 142, leadType: "square", leadVol: 0.08, bassType: "triangle", bassVol: 0.32,
+    bass: [45,N,48,N, 52,N,48,N, 41,N,45,N, 48,N,45,N, 43,N,47,N, 50,N,47,N, 45,N,48,N, 52,N,55,N],
+    lead: [76,N,79,81, 84,N,81,79, 77,N,81,84, 88,N,84,81, 79,N,83,86, 88,N,86,83, 81,N,84,88, 89,N,88,84],
+    hat: [N,1,N,1, N,1,N,1, N,1,N,1, N,1,1,1, N,1,N,1, N,1,N,1, N,1,N,1, 1,1,1,1],
+  },
+  cosmic: {
+    tempo: 124, leadType: "sine", leadVol: 0.22, bassType: "triangle", bassVol: 0.35,
+    bass: [36,N,N,36, 43,N,N,43, 34,N,N,34, 41,N,N,41, 33,N,N,33, 40,N,N,40, 36,N,N,38, 43,N,48,N],
+    lead: [60,N,67,N, 72,N,75,N, 72,N,67,N, 70,N,74,N, 57,N,64,N, 69,N,72,N, 69,N,64,N, 67,N,72,N],
+    hat: [N,N,N,1, N,N,1,N, N,N,N,1, N,1,N,1, N,N,N,1, N,N,1,N, N,N,N,1, 1,N,1,1],
   },
   boss: {
     tempo: 158, leadType: "sawtooth", leadVol: 0.06, bassType: "square", bassVol: 0.16,
