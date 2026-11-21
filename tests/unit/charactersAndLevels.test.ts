@@ -38,22 +38,58 @@ describe('Characters & Levels Configuration', () => {
       }
     });
 
-    it('verifies World 5 contains the Magmor titan boss fight', () => {
-      const world5 = LEVELS[4];
-      expect(world5.hasBoss).toBe(true);
-      expect(world5.rows.some((row) => row.includes('z'))).toBe(true);
+    it('verifies escalating difficulty curve with strictly increasing level speeds', () => {
+      for (let i = 1; i < LEVELS.length; i++) {
+        expect(LEVELS[i].speed).toBeGreaterThan(LEVELS[i - 1].speed);
+      }
+      expect(LEVELS[0].speed).toBe(0.88);
+      expect(LEVELS[6].speed).toBe(1.58);
     });
 
-    it('verifies World 6 (Aether Skyway) and World 7 (Starfall Void) layouts', () => {
+    it('verifies unique per-world mechanics and distinct obstacle layouts', () => {
+      // World 1: Meadow beginner plains
+      expect(LEVELS[0].theme).toBe('meadow');
+      expect(THEMES[LEVELS[0].theme].icy).toBe(false);
+
+      // World 2: Crystal Hollow with ceiling stalactites
+      const world2 = LEVELS[1];
+      expect(world2.theme).toBe('cave');
+      expect(world2.rows.some((row) => row.includes('V'))).toBe(true);
+
+      // World 3: Ember Dunes with spring launch pads
+      const world3 = LEVELS[2];
+      expect(world3.theme).toBe('dunes');
+      expect(world3.rows.some((row) => row.includes('S'))).toBe(true);
+
+      // World 4: Frostbite Peaks with icy slide physics
+      const world4 = LEVELS[3];
+      expect(THEMES[world4.theme].icy).toBe(true);
+
+      // World 5: Magmor's Forge with volcanic fireball eruptions and boss fight
+      const world5 = LEVELS[4];
+      expect(world5.hasBoss).toBe(true);
+      expect(THEMES[world5.theme].hasEruptions).toBe(true);
+      expect(world5.rows.some((row) => row.includes('z'))).toBe(true);
+
+      // World 6: Aether Skyway with wind updrafts and spring clouds
       const world6 = LEVELS[5];
       expect(world6.name).toBe('Aether Skyway');
-      expect(world6.theme).toBe('sky');
-      expect(world6.rows.some((row) => row.includes('G'))).toBe(true);
+      expect(THEMES[world6.theme].windUpdraft).toBe(true);
+      expect(world6.rows.some((row) => row.includes('S'))).toBe(true);
 
+      // World 7: Starfall Void with cosmic zero-G, spring pads, and 6 orbital movers
       const world7 = LEVELS[6];
       expect(world7.name).toBe('Starfall Void');
-      expect(world7.theme).toBe('cosmic');
-      expect(world7.rows.some((row) => row.includes('G'))).toBe(true);
+      expect(THEMES[world7.theme].lowGravity).toBe(true);
+      expect(world7.rows.some((row) => row.includes('S'))).toBe(true);
+      expect(world7.movers.length).toBe(6);
+    });
+
+    it('verifies all 7 worlds have distinct names and themes', () => {
+      const names = new Set(LEVELS.map((l) => l.name));
+      const themes = new Set(LEVELS.map((l) => l.theme));
+      expect(names.size).toBe(7);
+      expect(themes.size).toBe(7);
     });
   });
 });

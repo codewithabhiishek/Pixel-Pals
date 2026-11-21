@@ -1256,13 +1256,13 @@ const WORLD_METADATA: Record<number, {
   icon: string;
   hazards: string[];
 }> = {
-  0: { biome: "MEADOW BIOME", icon: "🌿", hazards: ["Pitfalls", "Walkers"] },
-  1: { biome: "CRYSTAL CAVERN", icon: "💎", hazards: ["Spikes", "Flyers"] },
-  2: { biome: "SUNBAKED DUNES", icon: "🏜️", hazards: ["Quicksand", "Spikers"] },
-  3: { biome: "FROST PEAKS", icon: "❄️", hazards: ["Slippery Ice", "Bouncers"] },
-  4: { biome: "MAGMA FORGE", icon: "🌋", hazards: ["Lava", "Titan Boss"] },
-  5: { biome: "AETHER SKYWAY", icon: "☁️", hazards: ["Cloud Chasms", "Wind Lifts", "Flyers"] },
-  6: { biome: "STARFALL VOID", icon: "✨", hazards: ["Plasma Seams", "Asteroids", "Orbital Spikes"] },
+  0: { biome: "MEADOW BIOME", icon: "🌿", hazards: ["Rolling Hills", "Walkers", "Intro Pipes"] },
+  1: { biome: "CRYSTAL CAVERN", icon: "💎", hazards: ["Ceiling Stalactites", "Crystal Spikers", "Cave Bats"] },
+  2: { biome: "SUNBAKED DUNES", icon: "🏜️", hazards: ["Quicksand Chasms", "Spring Launchers", "Boingers"] },
+  3: { biome: "FROST PEAKS", icon: "❄️", hazards: ["Slippery Ice Physics", "Narrow Shelves", "Dive Flyers"] },
+  4: { biome: "MAGMA FORGE", icon: "🌋", hazards: ["Volcanic Fireballs", "Molten Lava Seas", "Titan Boss"] },
+  5: { biome: "AETHER SKYWAY", icon: "☁️", hazards: ["Wind Updrafts", "Infinite Abyss", "Cloud Springs"] },
+  6: { biome: "STARFALL VOID", icon: "✨", hazards: ["Cosmic Zero-G", "6 Orbital Movers", "Laser Spikes"] },
 };
 
 function LevelSelect(props: {
@@ -1394,6 +1394,21 @@ function LevelSelect(props: {
                     {th.icy && (
                       <span className="px-font text-[7px] text-[#9fe8ff] border-2 border-[#9fe8ff]/60 rounded px-1.5 py-0.5 bg-[#0b1f2c]/80">
                         ICY
+                      </span>
+                    )}
+                    {th.windUpdraft && (
+                      <span className="px-font text-[7px] text-[#70a1ff] border-2 border-[#70a1ff]/60 rounded px-1.5 py-0.5 bg-[#0b1f2c]/80">
+                        UPDRAFT
+                      </span>
+                    )}
+                    {th.lowGravity && (
+                      <span className="px-font text-[7px] text-[#00fff5] border-2 border-[#00fff5]/60 rounded px-1.5 py-0.5 bg-[#0b1f2c]/80">
+                        LOW-GRAV
+                      </span>
+                    )}
+                    {th.hasEruptions && (
+                      <span className="px-font text-[7px] text-[#ff8c3b] border-2 border-[#ff8c3b]/60 rounded px-1.5 py-0.5 bg-[#0b1f2c]/80">
+                        VOLCANIC
                       </span>
                     )}
                     {cleared ? (
@@ -1669,6 +1684,12 @@ function HelpModal(props: { onClose: () => void }) {
               </div>
               <div className="p-2.5 bg-[#071620]/60 rounded border border-[#1d4258]">
                 <strong className="text-gold">★ Combo Stomps:</strong> Stomping multiple foes in a row without touching the ground multiplies score exponentially (+100, +200, +400, +800)!
+              </div>
+              <div className="p-2.5 bg-[#071620]/60 rounded border border-[#1d4258]">
+                <strong className="text-gold">★ Spring Launch Pads:</strong> Golden coiled spring pads launch you into high aerial super-arcs over bottomless chasms and quicksand pits.
+              </div>
+              <div className="p-2.5 bg-[#071620]/60 rounded border border-[#1d4258]">
+                <strong className="text-gold">★ Environmental Biomes:</strong> Master slippery ice in Frostbite Peaks, buoyant updrafts in Aether Skyway, and floaty zero-G physics in Starfall Void!
               </div>
               <div className="p-2.5 bg-[#071620]/60 rounded border border-[#1d4258]">
                 <strong className="text-gold">★ Checkpoint Flags:</strong> Touch the mint star flags halfway through every level to secure your respawn point.

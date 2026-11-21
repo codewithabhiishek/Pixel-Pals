@@ -3,6 +3,7 @@
    #  solid block        B  brick            ?  coin block       Q  power (fruit) block
    =  one-way plank      ^  spikes (deadly)  ~  lava (deadly)    o  coin
    P  player start       C  checkpoint flag  G  goal flag        H  heart (extra life)
+   V  ceiling stalactite S  spring pad
    w  walker   f  flyer  s  spiker (no stomp) b  bouncer  c  pipe chomper  z  boss
 */
 
@@ -29,6 +30,9 @@ export interface Theme {
   skyline: "hills" | "cave" | "dunes" | "peaks" | "forge";
   sun: { color: string; y: number; size: number } | null;
   icy?: boolean;
+  windUpdraft?: boolean;
+  lowGravity?: boolean;
+  hasEruptions?: boolean;
   music: Exclude<MusicTheme, null | "menu" | "boss">;
 }
 
@@ -66,21 +70,21 @@ export const THEMES: Record<string, Theme> = {
     tile: "#4a2b30", tileDark: "#371f24", rim: "#a8553f",
     brick: "#5d353a", brickDark: "#452629", accent: "#ff8c3b", plat: "#7a4a45",
     pipe: "#7a3b30", pipeDark: "#57291f", glow: "#ff8c3b",
-    ambient: "ember", skyline: "forge", sun: null, icy: false, music: "forge",
+    ambient: "ember", skyline: "forge", sun: null, icy: false, hasEruptions: true, music: "forge",
   },
   sky: {
     sky: ["#3b5998", "#8b9dc3"], far: "#4a69bd", farAlt: "#6a89cc",
     tile: "#57606f", tileDark: "#2f3542", rim: "#70a1ff",
     brick: "#747d8c", brickDark: "#57606f", accent: "#eccc68", plat: "#7bed9f",
     pipe: "#2ed573", pipeDark: "#1e90ff", glow: "#70a1ff",
-    ambient: "cloud", skyline: "peaks", sun: { color: "#ffffff", y: 70, size: 55 }, icy: false, music: "meadow",
+    ambient: "cloud", skyline: "peaks", sun: { color: "#ffffff", y: 70, size: 55 }, icy: false, windUpdraft: true, music: "meadow",
   },
   cosmic: {
     sky: ["#0b0c10", "#1f2833"], far: "#1f1d36", farAlt: "#3f3351",
     tile: "#453c67", tileDark: "#2b2347", rim: "#e83a78",
     brick: "#584b7a", brickDark: "#372b53", accent: "#00fff5", plat: "#7e62a3",
     pipe: "#9b5de5", pipeDark: "#5c2b99", glow: "#00fff5",
-    ambient: "dust", skyline: "cave", sun: { color: "#e83a78", y: 90, size: 70 }, icy: false, music: "cave",
+    ambient: "dust", skyline: "cave", sun: { color: "#e83a78", y: 90, size: 70 }, icy: false, lowGravity: true, music: "cave",
   },
 };
 
@@ -166,7 +170,8 @@ function world1(): LevelDef {
 function world2(): LevelDef {
   const g = new Grid(150);
   g.fill(0, 149, 0, 1, "#");
-  [10, 35, 36, 70, 105, 130].forEach((c) => g.put(c, 2, "#"));
+  // Ceiling stalactites that punish careless high jumps throughout the cavern
+  [10, 21, 35, 36, 44, 45, 62, 70, 77, 92, 93, 105, 114, 130].forEach((c) => g.put(c, 2, "V"));
   g.ground(0, 22); g.ground(26, 46); g.ground(51, 70); g.ground(74, 96); g.ground(100, 122);
   // safe crystal stepping ledge in pit at 123-126
   g.ground(123, 126, 12);
@@ -205,7 +210,7 @@ function world2(): LevelDef {
   g.put(146, 9, "G");
   return {
     name: "Crystal Hollow", sub: "Glow-worm caverns run deep", theme: "cave",
-    time: 260, speed: 1.08, cols: 150, rows: g.done(),
+    time: 250, speed: 1.05, cols: 150, rows: g.done(),
     movers: [{ c: 123, r: 9, axis: "x", dist: 3, speed: 1.1, w: 3 }],
   };
 }
@@ -215,6 +220,12 @@ function world3(): LevelDef {
   const g = new Grid(164);
   g.ground(0, 18); g.ground(22, 40); g.ground(45, 66); g.ground(71, 92); g.ground(97, 118); g.ground(123, 140); g.ground(146, 163);
   g.lava(19, 21); g.lava(41, 44); g.lava(93, 96); g.lava(141, 145);
+  // Desert Spring Launch Pads over quicksand gaps
+  g.put(17, 10, "S");
+  g.put(40, 10, "S");
+  g.put(92, 10, "S");
+  g.put(140, 10, "S");
+
   g.put(3, 10, "P");
   g.row(6, 9, 9, "o");
   g.put(11, 8, "?"); g.put(12, 8, "Q"); g.put(13, 8, "?");
@@ -250,7 +261,7 @@ function world3(): LevelDef {
   g.put(159, 9, "G");
   return {
     name: "Ember Dunes", sub: "Sunset sands over molten seams", theme: "dunes",
-    time: 280, speed: 1.16, cols: 164, rows: g.done(),
+    time: 260, speed: 1.18, cols: 164, rows: g.done(),
     movers: [
       { c: 67, r: 9, axis: "x", dist: 3, speed: 1.15, w: 3 },
       { c: 119, r: 9, axis: "y", dist: 1.5, speed: 1.0, w: 3 },
@@ -305,7 +316,7 @@ function world4(): LevelDef {
   g.put(173, 9, "G");
   return {
     name: "Frostbite Peaks", sub: "Every step is a slide", theme: "frost",
-    time: 300, speed: 1.25, cols: 176, rows: g.done(),
+    time: 270, speed: 1.28, cols: 176, rows: g.done(),
     movers: [
       { c: 51, r: 9, axis: "x", dist: 4, speed: 1.2, w: 3 },
       { c: 73, r: 9, axis: "y", dist: 1.5, speed: 1.1, w: 3 },
@@ -365,7 +376,7 @@ function world5(): LevelDef {
   g.put(174, 10, "z");
   return {
     name: "Magmor's Forge", sub: "The Ember King awaits", theme: "forge",
-    time: 340, speed: 1.36, cols: 190, rows: g.done(), hasBoss: true,
+    time: 320, speed: 1.38, cols: 190, rows: g.done(), hasBoss: true,
     movers: [
       { c: 31, r: 9, axis: "x", dist: 3, speed: 1.3, w: 3 },
       { c: 53, r: 9, axis: "x", dist: 4, speed: 1.4, w: 3 },
@@ -378,7 +389,7 @@ function world5(): LevelDef {
 /* ------------------------------------------------ World 6 ------------------------------------------------ */
 function world6(): LevelDef {
   const g = new Grid(180);
-  // Floating sky islands high above the clouds
+  // Floating sky islands high above the clouds with bottomless abyss
   g.ground(0, 18);
   g.ground(24, 38);
   g.ground(44, 62);
@@ -387,6 +398,11 @@ function world6(): LevelDef {
   g.ground(114, 134);
   g.ground(142, 158);
   g.ground(164, 179);
+
+  // Cloud Spring Pads for leaping across vast aerial gaps
+  g.put(34, 10, "S");
+  g.put(80, 10, "S");
+  g.put(152, 10, "S");
 
   // Player start
   g.put(3, 10, "P");
@@ -447,7 +463,7 @@ function world6(): LevelDef {
 
   return {
     name: "Aether Skyway", sub: "Cloudbound ruins above the storm", theme: "sky",
-    time: 320, speed: 1.28, cols: 180, rows: g.done(),
+    time: 280, speed: 1.48, cols: 180, rows: g.done(),
     movers: [
       { c: 39, r: 9, axis: "x", dist: 4, speed: 1.2, w: 3 },
       { c: 87, r: 8, axis: "y", dist: 2, speed: 1.1, w: 3 },
@@ -478,6 +494,9 @@ function world7(): LevelDef {
   g.lava(111, 115);
   g.lava(137, 141);
   g.lava(163, 167);
+
+  // Cosmic Spring Launch Pad to Celestial Steps
+  g.put(162, 10, "S");
 
   // Player start
   g.put(3, 10, "P");
@@ -545,7 +564,7 @@ function world7(): LevelDef {
 
   return {
     name: "Starfall Void", sub: "Cosmic gauntlet at the edge of space", theme: "cosmic",
-    time: 360, speed: 1.4, cols: 200, rows: g.done(),
+    time: 260, speed: 1.58, cols: 200, rows: g.done(),
     movers: [
       { c: 38, r: 9, axis: "x", dist: 3, speed: 1.3, w: 3 },
       { c: 62, r: 9, axis: "x", dist: 3, speed: 1.35, w: 3 },

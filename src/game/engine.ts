@@ -120,6 +120,7 @@ export class Engine {
   private hitstop = 0;
   private camDip = 0;
   private rings: { x: number; y: number; t: number }[] = [];
+  private eruptionTimer = 2.5;
   private patterns: { ground: CanvasPattern | null; brick: CanvasPattern | null } = { ground: null, brick: null };
 
   constructor(canvas: HTMLCanvasElement, level: LevelDef, opts: EngineOpts) {
@@ -223,6 +224,7 @@ export class Engine {
     this.weather = [];
     this.rings = [];
     this.hitstop = 0;
+    this.eruptionTimer = 2.5;
     const p = this.p;
     p.vx = 0; p.vy = 0; p.power = 0; p.h = 38; p.invuln = 1.2;
     p.grounded = false; p.coyote = 0; p.onMover = -1; p.dir = 1;
@@ -249,6 +251,8 @@ export class Engine {
         else if (ch === "=") put(c, r, 5);
         else if (ch === "^") put(c, r, 6);
         else if (ch === "~") put(c, r, 7);
+        else if (ch === "S") put(c, r, 9);
+        else if (ch === "V") put(c, r, 10);
         else if (ch === "o") this.coinsOnMap.push({ x: c * T + T / 2, y: r * T + T / 2, taken: false });
         else if (ch === "H") this.hearts.push({ x: c * T + T / 2, y: r * T + T / 2, taken: false });
         else if (ch === "P") { this.p.x = c * T + 5; this.p.y = (r + 1) * T - this.p.h; this.respawn = { x: this.p.x, y: this.p.y }; }
@@ -293,22 +297,22 @@ export class Engine {
       base.w = lIdx === 0 ? 36 : 34;
       base.h = 28;
       base.y = (r + 1) * T - base.h;
-      base.speed = (lIdx === 0 ? 34 : lIdx === 1 ? 46 : lIdx === 2 ? 54 : 64) * mul;
+      base.speed = (lIdx === 0 ? 34 : lIdx === 1 ? 44 : lIdx === 2 ? 52 : lIdx === 3 ? 60 : lIdx === 4 ? 68 : lIdx === 5 ? 76 : 84) * mul;
       base.vx = -base.speed;
     }
     if (kind === "spiker") {
       base.w = 36; base.h = 26; base.y = (r + 1) * T - base.h;
-      base.speed = 40 * mul; base.vx = -base.speed;
+      base.speed = (36 + lIdx * 6) * mul; base.vx = -base.speed;
     }
     if (kind === "flyer") {
       base.w = 30; base.h = 24; base.y = r * T;
-      base.speed = (lIdx === 0 ? 0.95 : lIdx === 1 ? 1.3 : 1.55) * mul;
+      base.speed = (lIdx === 0 ? 0.95 : lIdx === 1 ? 1.25 : lIdx === 2 ? 1.45 : lIdx === 3 ? 1.65 : lIdx === 4 ? 1.85 : lIdx === 5 ? 2.05 : 2.25) * mul;
     }
     if (kind === "bouncer") {
       base.w = isMinion ? 24 : 32;
       base.h = isMinion ? 22 : 30;
       base.y = (r + 1) * T - base.h;
-      base.speed = (isMinion ? 65 : (lIdx <= 2 ? 72 : 94)) * mul;
+      base.speed = (isMinion ? 65 : (60 + lIdx * 7)) * mul;
       base.vx = -base.speed;
       base.timer = 1.0 + rnd(c) * 0.8;
     }
@@ -332,7 +336,7 @@ export class Engine {
     if (c < 0 || c >= this.cols) return true;
     if (r < 0 || r >= ROWS) return false;
     const t = this.grid[r * this.cols + c].t;
-    return t === 1 || t === 2 || t === 3 || t === 4 || t === 8;
+    return t === 1 || t === 2 || t === 3 || t === 4 || t === 8 || t === 9;
   }
   private oneWay(c: number, r: number): boolean {
     const cell = this.cell(c, r);
@@ -363,6 +367,34 @@ export class Engine {
       }
       if (this.timeLeft <= 0) { this.timeLeft = 0; this.killPlayer(); }
       this.updatePlayer(dt);
+
+      // World 5: Volcanic Fireball Eruptions from Lava Seams
+      if (this.theme.hasEruptions) {
+        this.eruptionTimer -= dt;
+        if (this.eruptionTimer <= 0) {
+          this.eruptionTimer = 2.6 + Math.random() * 1.6;
+          if (!this.boss || this.boss.mode === "sleep") {
+            const minC = Math.max(0, Math.floor((this.camX - 40) / TILE));
+            const maxC = Math.min(this.cols - 1, Math.ceil((this.camX + VIEW_W + 40) / TILE));
+            const lavaCols: number[] = [];
+            for (let c = minC; c <= maxC; c++) {
+              if (this.cell(c, 12)?.t === 7 || this.cell(c, 13)?.t === 7) lavaCols.push(c);
+            }
+            if (lavaCols.length > 0) {
+              const pickC = lavaCols[Math.floor(Math.random() * lavaCols.length)];
+              this.shots.push({
+                x: pickC * TILE + TILE / 2,
+                y: 12 * TILE,
+                vx: (Math.random() - 0.5) * 60,
+                vy: -(360 + Math.random() * 80),
+                kind: "arc",
+                life: 3.5,
+              });
+              this.dust(pickC * TILE + TILE / 2, 12 * TILE, 6, "#ff8c3b");
+            }
+          }
+        }
+      }
       // ambient coin sparkles
       this.sparkAcc += dt;
       if (this.sparkAcc > 0.11) {
@@ -467,8 +499,17 @@ export class Engine {
     const isApex = !p.grounded && Math.abs(p.vy) < 65;
     if (isApex) baseGrav *= 0.6;
 
+    // Environmental physics per theme
+    if (this.theme.windUpdraft) {
+      if (p.vy > 0) baseGrav *= 0.72; // Float softly down
+      else baseGrav *= 0.88; // Higher jump apex
+    } else if (this.theme.lowGravity) {
+      baseGrav *= 0.60; // Lunar floaty gravity
+      if (p.vy > 0) baseGrav *= 0.85;
+    }
+
     p.vy += baseGrav * dt;
-    p.vy = Math.min(p.vy, 720);
+    p.vy = Math.min(p.vy, this.theme.lowGravity ? 520 : 720);
 
     p.prevBottom = p.y + p.h;
 
@@ -561,6 +602,21 @@ export class Engine {
     if (p.vy >= 0) {
       const r = Math.floor((p.y + p.h) / TILE);
       for (let c = c0; c <= c1; c++) {
+        const cell = this.cell(c, r);
+        if (cell && cell.t === 9) {
+          // Spring launch pad super bounce!
+          p.y = r * TILE - p.h - 0.01;
+          p.vy = -760;
+          p.grounded = false;
+          p.coyote = 0;
+          this.combo = 0;
+          p.squash = 1.2;
+          cell.bump = 1;
+          this.audio.spring();
+          this.dust(c * TILE + TILE / 2, r * TILE, 6, "#ffd23f");
+          this.rings.push({ x: c * TILE + TILE / 2, y: r * TILE, t: 0 });
+          return;
+        }
         const solidHere = this.solid(c, r);
         const oneWayHere = this.oneWay(c, r) && this.dropTimer <= 0 && p.prevBottom <= r * TILE + 6;
         if (solidHere || oneWayHere) {
@@ -664,6 +720,11 @@ export class Engine {
           const top = r * TILE + 18;
           if (p.y + p.h > top && p.y < (r + 1) * TILE) { this.killPlayer(); return; }
         }
+        if (cell.t === 10) {
+          // Ceiling stalactite hanging down from roof
+          const bottom = r * TILE + 22;
+          if (p.y < bottom && p.y + p.h > r * TILE) { this.killPlayer(); return; }
+        }
       }
     }
   }
@@ -702,6 +763,7 @@ export class Engine {
     this.state = "play";
     this.stateTimer = 0;
     this.shots = [];
+    this.eruptionTimer = 2.5;
     this.timeLeft = this.level.time;
     this.camX = clamp(p.x - VIEW_W * 0.4, 0, this.levelWidth() - VIEW_W);
     this.camY = clamp(p.y - VIEW_H * 0.56, 0, Math.max(0, ROWS * TILE - VIEW_H));
@@ -1394,7 +1456,11 @@ export class Engine {
     this.popups = this.popups.filter((pp) => pp.life > 0);
     // weather wrap
     for (const w of this.weather) {
-      if (this.theme.ambient === "snow" || this.theme.ambient === "ember" || this.theme.ambient === "dust") {
+      if (this.theme.windUpdraft) {
+        w.y -= w.v * 1.5 * dt;
+        w.x += Math.sin(this.elapsed * 2.0 + w.y * 0.03) * 12 * dt;
+        if (w.y < -12) { w.y = VIEW_H + 8; w.x = Math.random() * VIEW_W * 1.4; }
+      } else if (this.theme.ambient === "snow" || this.theme.ambient === "ember" || this.theme.ambient === "dust") {
         w.y += (this.theme.ambient === "ember" || this.theme.ambient === "dust" ? -w.v * 0.5 : w.v) * dt;
         w.x += Math.sin(this.elapsed * 1.4 + w.y * 0.02) * 14 * dt;
         if (w.y > VIEW_H + 10) { w.y = -10; w.x = Math.random() * VIEW_W * 1.4; }
@@ -1683,6 +1749,24 @@ export class Engine {
   }
 
   private drawWeather(ctx: CanvasRenderingContext2D, th: Theme) {
+    if (th.windUpdraft) {
+      ctx.fillStyle = "rgba(220, 240, 255, 0.4)";
+      for (const w of this.weather) {
+        const x = w.x % (VIEW_W * 1.4);
+        ctx.fillRect(x, w.y, 2, w.s * 4);
+      }
+      return;
+    }
+    if (th.lowGravity) {
+      for (const w of this.weather) {
+        const x = w.x % (VIEW_W * 1.4);
+        ctx.fillStyle = w.s > 2 ? "rgba(0, 255, 245, 0.45)" : "rgba(232, 58, 120, 0.45)";
+        ctx.beginPath();
+        ctx.arc(x, w.y, w.s * 0.9, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
     const amb = th.ambient;
     if (amb === "cloud") return;
     for (const w of this.weather) {
@@ -1832,6 +1916,48 @@ export class Engine {
           ctx.fillStyle = lg;
           ctx.fillRect(x - 14, y - 30, T + 28, 44);
           ctx.globalCompositeOperation = "source-over";
+        } else if (cell.t === 9) {
+          // Spring launch pad
+          const compressed = cell.bump > 0;
+          const padTop = compressed ? y + T - 12 : y + T - 20;
+          ctx.fillStyle = "#2d3748";
+          ctx.fillRect(x + 4, y + T - 8, T - 8, 8);
+          ctx.strokeStyle = "#1a202c";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x + 4, y + T - 8, T - 8, 8);
+          // Coiled spring
+          ctx.strokeStyle = "#ffd23f";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          const midX = x + T / 2;
+          ctx.moveTo(midX - 8, y + T - 8);
+          ctx.lineTo(midX + 8, y + T - 12);
+          ctx.lineTo(midX - 8, y + T - 15);
+          ctx.lineTo(midX + 8, padTop + 4);
+          ctx.stroke();
+          // Launch cap
+          ctx.fillStyle = "#ff5722";
+          rr(ctx, x + 6, padTop, T - 12, 6, 2);
+          ctx.fill();
+          ctx.strokeStyle = "#ffd23f";
+          ctx.lineWidth = 1.5;
+          rr(ctx, x + 6, padTop, T - 12, 6, 2);
+          ctx.stroke();
+        } else if (cell.t === 10) {
+          // Crystal stalactite hanging from cavern ceiling
+          ctx.fillStyle = th.accent ?? "#7be0c3";
+          ctx.strokeStyle = th.rim ?? "#5fd0c0";
+          ctx.lineWidth = 2;
+          for (let i = 0; i < 3; i++) {
+            const sx = x + 3 + i * 12.5;
+            ctx.beginPath();
+            ctx.moveTo(sx, y);
+            ctx.lineTo(sx + 6, y + 22);
+            ctx.lineTo(sx + 12, y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
         }
       }
     }
